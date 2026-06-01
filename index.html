@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolBox - Free Online Tools</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #050505; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-up {
+            opacity: 0;
+            animation: fadeUp 0.6s ease-out forwards;
+        }
+        .delay-1 { animation-delay: 0.08s; }
+        .delay-2 { animation-delay: 0.16s; }
+        .delay-3 { animation-delay: 0.24s; }
+        .delay-4 { animation-delay: 0.32s; }
+        .delay-5 { animation-delay: 0.40s; }
+        .delay-6 { animation-delay: 0.48s; }
+        .delay-7 { animation-delay: 0.56s; }
+        .delay-8 { animation-delay: 0.64s; }
+
+        .tool-card:hover .tool-icon-wrap {
+            background: rgba(59,130,246,0.15);
+            border-color: rgba(59,130,246,0.3);
+        }
+        .tool-card:hover .tool-arrow {
+            transform: translateX(4px);
+            opacity: 1;
+        }
+        .tool-card:hover {
+            border-color: rgba(255,255,255,0.1);
+            background: rgba(23,23,23,0.6);
+        }
+
+        .category-btn.active {
+            background: rgba(59,130,246,0.15);
+            border-color: rgba(59,130,246,0.4);
+            color: #60a5fa;
+        }
+
+        .search-glow:focus {
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.3);
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.07;
+            pointer-events: none;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+    </style>
+</head>
+<body class="text-white min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 h-16 bg-[#050505]/80 backdrop-blur-xl border-b border-white/5">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="text-lg font-semibold tracking-tight">Tool<span class="text-blue-400">Box</span></span>
+            </a>
+
+            <div class="hidden md:flex items-center gap-1">
+                <a href="index.html" class="px-4 py-2 rounded-lg text-sm font-medium text-white bg-white/5 flex items-center gap-2">
+                    <i data-lucide="home" class="w-4 h-4"></i> Home
+                </a>
+                <a href="#toolsGrid" class="px-4 py-2 rounded-lg text-sm font-medium text-neutral-400 hover:text-white hover:bg-white/5 transition-all flex items-center gap-2">
+                    <i data-lucide="grid-3x3" class="w-4 h-4"></i> All Tools
+                </a>
+            </div>
+
+            <div class="relative hidden sm:block">
+                <i data-lucide="search" class="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input id="searchInput" type="text" placeholder="Search tools..."
+                       oninput="handleSearch(this.value)"
+                       class="search-glow bg-neutral-900 border border-white/5 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/30 transition-all w-48 focus:w-64">
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+
+        <!-- HERO -->
+        <section class="relative overflow-hidden py-24 md:py-32">
+            <div class="hero-glow bg-blue-500 top-0 left-1/2 -translate-x-1/2 -translate-y-1/3"></div>
+            <div class="hero-glow bg-purple-500 bottom-0 right-0 translate-x-1/3"></div>
+
+            <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
+                <div class="animate-fade-up">
+                    <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium mb-8">
+                        <i data-lucide="zap" class="w-3 h-3"></i>
+                        Free Online Tools — No Signup Required
+                    </div>
+                </div>
+                <h1 class="animate-fade-up delay-1 text-4xl md:text-7xl font-medium tracking-tight leading-[1.1] mb-6">
+                    All Your <span class="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Essential Tools</span><br>
+                    In One Place
+                </h1>
+                <p class="animate-fade-up delay-2 text-neutral-400 text-lg md:text-xl font-light max-w-2xl mx-auto mb-10 leading-relaxed">
+                    Compress videos, remove backgrounds, convert files and more — right in your browser. Fast, free, and privacy-first.
+                </p>
+                <div class="animate-fade-up delay-3 flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#toolsGrid"
+                       class="h-12 px-8 bg-white text-black rounded-lg text-sm font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2">
+                        Explore Tools <i data-lucide="arrow-down" class="w-4 h-4"></i>
+                    </a>
+                    <button onclick="filterCategory('video')"
+                            class="h-12 px-8 bg-neutral-900 border border-white/10 rounded-lg text-sm font-medium text-neutral-300 hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i> Video Tools
+                    </button>
+                </div>
+
+                <div class="animate-fade-up delay-4 mt-16 flex justify-center gap-12 md:gap-20">
+                    <div class="text-center">
+                        <div id="toolCount" class="text-2xl md:text-3xl font-semibold text-white">0</div>
+                        <div class="text-xs text-neutral-500 mt-1">Tools</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl md:text-3xl font-semibold text-white">100%</div>
+                        <div class="text-xs text-neutral-500 mt-1">Free</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl md:text-3xl font-semibold text-white">0</div>
+                        <div class="text-xs text-neutral-500 mt-1">Data Stored</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CATEGORY FILTER -->
+        <section class="max-w-7xl mx-auto px-6 mb-8">
+            <div id="categoryBar" class="flex flex-wrap gap-2"></div>
+        </section>
+
+        <!-- TOOLS GRID -->
+        <section class="max-w-7xl mx-auto px-6 pb-24">
+            <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            <div id="noResults" class="hidden text-center py-20">
+                <i data-lucide="search-x" class="w-12 h-12 text-neutral-600 mx-auto mb-4"></i>
+                <p class="text-neutral-400 text-lg">No tools found</p>
+                <p class="text-neutral-600 text-sm mt-1">Try a different search term</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/5 bg-[#030303]">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center">
+                        <i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold">Tool<span class="text-blue-400">Box</span></span>
+                </div>
+                <p class="text-neutral-600 text-xs">All tools run locally in your browser. No data is uploaded.</p>
+                <p class="text-neutral-600 text-xs">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // =============================================
+    //  🔧 TOOLS LIST — NAYA TOOL ADD KARNE KE LIYE
+    //  Bas yahan ek object add karo!
+    // =============================================
+    const tools = [
+        {
+            name: 'Video Compress',
+            description: 'Reduce video file size without losing quality. Supports MP4, WebM, MOV.',
+            category: 'video',
+            icon: 'file-video',
+            color: 'blue',
+            file: 'tools/video-compress.html',
+            tags: ['compress', 'reduce', 'size', 'mp4']
+        },
+        {
+            name: 'Video Transparent',
+            description: 'Make video backgrounds transparent. Remove green screen or solid colors.',
+            category: 'video',
+            icon: 'layers',
+            color: 'purple',
+            file: 'tools/video-transparent.html',
+            tags: ['transparent', 'alpha', 'green screen', 'chroma']
+        },
+        {
+            name: 'Video Trim',
+            description: 'Cut and trim video clips to the exact length you need.',
+            category: 'video',
+            icon: 'scissors',
+            color: 'green',
+            file: 'tools/video-trim.html',
+            tags: ['trim', 'cut', 'clip', 'split']
+        },
+        {
+            name: 'Image Compress',
+            description: 'Optimize images for the web. Compress PNG, JPG, WebP up to 80%.',
+            category: 'image',
+            icon: 'image',
+            color: 'cyan',
+            file: 'tools/image-compress.html',
+            tags: ['compress', 'optimize', 'png', 'jpg']
+        },
+        {
+            name: 'Background Remover',
+            description: 'Remove backgrounds from images instantly with AI edge detection.',
+            category: 'image',
+            icon: 'eraser',
+            color: 'violet',
+            file: 'tools/background-remover.html',
+            tags: ['background', 'remove', 'cutout', 'transparent']
+        },
+        {
+            name: 'Audio Converter',
+            description: 'Convert audio between MP3, WAV, OGG, AAC and more formats.',
+            category: 'audio',
+            icon: 'music',
+            color: 'amber',
+            file: 'tools/audio-converter.html',
+            tags: ['convert', 'audio', 'mp3', 'wav']
+        },
+        {
+            name: 'PDF Merge',
+            description: 'Merge multiple PDF files into one. Reorder pages before combining.',
+            category: 'document',
+            icon: 'file-text',
+            color: 'red',
+            file: 'tools/pdf-merge.html',
+            tags: ['pdf', 'merge', 'combine', 'document']
+        },
+        {
+            name: 'QR Code Generator',
+            description: 'Generate QR codes for URLs, text, WiFi. Download as SVG or PNG.',
+            category: 'utility',
+            icon: 'qr-code',
+            color: 'emerald',
+            file: 'tools/qr-generator.html',
+            tags: ['qr', 'code', 'generate', 'scan']
+        },
+        {
+            name: 'Color Picker',
+            description: 'Pick colors from images or palette. Get HEX, RGB, HSL values.',
+            category: 'utility',
+            icon: 'palette',
+            color: 'rose',
+            file: 'tools/color-picker.html',
+            tags: ['color', 'picker', 'hex', 'rgb']
+        },
+        {
+            name: 'JSON Formatter',
+            description: 'Format, validate and beautify JSON data with tree view.',
+            category: 'developer',
+            icon: 'braces',
+            color: 'yellow',
+            file: 'tools/json-formatter.html',
+            tags: ['json', 'format', 'validate', 'beautify']
+        },
+        {
+            name: 'Image Resize',
+            description: 'Resize images to any dimension. Maintain aspect ratio or crop.',
+            category: 'image',
+            icon: 'maximize',
+            color: 'pink',
+            file: 'tools/image-resize.html',
+            tags: ['resize', 'scale', 'dimension', 'crop']
+        },
+        {
+            name: 'Video Merge',
+            description: 'Combine multiple video clips into one seamless video.',
+            category: 'video',
+            icon: 'combine',
+            color: 'orange',
+            file: 'tools/video-merge.html',
+            tags: ['merge', 'join', 'combine', 'concatenate']
+        }
+    ];
+
+    const categories = [
+        { id: 'all', label: 'All Tools', icon: 'grid-3x3' },
+        { id: 'video', label: 'Video', icon: 'play-circle' },
+        { id: 'image', label: 'Image', icon: 'image' },
+        { id: 'audio', label: 'Audio', icon: 'music' },
+        { id: 'document', label: 'Document', icon: 'file-text' },
+        { id: 'utility', label: 'Utility', icon: 'lightbulb' },
+        { id: 'developer', label: 'Developer', icon: 'code' }
+    ];
+
+    const colorMap = {
+        blue:    { bg:'rgba(59,130,246,0.1)',  border:'rgba(59,130,246,0.2)',  text:'#60a5fa' },
+        purple:  { bg:'rgba(168,85,247,0.1)',  border:'rgba(168,85,247,0.2)',  text:'#c084fc' },
+        green:   { bg:'rgba(34,197,94,0.1)',   border:'rgba(34,197,94,0.2)',   text:'#4ade80' },
+        orange:  { bg:'rgba(249,115,22,0.1)',  border:'rgba(249,115,22,0.2)',  text:'#fb923c' },
+        cyan:    { bg:'rgba(6,182,212,0.1)',   border:'rgba(6,182,212,0.2)',   text:'#22d3ee' },
+        pink:    { bg:'rgba(236,72,153,0.1)',  border:'rgba(236,72,153,0.2)',  text:'#f472b6' },
+        violet:  { bg:'rgba(139,92,246,0.1)',  border:'rgba(139,92,246,0.2)',  text:'#a78bfa' },
+        amber:   { bg:'rgba(245,158,11,0.1)',  border:'rgba(245,158,11,0.2)',  text:'#fbbf24' },
+        red:     { bg:'rgba(239,68,68,0.1)',   border:'rgba(239,68,68,0.2)',   text:'#f87171' },
+        emerald: { bg:'rgba(16,185,129,0.1)',  border:'rgba(16,185,129,0.2)',  text:'#34d399' },
+        rose:    { bg:'rgba(244,63,94,0.1)',   border:'rgba(244,63,94,0.2)',   text:'#fb7185' },
+        yellow:  { bg:'rgba(234,179,8,0.1)',   border:'rgba(234,179,8,0.2)',   text:'#facc15' }
+    };
+
+    let currentCategory = 'all';
+    let currentSearch = '';
+
+    function renderCategories() {
+        const bar = document.getElementById('categoryBar');
+        bar.innerHTML = categories.map(cat => `
+            <button onclick="filterCategory('${cat.id}')"
+                    class="category-btn px-4 py-2 rounded-lg text-xs font-medium border transition-all flex items-center gap-2
+                           ${currentCategory === cat.id
+                               ? 'active'
+                               : 'bg-neutral-900/50 border-white/5 text-neutral-400 hover:text-white hover:border-white/10'}">
+                <i data-lucide="${cat.icon}" class="w-3.5 h-3.5"></i>
+                ${cat.label}
+            </button>
+        `).join('');
+        lucide.createIcons();
+    }
+
+    function getFilteredTools() {
+        return tools.filter(tool => {
+            const matchCat = currentCategory === 'all' || tool.category === currentCategory;
+            const matchSearch = !currentSearch ||
+                tool.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                tool.description.toLowerCase().includes(currentSearch.toLowerCase()) ||
+                tool.tags.some(t => t.toLowerCase().includes(currentSearch.toLowerCase()));
+            return matchCat && matchSearch;
+        });
+    }
+
+    function renderTools() {
+        const grid = document.getElementById('toolsGrid');
+        const noResults = document.getElementById('noResults');
+        const filtered = getFilteredTools();
+
+        if (filtered.length === 0) {
+            grid.innerHTML = '';
+            noResults.classList.remove('hidden');
+            return;
+        }
+        noResults.classList.add('hidden');
+
+        grid.innerHTML = filtered.map((tool, i) => {
+            const c = colorMap[tool.color] || colorMap.blue;
+            const d = `delay-${(i % 8) + 1}`;
+            return `
+                <a href="${tool.file}" class="animate-fade-up ${d} tool-card group block rounded-2xl border border-white/5 bg-neutral-900/30 p-6 transition-all duration-300">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="tool-icon-wrap w-12 h-12 rounded-xl border flex items-center justify-center transition-all duration-300"
+                             style="background:${c.bg}; border-color:${c.border}">
+                            <i data-lucide="${tool.icon}" class="w-5 h-5" style="color:${c.text}"></i>
+                        </div>
+                        <i data-lucide="arrow-right" class="tool-arrow w-5 h-5 text-neutral-600 opacity-0 transition-all duration-300 mt-1"></i>
+                    </div>
+                    <h3 class="text-base font-medium text-white mb-2 tracking-tight">${tool.name}</h3>
+                    <p class="text-sm text-neutral-500 font-light leading-relaxed line-clamp-2">${tool.description}</p>
+                    <div class="mt-4">
+                        <span class="text-[10px] font-medium uppercase tracking-wider px-2 py-0.5 rounded-md"
+                              style="background:${c.bg}; color:${c.text}; border:1px solid ${c.border}">
+                            ${tool.category}
+                        </span>
+                    </div>
+                </a>
+            `;
+        }).join('');
+
+        lucide.createIcons();
+        document.getElementById('toolCount').textContent = tools.length;
+    }
+
+    function filterCategory(catId) {
+        currentCategory = catId;
+        renderCategories();
+        renderTools();
+        const el = document.getElementById('toolsGrid');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function handleSearch(value) {
+        currentSearch = value;
+        renderTools();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCategories();
+        renderTools();
+        lucide.createIcons();
+    });
+    </script>
+
+</body>
+</html>

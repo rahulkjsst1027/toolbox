@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Chroma Key Tool</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FIX: all.min.css — ye correct hai, font-awesome.min.css GALAT hai -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        :root {
+            --bg: #0b0f19; --bg2: #151b2e; --card: #1a2235;
+            --border: #2a3550; --fg: #f0f4ff; --muted: #94a3c8;
+            --accent: #00e5a0; --accent2: #00c9ff; --danger: #ff4d6a;
+            --warn: #ff9500;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Space Grotesk', sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; overflow-x: hidden; }
+        .bg-glow { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .bg-glow::before { content: ''; position: absolute; width: 600px; height: 600px; top: -200px; left: -100px; background: radial-gradient(circle, rgba(0,229,160,0.08) 0%, transparent 70%); animation: floatBlob 12s ease-in-out infinite; }
+        .bg-glow::after { content: ''; position: absolute; width: 500px; height: 500px; bottom: -150px; right: -100px; background: radial-gradient(circle, rgba(0,201,255,0.06) 0%, transparent 70%); animation: floatBlob 15s ease-in-out infinite reverse; }
+        @keyframes floatBlob { 0%, 100% { transform: translate(0, 0) scale(1); } 33% { transform: translate(80px, 60px) scale(1.1); } 66% { transform: translate(-40px, 30px) scale(0.95); } }
+
+        .app-container { position: relative; z-index: 1; max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; }
+        header { text-align: center; padding: 30px 0 20px; }
+        header h1 { font-size: clamp(24px, 4vw, 38px); font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 8px; }
+        header p { color: var(--muted); font-size: 14px; line-height: 1.6; }
+
+        .upload-zone { border: 2px dashed var(--border); border-radius: 16px; padding: 40px 30px; text-align: center; cursor: pointer; transition: all 0.3s ease; background: var(--card); }
+        .upload-zone:hover { border-color: var(--accent); background: #1e2a42; }
+        .upload-zone i { font-size: 40px; color: var(--accent); margin-bottom: 12px; display: block; }
+        .upload-zone h3 { font-size: 18px; font-weight: 600; margin-bottom: 6px; color: var(--fg); }
+        .upload-zone span { color: var(--muted); font-size: 13px; }
+        .upload-zone .browse-btn { display: inline-block; margin-top: 14px; padding: 10px 24px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #0b0f19; font-weight: 700; border-radius: 8px; font-size: 13px; }
+
+        .workspace { display: none; margin-top: 24px; gap: 20px; }
+        .workspace.active { display: grid; grid-template-columns: 1fr 380px; animation: fadeUp 0.5s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .preview-wrapper { position: relative; border-radius: 14px; overflow: hidden; background-image: linear-gradient(45deg, #1e2a42 25%, transparent 25%), linear-gradient(-45deg, #1e2a42 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #1e2a42 75%), linear-gradient(-45deg, transparent 75%, #1e2a42 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; background-color: #0f1628; border: 1px solid var(--border); aspect-ratio: 16/9; }
+        .preview-wrapper canvas { width: 100%; height: 100%; display: block; object-fit: contain; }
+        .preview-label { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--accent); border: 1px solid rgba(0,229,160,0.2); }
+        .view-toggle { position: absolute; top: 12px; right: 12px; display: flex; gap: 4px; }
+        .view-btn { background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); border: 1px solid var(--border); color: var(--muted); padding: 5px 14px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .view-btn.active { background: var(--accent); color: #0b0f19; border-color: var(--accent); }
+
+        .controls-panel { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 6px; height: fit-content; max-height: 94vh; overflow-y: auto; }
+        .controls-panel::-webkit-scrollbar { width: 5px; }
+        .controls-panel::-webkit-scrollbar-track { background: var(--bg2); border-radius: 3px; }
+        .controls-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; cursor: pointer; border-bottom: 1px solid var(--border); user-select: none; }
+        .section-header:hover { border-bottom-color: var(--accent); }
+        .section-header h3 { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; color: var(--fg); }
+        .section-header h3 i { color: var(--accent); font-size: 14px; }
+        .section-header .chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+        .section-header.open .chevron { transform: rotate(180deg); }
+        .section-body { padding: 12px 0 4px; display: none; flex-direction: column; gap: 14px; }
+        .section-body.open { display: flex; }
+
+        .control-group { display: flex; flex-direction: column; gap: 8px; }
+        .control-label-row { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; }
+        .control-label-row span { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        .control-val { font-size: 14px; font-weight: 700; color: var(--accent); min-width: 30px; text-align: right; }
+        .slider-wrap { display: flex; align-items: center; gap: 10px; }
+        input[type="range"] { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--bg); outline: none; cursor: pointer; border: 1px solid var(--border); }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; box-shadow: 0 0 8px rgba(0,229,160,0.4); border: 2px solid #0b0f19; }
+
+        .color-row { display: flex; align-items: center; gap: 8px; }
+        .color-input-wrap { position: relative; width: 42px; height: 42px; border-radius: 8px; overflow: hidden; border: 2px solid var(--accent); flex-shrink: 0; box-shadow: 0 0 10px rgba(0,229,160,0.15); }
+        .color-input-wrap input[type="color"] { position: absolute; inset: -6px; width: 54px; height: 54px; cursor: pointer; border: none; background: none; }
+        .color-hex { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--fg); font-family: 'Space Grotesk', monospace; font-size: 14px; font-weight: 500; }
+        .color-hex:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 8px rgba(0,229,160,0.15); }
+
+        .picker-btn { width: 100%; padding: 12px 16px; background: linear-gradient(135deg, rgba(0,229,160,0.1), rgba(0,201,255,0.08)); border: 2px solid var(--accent); border-radius: 10px; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 10px; transition: all 0.25s; color: var(--accent); font-weight: 700; font-size: 14px; letter-spacing: 0.3px; }
+        .picker-btn i { font-size: 18px; }
+        .picker-btn .picker-label { pointer-events: none; }
+        .picker-btn:hover { background: linear-gradient(135deg, rgba(0,229,160,0.2), rgba(0,201,255,0.15)); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,160,0.2); }
+        .picker-btn.active { background: var(--accent); color: #0b0f19; border-color: var(--accent); box-shadow: 0 0 24px rgba(0,229,160,0.4); animation: pickerPulse 1.5s ease-in-out infinite; }
+        .picker-btn.active i { color: #0b0f19; }
+        @keyframes pickerPulse { 0%, 100% { box-shadow: 0 0 16px rgba(0,229,160,0.4); } 50% { box-shadow: 0 0 32px rgba(0,229,160,0.6); } }
+
+        .preset-colors { display: flex; gap: 8px; flex-wrap: wrap; }
+        .preset-swatch { width: 34px; height: 34px; border-radius: 8px; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .preset-swatch:hover { transform: scale(1.15); }
+        .preset-swatch.active { border-color: #ffffff; box-shadow: 0 0 12px rgba(255,255,255,0.3); }
+        .preset-swatch.green { background: #00b140; } .preset-swatch.blue { background: #0057b8; } .preset-swatch.white { background: #ffffff; } .preset-swatch.black { background: #1a1a1a; border: 3px solid #444; } .preset-swatch.black.active { border-color: #fff; } .preset-swatch.red { background: #ff0033; }
+
+        .mode-toggle { display: flex; background: var(--bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+        .mode-btn { flex: 1; padding: 8px 12px; background: transparent; color: var(--muted); border: none; font-family: inherit; font-weight: 700; font-size: 12px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .mode-btn.active { background: var(--accent); color: #0b0f19; }
+
+        .btn-primary { padding: 12px 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #0b0f19; font-weight: 700; font-size: 13px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; width: 100%; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,229,160,0.3); }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-webm { background: linear-gradient(135deg, #ff9500, #ff5e3a); color: #ffffff; }
+        .btn-webm:hover { box-shadow: 0 6px 24px rgba(255,149,0,0.3); }
+        .btn-secondary { padding: 10px 16px; background: var(--bg); color: var(--fg); font-weight: 600; font-size: 12px; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; transition: all 0.2s; }
+        .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-row { display: flex; gap: 8px; }
+
+        /* === VIDEO CONTROLS - BIG PLAY/PAUSE === */
+        .video-controls { display: flex; align-items: center; gap: 10px; padding: 12px 0 0; border-top: 1px solid var(--border); margin-top: 6px; }
+        .play-btn { width: 44px; height: 44px; border-radius: 50%; background: var(--accent); color: #0b0f19; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; font-weight: 900; transition: all 0.2s; box-shadow: 0 0 12px rgba(0,229,160,0.3); }
+        .play-btn:hover { transform: scale(1.15); box-shadow: 0 0 24px rgba(0,229,160,0.5); background: #00ffb3; }
+        .play-btn:active { transform: scale(0.95); }
+        .progress-bar { flex: 1; height: 5px; background: var(--bg); border-radius: 3px; cursor: pointer; overflow: hidden; border: 1px solid var(--border); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 3px; width: 0%; }
+        .time-label { font-size: 13px; color: var(--fg); font-weight: 700; min-width: 42px; text-align: right; }
+
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--card); border: 1px solid var(--accent); color: var(--fg); padding: 14px 28px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 999; backdrop-filter: blur(12px); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; gap: 10px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); max-width: 90vw; }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        .processing-overlay { display: none; position: fixed; inset: 0; background: rgba(11,15,25,0.92); backdrop-filter: blur(10px); z-index: 100; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+        .processing-overlay.active { display: flex; }
+        .processing-spinner { width: 50px; height: 50px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .processing-text { font-size: 15px; font-weight: 600; color: var(--fg); }
+        .processing-progress { width: 280px; height: 5px; background: var(--bg); border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
+        .processing-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); width: 0%; border-radius: 3px; transition: width 0.3s; }
+
+        .guide-section { margin-top: 40px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+        .guide-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 26px; transition: all 0.3s; }
+        .guide-card:hover { border-color: var(--accent); box-shadow: 0 4px 24px rgba(0,229,160,0.08); }
+        .guide-card h3 { font-size: 17px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 10px; color: var(--fg); }
+        .guide-card h3 i { font-size: 20px; }
+        .icon-green { color: var(--accent) !important; }
+        .icon-blue { color: var(--accent2) !important; }
+        .icon-orange { color: var(--warn) !important; }
+        .guide-list { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+        .guide-list li { font-size: 13px; color: #b8c5e0; line-height: 1.8; display: flex; gap: 12px; align-items: flex-start; }
+        .guide-list li b { color: var(--fg); }
+        .step { min-width: 24px; height: 24px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; flex-shrink: 0; }
+        .step-green { background: rgba(0,229,160,0.15); color: var(--accent); }
+        .step-blue { background: rgba(0,201,255,0.15); color: var(--accent2); }
+        .step-orange { background: rgba(255,149,0,0.15); color: var(--warn); }
+        .format-tag { display: inline-block; padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; margin: 3px; }
+        .tag-input { background: rgba(0,229,160,0.12); color: var(--accent); border: 1px solid rgba(0,229,160,0.25); }
+        .tag-output { background: rgba(0,201,255,0.12); color: var(--accent2); border: 1px solid rgba(0,201,255,0.25); }
+        .tag-best { background: rgba(255,149,0,0.12); color: var(--warn); border: 1px solid rgba(255,149,0,0.25); }
+
+        @media (max-width: 860px) { .workspace.active { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="app-container">
+    <header>
+        <h1>Pro Chroma Key Tool</h1>
+        <p>Video ka background transparent karo — Professional Grade Keying</p>
+    </header>
+
+    <div class="upload-zone" id="uploadZone">
+        <i class="fa-solid fa-film"></i>
+        <h3>Video Yahan Drop Karo</h3>
+        <div class="browse-btn">File Choose Karo</div>
+        <input type="file" id="fileInput" accept="video/*" style="display:none">
+    </div>
+
+    <div class="workspace" id="workspace">
+        <div>
+            <div class="preview-wrapper">
+                <canvas id="outputCanvas"></canvas>
+                <div class="preview-label"><i class="fa-solid fa-eye"></i> PREVIEW</div>
+                <div class="view-toggle">
+                    <button class="view-btn active" id="viewComposite">Composite</button>
+                    <button class="view-btn" id="viewMatte">Alpha Matte</button>
+                </div>
+            </div>
+            <div class="video-controls">
+                <button class="play-btn" id="playBtn" aria-label="Play Pause">
+                    <i class="fa-solid fa-play" id="playIcon"></i>
+                </button>
+                <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+                <span class="time-label" id="timeLabel">0:00</span>
+            </div>
+        </div>
+
+        <div class="controls-panel">
+            <div>
+                <div class="section-header open" data-section="color"><h3><i class="fa-solid fa-palette"></i> Color Selection</h3><i class="fa-solid fa-chevron-down chevron"></i></div>
+                <div class="section-body open" id="sec-color">
+                    <div class="color-row">
+                        <div class="color-input-wrap"><input type="color" id="chromaColor" value="#00b140"></div>
+                        <input type="text" class="color-hex" id="colorHex" value="#00b140" maxlength="7">
+                    </div>
+                    <button class="picker-btn" id="pickerBtn"><i class="fa-solid fa-eye-dropper"></i><span class="picker-label">Click to Pick Color from Video</span></button>
+                    <div class="preset-colors">
+                        <div class="preset-swatch green active" data-color="#00b140" title="Green Screen"></div>
+                        <div class="preset-swatch blue" data-color="#0057b8" title="Blue Screen"></div>
+                        <div class="preset-swatch white" data-color="#ffffff" title="White BG"></div>
+                        <div class="preset-swatch black" data-color="#111111" title="Black BG"></div>
+                        <div class="preset-swatch red" data-color="#ff0033" title="Red BG"></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="section-header open" data-section="keying"><h3><i class="fa-solid fa-key"></i> Keying Mode</h3><i class="fa-solid fa-chevron-down chevron"></i></div>
+                <div class="section-body open" id="sec-keying">
+                    <div class="mode-toggle"><button class="mode-btn active" id="modeRGB">RGB (Fast)</button><button class="mode-btn" id="modeHSL">HSL (Pro)</button></div>
+                    <div id="rgbControls"><div class="control-group"><div class="control-label-row"><span>Tolerance</span><span class="control-val" id="toleranceValue">35</span></div><div class="slider-wrap"><input type="range" id="tolerance" min="5" max="150" value="35"></div></div></div>
+                    <div id="hslControls" style="display:none">
+                        <div class="control-group"><div class="control-label-row"><span>Hue Range</span><span class="control-val" id="hueRangeValue">25</span></div><div class="slider-wrap"><input type="range" id="hueRange" min="1" max="180" value="25"></div></div>
+                        <div class="control-group"><div class="control-label-row"><span>Saturation Min</span><span class="control-val" id="satMinValue">35</span></div><div class="slider-wrap"><input type="range" id="satMin" min="0" max="80" value="35"></div></div>
+                        <div class="control-group"><div class="control-label-row"><span>Lightness Min</span><span class="control-val" id="lumMinValue">15</span></div><div class="slider-wrap"><input type="range" id="lumMin" min="0" max="50" value="15"></div></div>
+                        <div class="control-group"><div class="control-label-row"><span>Lightness Max</span><span class="control-val" id="lumMaxValue">85</span></div><div class="slider-wrap"><input type="range" id="lumMax" min="50" max="100" value="85"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="section-header" data-section="edge"><h3><i class="fa-solid fa-vector-square"></i> Edge & Spill</h3><i class="fa-solid fa-chevron-down chevron"></i></div>
+                <div class="section-body" id="sec-edge">
+                    <div class="control-group"><div class="control-label-row"><span>Edge Softness</span><span class="control-val" id="softnessValue">5</span></div><div class="slider-wrap"><input type="range" id="softness" min="0" max="50" value="5"></div></div>
+                    <div class="control-group"><div class="control-label-row"><span>Spill Amount</span><span class="control-val" id="spillFixValue">40</span></div><div class="slider-wrap"><input type="range" id="spillFix" min="0" max="100" value="40"></div></div>
+                    <div class="control-group"><div class="control-label-row"><span>Spill Desat</span><span class="control-val" id="spillDesatValue">25</span></div><div class="slider-wrap"><input type="range" id="spillDesat" min="0" max="100" value="25"></div></div>
+                </div>
+            </div>
+            <div>
+                <div class="section-header open" data-section="export"><h3><i class="fa-solid fa-download"></i> Export</h3><i class="fa-solid fa-chevron-down chevron"></i></div>
+                <div class="section-body open" id="sec-export">
+                    <button class="btn-primary" id="downloadFrameBtn"><i class="fa-solid fa-image"></i> Current Frame PNG</button>
+                    <button class="btn-primary" id="exportPngSeqBtn" style="margin-top:6px"><i class="fa-solid fa-file-zipper"></i> PNG Sequence ZIP</button>
+                    <button class="btn-primary btn-webm" id="exportWebMBtn" style="margin-top:6px"><i class="fa-solid fa-video"></i> Transparent WebM</button>
+                </div>
+            </div>
+            <div class="btn-row" style="margin-top:8px">
+                <button class="btn-secondary" id="resetBtn"><i class="fa-solid fa-rotate-left"></i> Reset All</button>
+                <button class="btn-secondary" id="newVideoBtn"><i class="fa-solid fa-rotate-right"></i> Naya Video</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <div class="guide-card">
+            <h3><i class="fa-solid fa-upload icon-green"></i> Supported Input Formats</h3>
+            <ul class="guide-list">
+                <li><span class="step step-green">MP4</span> Sabse best — H.264 codec, har browser mein chalta hai</li>
+                <li><span class="step step-green">WebM</span> VP8/VP9 codec — Chrome aur Firefox mein best</li>
+                <li><span class="step step-green">MOV</span> QuickTime — Chrome mein mostly kaam karta hai</li>
+                <li><span class="step step-green">AVI</span> Limited support — MP4 convert karke use karo</li>
+            </ul>
+            <div style="margin-top:14px"><span class="format-tag tag-input">MP4</span><span class="format-tag tag-input">WebM</span><span class="format-tag tag-input">MOV</span></div>
+        </div>
+        <div class="guide-card">
+            <h3><i class="fa-solid fa-download icon-blue"></i> Supported Output Formats</h3>
+            <ul class="guide-list">
+                <li><span class="step step-blue">PNG</span> Single frame — 100% transparent, har editor mein kaam karega</li>
+                <li><span class="step step-blue">ZIP</span> PNG Sequence — Saare frames, Premiere/AE mein import karo</li>
+                <li><span class="step step-blue">WebM</span> Transparent video — Chrome/Edge mein kaam karta hai</li>
+            </ul>
+            <div style="margin-top:14px"><span class="format-tag tag-output">PNG</span><span class="format-tag tag-output">ZIP</span><span class="format-tag tag-output">WebM</span><span class="format-tag tag-best">Best: ZIP</span></div>
+        </div>
+        <div class="guide-card">
+            <h3><i class="fa-solid fa-wand-magic-sparkles icon-orange"></i> Color Pick Guide</h3>
+            <ul class="guide-list">
+                <li><span class="step step-orange">1</span> <b>Pick Color</b> button dabao neeche green button hai</li>
+                <li><span class="step step-orange">2</span> Video ke <b>pure background</b> pe click karo color pick karne ke liye</li>
+                <li><span class="step step-orange">3</span> <b>RGB mode</b> mein <b>Tolerance</b> badhao jab tak background hat jaaye</li>
+                <li><span class="step step-orange">4</span> <b>Alpha Matte</b> view check karo — Safed = dikhega, Kala = gayab</li>
+                <li><span class="step step-orange">5</span> Agar lighting uneven ho, <b>HSL mode</b> try karo</li>
+                <li><span class="step step-orange">6</span> <b>Spill Desat</b> slider se green/blue halo hatao</li>
+                <li><span class="step step-orange">7</span> <b>Preset swatches</b> se ek click mein color select karo</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"><i class="fa-solid fa-check-circle"></i><span id="toastText"></span></div>
+<div class="processing-overlay" id="processingOverlay"><div class="processing-spinner"></div><div class="processing-text" id="processingText">Processing...</div><div class="processing-progress"><div class="processing-progress-fill" id="processingFill"></div></div></div>
+<video id="sourceVideo" style="display:none" crossorigin="anonymous" playsinline muted></video>
+
+<script>
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const workspace = document.getElementById('workspace');
+    const sourceVideo = document.getElementById('sourceVideo');
+    const outputCanvas = document.getElementById('outputCanvas');
+    const ctx = outputCanvas.getContext('2d', { willReadFrequently: true });
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
+    const progressFill = document.getElementById('progressFill');
+    const timeLabel = document.getElementById('timeLabel');
+    const chromaColorInput = document.getElementById('chromaColor');
+    const colorHexInput = document.getElementById('colorHex');
+    const pickerBtn = document.getElementById('pickerBtn');
+    const downloadFrameBtn = document.getElementById('downloadFrameBtn');
+    const exportPngSeqBtn = document.getElementById('exportPngSeqBtn');
+    const exportWebMBtn = document.getElementById('exportWebMBtn');
+    const newVideoBtn = document.getElementById('newVideoBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const toast = document.getElementById('toast');
+    const toastText = document.getElementById('toastText');
+    const processingOverlay = document.getElementById('processingOverlay');
+    const processingText = document.getElementById('processingText');
+    const processingFill = document.getElementById('processingFill');
+
+    let isPlaying = false, animFrameId = null, pickerActive = false, videoLoaded = false, cancelExport = false;
+    let currentView = 'composite', keyMode = 'rgb', lastFrameTime = 0;
+    const TARGET_FPS = 24;
+
+    const modeRGB = document.getElementById('modeRGB');
+    const modeHSL = document.getElementById('modeHSL');
+    const rgbControls = document.getElementById('rgbControls');
+    const hslControls = document.getElementById('hslControls');
+    const viewComposite = document.getElementById('viewComposite');
+    const viewMatte = document.getElementById('viewMatte');
+    const toleranceSlider = document.getElementById('tolerance');
+    const hueRangeSlider = document.getElementById('hueRange');
+    const satMinSlider = document.getElementById('satMin');
+    const lumMinSlider = document.getElementById('lumMin');
+    const lumMaxSlider = document.getElementById('lumMax');
+    const softnessSlider = document.getElementById('softness');
+    const spillFixSlider = document.getElementById('spillFix');
+    const spillDesatSlider = document.getElementById('spillDesat');
+    const defaults = { tolerance: 35, hueRange: 25, satMin: 35, lumMin: 15, lumMax: 85, softness: 5, spillFix: 40, spillDesat: 25, color: '#00b140' };
+
+    // Accordion
+    document.querySelectorAll('.section-header').forEach(h => { h.addEventListener('click', () => { h.classList.toggle('open'); h.nextElementSibling.classList.toggle('open'); }); });
+    modeRGB.addEventListener('click', () => { keyMode = 'rgb'; modeRGB.classList.add('active'); modeHSL.classList.remove('active'); rgbControls.style.display = 'flex'; hslControls.style.display = 'none'; processFrame(); });
+    modeHSL.addEventListener('click', () => { keyMode = 'hsl'; modeHSL.classList.add('active'); modeRGB.classList.remove('active'); hslControls.style.display = 'flex'; rgbControls.style.display = 'none'; processFrame(); });
+    viewComposite.addEventListener('click', () => { currentView = 'composite'; viewComposite.classList.add('active'); viewMatte.classList.remove('active'); processFrame(); });
+    viewMatte.addEventListener('click', () => { currentView = 'matte'; viewMatte.classList.add('active'); viewComposite.classList.remove('active'); processFrame(); });
+
+    resetBtn.addEventListener('click', () => {
+        toleranceSlider.value = defaults.tolerance; document.getElementById('toleranceValue').textContent = defaults.tolerance;
+        hueRangeSlider.value = defaults.hueRange; document.getElementById('hueRangeValue').textContent = defaults.hueRange;
+        satMinSlider.value = defaults.satMin; document.getElementById('satMinValue').textContent = defaults.satMin;
+        lumMinSlider.value = defaults.lumMin; document.getElementById('lumMinValue').textContent = defaults.lumMin;
+        lumMaxSlider.value = defaults.lumMax; document.getElementById('lumMaxValue').textContent = defaults.lumMax;
+        softnessSlider.value = defaults.softness; document.getElementById('softnessValue').textContent = defaults.softness;
+        spillFixSlider.value = defaults.spillFix; document.getElementById('spillFixValue').textContent = defaults.spillFix;
+        spillDesatSlider.value = defaults.spillDesat; document.getElementById('spillDesatValue').textContent = defaults.spillDesat;
+        chromaColorInput.value = defaults.color; colorHexInput.value = defaults.color; updateSwatches(defaults.color);
+        keyMode = 'rgb'; modeRGB.classList.add('active'); modeHSL.classList.remove('active');
+        rgbControls.style.display = 'flex'; hslControls.style.display = 'none';
+        pickerActive = false; pickerBtn.classList.remove('active');
+        pickerBtn.querySelector('.picker-label').textContent = 'Click to Pick Color from Video';
+        outputCanvas.style.cursor = 'default';
+        processFrame(); showToast('Settings reset ho gaye!');
+    });
+
+    async function saveFileLocally(blob, suggestedName, desc, ext) {
+        if (window.showSaveFilePicker) { try { const h = await window.showSaveFilePicker({ suggestedName, types: [{ description: desc, accept: { [blob.type]: ext } }] }); const w = await h.createWritable(); await w.write(blob); await w.close(); showToast('Saved: ' + suggestedName); return true; } catch (e) { if (e.name === 'AbortError') return false; } }
+        try { const u = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = u; a.download = suggestedName; a.style.display = 'none'; document.body.appendChild(a); a.click(); setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(u); }, 500); showToast('Download: ' + suggestedName); return true; } catch (e) { showToast('Save fail!', true); return false; }
+    }
+
+    function hexToRgb(hex) { const r = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex); return r ? { r: parseInt(r[1], 16), g: parseInt(r[2], 16), b: parseInt(r[3], 16) } : { r: 0, g: 177, b: 64 }; }
+    function fastHue(r, g, b) { const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min; if (d < 15) return -1; if (max === r) return 60 * (((g - b) / d) % 6); if (max === g) return 60 * ((b - r) / d + 2); return 60 * ((r - g) / d + 4); }
+    function fastSatLum(r, g, b) { const max = Math.max(r, g, b), min = Math.min(r, g, b); const l = (max + min) / 2; if (max === min) return { s: 0, l: l / 2.55 }; const d = max - min; const s = (l > 127 ? d / (510 - max - min) : d / (max + min)) * 100; return { s, l: l / 2.55 }; }
+    function hueDist(h1, h2) { if (h1 < 0 || h2 < 0) return 999; const d = Math.abs(h1 - h2); return Math.min(d, 360 - d); }
+
+    // Upload
+    uploadZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => { if (e.target.files.length > 0) loadVideo(e.target.files[0]); });
+    uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', (e) => { e.preventDefault(); uploadZone.classList.remove('drag-over'); if (e.dataTransfer.files.length > 0) loadVideo(e.dataTransfer.files[0]); });
+
+    function loadVideo(file) {
+        if (!file.type.startsWith('video/')) { showToast('Ye video file nahi hai!', true); return; }
+        sourceVideo.src = URL.createObjectURL(file); sourceVideo.muted = true; sourceVideo.load();
+        sourceVideo.onloadedmetadata = () => {
+            outputCanvas.width = sourceVideo.videoWidth; outputCanvas.height = sourceVideo.videoHeight;
+            uploadZone.style.display = 'none'; workspace.classList.add('active'); videoLoaded = true;
+            sourceVideo.currentTime = 0;
+            sourceVideo.onseeked = () => { processFrame(); sourceVideo.onseeked = null; };
+            showToast('Video load ho gaya! Green Pick Color button se background color pick karo');
+        };
+    }
+
+    // === PLAY/PAUSE - FIXED WITH SEPARATE ICON ELEMENT ===
+    playBtn.addEventListener('click', togglePlay);
+
+    function togglePlay() {
+        if (!videoLoaded) return;
+        if (isPlaying) {
+            sourceVideo.pause(); isPlaying = false;
+            playIcon.className = 'fa-solid fa-play';
+            cancelAnimationFrame(animFrameId);
+        } else {
+            sourceVideo.play(); isPlaying = true;
+            playIcon.className = 'fa-solid fa-pause';
+            lastFrameTime = 0; renderLoop(0);
+        }
+    }
+
+    function renderLoop(timestamp) {
+        if (!isPlaying) return;
+        if (timestamp - lastFrameTime >= 1000 / TARGET_FPS) {
+            processFrame(); progressFill.style.width = (sourceVideo.currentTime / sourceVideo.duration) * 100 + '%';
+            const m = Math.floor(sourceVideo.currentTime / 60), s = Math.floor(sourceVideo.currentTime % 60);
+            timeLabel.textContent = `${m}:${s.toString().padStart(2, '0')}`; lastFrameTime = timestamp;
+        }
+        if (sourceVideo.ended) {
+            isPlaying = false;
+            playIcon.className = 'fa-solid fa-play';
+            processFrame(); return;
+        }
+        animFrameId = requestAnimationFrame(renderLoop);
+    }
+
+    document.getElementById('progressBar').addEventListener('click', (e) => { if (!videoLoaded) return; const rect = e.currentTarget.getBoundingClientRect(); sourceVideo.currentTime = ((e.clientX - rect.left) / rect.width) * sourceVideo.duration; processFrame(); });
+
+    // Chroma Key
+    function processFrame() {
+        if (!videoLoaded) return;
+        ctx.clearRect(0, 0, outputCanvas.width, outputCanvas.height);
+        ctx.drawImage(sourceVideo, 0, 0, outputCanvas.width, outputCanvas.height);
+        const imageData = ctx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+        const data = imageData.data;
+        const targetRgb = hexToRgb(chromaColorInput.value);
+        const targetHue = fastHue(targetRgb.r, targetRgb.g, targetRgb.b);
+        const soft = parseInt(softnessSlider.value), spillAmt = parseInt(spillFixSlider.value) / 100, spillDesat = parseInt(spillDesatSlider.value) / 100;
+        const isMatteView = currentView === 'matte', isRgbMode = keyMode === 'rgb';
+        const tol = parseInt(toleranceSlider.value), hRange = parseInt(hueRangeSlider.value), sMin = parseInt(satMinSlider.value), lMin = parseInt(lumMinSlider.value), lMax = parseInt(lumMaxSlider.value);
+        const tR = targetRgb.r, tG = targetRgb.g, tB = targetRgb.b;
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i], g = data[i+1], b = data[i+2]; let alphaValue = 255;
+            if (isRgbMode) { const dist = Math.sqrt((r-tR)**2 + (g-tG)**2 + (b-tB)**2); if (dist < tol) alphaValue = 0; else if (soft > 0 && dist < tol + soft) alphaValue = Math.min(255, Math.round(((dist - tol) / soft) * 255)); }
+            else { const pxSL = fastSatLum(r, g, b); if (pxSL.s < sMin) alphaValue = 255; else if (pxSL.l < lMin || pxSL.l > lMax) alphaValue = 255; else { const maxC = Math.max(r, g, b), minC = Math.min(r, g, b); if (maxC - minC < 20) alphaValue = 255; else { const pxHue = fastHue(r, g, b); if (pxHue >= 0 && hueDist(pxHue, targetHue) < hRange) { const hD = hueDist(pxHue, targetHue) / hRange; if (hD < 0.65) alphaValue = 0; else if (soft > 0) { const eP = Math.min(1, (hD - 0.65) / (0.35 * soft / 50)); alphaValue = Math.min(255, Math.round(eP * 255)); } } } }
+            }
+            data[i + 3] = alphaValue;
+            if (alphaValue > 0 && alphaValue < 255 && (spillAmt > 0 || spillDesat > 0)) {
+                const f = (1 - alphaValue / 255); let nR = r, nG = g, nB = b;
+                if (spillAmt > 0) { const s = f * spillAmt; nR = Math.min(255, Math.max(0, r + (r - tR) * s * 0.5)); nG = Math.min(255, Math.max(0, g + (g - tG) * s * 0.5)); nB = Math.min(255, Math.max(0, b + (b - tB) * s * 0.5)); }
+                if (spillDesat > 0) { const gray = (nR * 77 + nG * 150 + nB * 29) >> 8; const d = f * spillDesat; nR = nR + (gray - nR) * d; nG = nG + (gray - nG) * d; nB = nB + (gray - nB) * d; }
+                data[i] = nR; data[i+1] = nG; data[i+2] = nB;
+            }
+            if (isMatteView) { data[i] = alphaValue; data[i+1] = alphaValue; data[i+2] = alphaValue; data[i+3] = 255; }
+        }
+        ctx.putImageData(imageData, 0, 0);
+    }
+
+    // Controls
+    chromaColorInput.addEventListener('input', (e) => { colorHexInput.value = e.target.value; updateSwatches(e.target.value); processFrame(); });
+    chromaColorInput.addEventListener('change', (e) => { if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) { chromaColorInput.value = e.target.value; updateSwatches(e.target.value); processFrame(); } });
+    const swatches = document.querySelectorAll('.preset-swatch');
+    swatches.forEach(sw => sw.addEventListener('click', () => { chromaColorInput.value = sw.dataset.color; colorHexInput.value = sw.dataset.color; updateSwatches(sw.dataset.color); processFrame(); }));
+    function updateSwatches(c) { swatches.forEach(sw => sw.classList.toggle('active', sw.dataset.color.toLowerCase() === c.toLowerCase())); }
+    [{ s: toleranceSlider, v: document.getElementById('toleranceValue') }, { s: hueRangeSlider, v: document.getElementById('hueRangeValue') }, { s: satMinSlider, v: document.getElementById('satMinValue') }, { s: lumMinSlider, v: document.getElementById('lumMinValue') }, { s: lumMaxSlider, v: document.getElementById('lumMaxValue') }, { s: softnessSlider, v: document.getElementById('softnessValue') }, { s: spillFixSlider, v: document.getElementById('spillFixValue') }, { s: spillDesatSlider, v: document.getElementById('spillDesatValue') }].forEach(({ s, v }) => { s.addEventListener('input', () => { v.textContent = s.value; processFrame(); }); });
+
+    // Picker
+    pickerBtn.addEventListener('click', () => {
+        if (!videoLoaded) { showToast('Pehle video load karo!', true); return; }
+        pickerActive = !pickerActive; pickerBtn.classList.toggle('active', pickerActive);
+        outputCanvas.style.cursor = pickerActive ? 'crosshair' : 'default';
+        pickerBtn.querySelector('.picker-label').textContent = pickerActive ? 'Now Click on Video...' : 'Click to Pick Color from Video';
+        if (pickerActive) showToast('Ab video ke background pe click karo!');
+    });
+    outputCanvas.addEventListener('click', (e) => {
+        if (!pickerActive || !videoLoaded) return;
+        const rect = outputCanvas.getBoundingClientRect();
+        const x = Math.floor((e.clientX - rect.left) * (outputCanvas.width / rect.width));
+        const y = Math.floor((e.clientY - rect.top) * (outputCanvas.height / rect.height));
+        const tc = document.createElement('canvas'); tc.width = outputCanvas.width; tc.height = outputCanvas.height;
+        const tctx = tc.getContext('2d'); tctx.drawImage(sourceVideo, 0, 0, outputCanvas.width, outputCanvas.height);
+        const p = tctx.getImageData(x, y, 1, 1).data;
+        const hex = '#' + [p[0], p[1], p[2]].map(v => v.toString(16).padStart(2, '0')).join('');
+        chromaColorInput.value = hex; colorHexInput.value = hex; updateSwatches(hex);
+        pickerActive = false; pickerBtn.classList.remove('active');
+        pickerBtn.querySelector('.picker-label').textContent = 'Click to Pick Color from Video';
+        outputCanvas.style.cursor = 'default'; processFrame(); showToast('Color pick hua: ' + hex);
+    });
+
+    // Exports
+    downloadFrameBtn.addEventListener('click', async () => { if (!videoLoaded) return; processFrame(); const blob = await new Promise(resolve => outputCanvas.toBlob(resolve, 'image/png')); if (blob) await saveFileLocally(blob, 'transparent_frame.png', 'PNG Image', ['.png']); });
+    exportPngSeqBtn.addEventListener('click', async () => {
+        if (!videoLoaded || typeof JSZip === 'undefined') return; cancelExport = false; exportPngSeqBtn.disabled = true; exportWebMBtn.disabled = true; downloadFrameBtn.disabled = true;
+        processingOverlay.classList.add('active'); processingText.textContent = 'PNG Sequence bana raha hai...'; processingFill.style.width = '0%';
+        try { const zip = new JSZip(); const fps = 10; const duration = sourceVideo.duration; const totalFrames = Math.min(Math.floor(duration * fps), 300); const frameStep = 1 / fps; const prevView = currentView; currentView = 'composite';
+            for (let i = 0; i < totalFrames; i++) { if (cancelExport) break; sourceVideo.currentTime = i * frameStep; await new Promise((r) => { const s = () => { sourceVideo.removeEventListener('seeked', s); r(); }; sourceVideo.addEventListener('seeked', s); setTimeout(r, 500); }); await new Promise(r => setTimeout(r, 50)); processFrame(); const base64 = outputCanvas.toDataURL('image/png').split(',')[1]; if (base64) zip.file('frame_' + String(i+1).padStart(5, '0') + '.png', base64, { base64: true }); processingFill.style.width = ((i+1)/totalFrames)*90 + '%'; processingText.textContent = `Frame ${i+1} / ${totalFrames}...`; }
+            currentView = prevView; processFrame(); if (cancelExport) { showToast('Cancel ho gaya.', true); return; } processingText.textContent = 'ZIP bana raha hai...'; const zipBlob = await zip.generateAsync({ type: 'blob' }); await saveFileLocally(zipBlob, 'Transparent_PNG_Sequence.zip', 'ZIP Archive', ['.zip']);
+        } catch (err) { showToast('Error: ' + err.message, true); } finally { processingOverlay.classList.remove('active'); exportPngSeqBtn.disabled = false; exportWebMBtn.disabled = false; downloadFrameBtn.disabled = false; }
+    });
+    exportWebMBtn.addEventListener('click', async () => {
+        if (!videoLoaded || typeof MediaRecorder === 'undefined') return; cancelExport = false; exportPngSeqBtn.disabled = true; exportWebMBtn.disabled = true; downloadFrameBtn.disabled = true;
+        processingOverlay.classList.add('active'); processingText.textContent = 'WebM record ho raha hai...'; processingFill.style.width = '0%'; const prevView = currentView; currentView = 'composite';
+        try { const stream = outputCanvas.captureStream(30); let mimeType = ''; ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].forEach(m => { if (MediaRecorder.isTypeSupported(m) && !mimeType) mimeType = m; }); if (!mimeType) { showToast('WebM codec nahi hai!', true); return; }
+            const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 }); const chunks = []; recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+            const done = new Promise((resolve) => { recorder.onstop = () => { resolve(new Blob(chunks, { type: 'video/webm' })); }; });
+            sourceVideo.currentTime = 0; await new Promise(r => { sourceVideo.onseeked = r; }); recorder.start(100); sourceVideo.play(); isPlaying = true; playIcon.className = 'fa-solid fa-pause';
+            function rec() { if (cancelExport) { recorder.stop(); sourceVideo.pause(); isPlaying = false; playIcon.className = 'fa-solid fa-play'; return; } processFrame(); const pct = Math.min(100, (sourceVideo.currentTime / sourceVideo.duration) * 100); processingFill.style.width = pct + '%'; const m = Math.floor(sourceVideo.currentTime / 60), s = Math.floor(sourceVideo.currentTime % 60); processingText.textContent = `Recording... ${m}:${s.toString().padStart(2, '0')}`; if (sourceVideo.ended) { setTimeout(() => { recorder.stop(); sourceVideo.pause(); isPlaying = false; playIcon.className = 'fa-solid fa-play'; }, 300); return; } requestAnimationFrame(rec); }
+            rec(); const blob = await done; currentView = prevView; processFrame(); if (cancelExport) { showToast('Cancel.', true); return; } if (blob.size < 1000) { showToast('Video blank! PNG use karo.', true); return; } await saveFileLocally(blob, 'Transparent_Video.webm', 'WebM Video', ['.webm']);
+        } catch (err) { showToast('Error: ' + err.message, true); } finally { processingOverlay.classList.remove('active'); exportPngSeqBtn.disabled = false; exportWebMBtn.disabled = false; downloadFrameBtn.disabled = false; }
+    });
+    newVideoBtn.addEventListener('click', () => { if (isPlaying) { sourceVideo.pause(); isPlaying = false; cancelAnimationFrame(animFrameId); } videoLoaded = false; workspace.classList.remove('active'); uploadZone.style.display = ''; playIcon.className = 'fa-solid fa-play'; progressFill.style.width = '0%'; timeLabel.textContent = '0:00'; fileInput.value = ''; pickerActive = false; pickerBtn.classList.remove('active'); pickerBtn.querySelector('.picker-label').textContent = 'Click to Pick Color from Video'; outputCanvas.style.cursor = 'default'; });
+
+    let toastTimer = null;
+    function showToast(msg, isError = false) { toastText.textContent = msg; toast.querySelector('i').className = isError ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-circle-check'; toast.querySelector('i').style.color = isError ? 'var(--danger)' : 'var(--accent)'; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3000); }
+    document.addEventListener('keydown', (e) => { if (e.code === 'Space' && videoLoaded) { e.preventDefault(); togglePlay(); } });
+</script>
+</body>
+</html>
