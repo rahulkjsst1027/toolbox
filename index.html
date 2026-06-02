@@ -84,6 +84,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -95,14 +96,37 @@
             animation: fadeUp 0.6s ease-out forwards;
         }
 
-        .delay-1 { animation-delay: 0.08s; }
-        .delay-2 { animation-delay: 0.16s; }
-        .delay-3 { animation-delay: 0.24s; }
-        .delay-4 { animation-delay: 0.32s; }
-        .delay-5 { animation-delay: 0.40s; }
-        .delay-6 { animation-delay: 0.48s; }
-        .delay-7 { animation-delay: 0.56s; }
-        .delay-8 { animation-delay: 0.64s; }
+        .delay-1 {
+            animation-delay: 0.08s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.16s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.24s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.32s;
+        }
+
+        .delay-5 {
+            animation-delay: 0.40s;
+        }
+
+        .delay-6 {
+            animation-delay: 0.48s;
+        }
+
+        .delay-7 {
+            animation-delay: 0.56s;
+        }
+
+        .delay-8 {
+            animation-delay: 0.64s;
+        }
 
         /* Tool Card */
         .tool-card {
@@ -111,15 +135,18 @@
             box-shadow: var(--shadow-card);
             transition: all 0.3s ease;
         }
+
         .tool-card:hover {
             background: var(--bg-card-hover);
             border-color: var(--border-secondary);
             box-shadow: var(--shadow-card);
         }
+
         .tool-card:hover .tool-icon-wrap {
             background: var(--accent-bg) !important;
             border-color: var(--border-active) !important;
         }
+
         .tool-card:hover .tool-arrow {
             transform: translateX(4px);
             opacity: 1;
@@ -132,10 +159,12 @@
             color: var(--text-tertiary);
             transition: all 0.2s;
         }
+
         .category-btn:hover {
             color: var(--text-primary);
             border-color: var(--border-secondary);
         }
+
         .category-btn.active {
             background: var(--accent-bg);
             border-color: var(--border-active);
@@ -174,9 +203,18 @@
         }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
-        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--scrollbar-track);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 3px;
+        }
 
         /* Theme Toggle */
         .theme-toggle {
@@ -189,6 +227,7 @@
             transition: background 0.3s;
             border: 1px solid var(--border-primary);
         }
+
         .theme-toggle::after {
             content: '';
             position: absolute;
@@ -199,11 +238,13 @@
             border-radius: 50%;
             background: white;
             transition: transform 0.3s ease, background 0.3s;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
+
         [data-theme="light"] .theme-toggle {
             background: var(--accent);
         }
+
         [data-theme="light"] .theme-toggle::after {
             transform: translateX(20px);
             background: white;
@@ -215,6 +256,7 @@
             color: var(--bg-body);
             transition: background 0.2s, color 0.2s;
         }
+
         .cta-primary:hover {
             opacity: 0.85;
         }
@@ -226,6 +268,7 @@
             color: var(--text-secondary);
             transition: all 0.2s;
         }
+
         .cta-secondary:hover {
             color: var(--text-primary);
             border-color: var(--border-secondary);
@@ -245,9 +288,11 @@
             color: var(--text-primary);
             transition: all 0.3s;
         }
+
         .search-input::placeholder {
             color: var(--text-muted);
         }
+
         .search-input:focus {
             border-color: var(--border-active);
         }
@@ -268,8 +313,7 @@
             </a>
 
             <div class="hidden md:flex items-center gap-1">
-                <a href="index.html"
-                    class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+                <a href="index.html" class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
                     style="background: var(--accent-bg); color: var(--accent-text);">
                     <i data-lucide="home" class="w-4 h-4"></i> Home
                 </a>
@@ -287,8 +331,7 @@
                 <div class="relative hidden sm:block">
                     <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2"
                         style="color: var(--text-muted)"></i>
-                    <input id="searchInput" type="text" placeholder="Search tools..."
-                        oninput="handleSearch(this.value)"
+                    <input id="searchInput" type="text" placeholder="Search tools..." oninput="handleSearch(this.value)"
                         class="search-glow search-input rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none w-48 focus:w-64">
                 </div>
 
@@ -308,19 +351,20 @@
         <section class="relative overflow-hidden py-24 md:py-32">
             <div class="hero-glow top-0 left-1/2 -translate-x-1/2 -translate-y-1/3"
                 style="background: var(--bg-hero-glow-1)"></div>
-            <div class="hero-glow bottom-0 right-0 translate-x-1/3"
-                style="background: var(--bg-hero-glow-2)"></div>
+            <div class="hero-glow bottom-0 right-0 translate-x-1/3" style="background: var(--bg-hero-glow-2)"></div>
 
             <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
                 <div class="animate-fade-up">
-                    <div class="pill-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8">
+                    <div
+                        class="pill-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8">
                         <i data-lucide="zap" class="w-3 h-3"></i>
                         Free Online Tools — No Signup Required
                     </div>
                 </div>
                 <h1 class="animate-fade-up delay-1 text-4xl md:text-7xl font-medium tracking-tight leading-[1.1] mb-6"
                     style="color: var(--text-primary)">
-                    All Your <span class="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Essential
+                    All Your <span
+                        class="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Essential
                         Tools</span><br>
                     In One Place
                 </h1>
@@ -342,7 +386,8 @@
 
                 <div class="animate-fade-up delay-4 mt-16 flex justify-center gap-12 md:gap-20">
                     <div class="text-center">
-                        <div id="toolCount" class="text-2xl md:text-3xl font-semibold" style="color: var(--text-primary)">0
+                        <div id="toolCount" class="text-2xl md:text-3xl font-semibold"
+                            style="color: var(--text-primary)">0
                         </div>
                         <div class="text-xs mt-1" style="color: var(--text-muted)">Tools</div>
                     </div>
@@ -543,6 +588,15 @@
                 color: 'orange',
                 file: 'tools/video-merge.html',
                 tags: ['merge', 'join', 'combine', 'concatenate']
+            },
+            {
+                name: 'WebM to Lottie',
+                description: 'Convert transparent WebM videos to Lottie JSON animation files.',
+                category: 'developer',
+                icon: 'file-json',
+                color: 'orange',
+                file: 'tools/webm-to-lottie.html',
+                tags: ['lottie', 'webm', 'json', 'animation', 'convert']
             }
         ];
 
@@ -557,18 +611,18 @@
         ];
 
         const colorMap = {
-            blue:    { bg: 'rgba(59,130,246,0.1)',  border: 'rgba(59,130,246,0.2)',  text: '#60a5fa' },
-            purple:  { bg: 'rgba(168,85,247,0.1)',  border: 'rgba(168,85,247,0.2)',  text: '#c084fc' },
-            green:   { bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.2)',   text: '#4ade80' },
-            orange:  { bg: 'rgba(249,115,22,0.1)',  border: 'rgba(249,115,22,0.2)',  text: '#fb923c' },
-            cyan:    { bg: 'rgba(6,182,212,0.1)',   border: 'rgba(6,182,212,0.2)',   text: '#22d3ee' },
-            pink:    { bg: 'rgba(236,72,153,0.1)',  border: 'rgba(236,72,153,0.2)',  text: '#f472b6' },
-            violet:  { bg: 'rgba(139,92,246,0.1)',  border: 'rgba(139,92,246,0.2)',  text: '#a78bfa' },
-            amber:   { bg: 'rgba(245,158,11,0.1)',  border: 'rgba(245,158,11,0.2)',  text: '#fbbf24' },
-            red:     { bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.2)',   text: '#f87171' },
-            emerald: { bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.2)',  text: '#34d399' },
-            rose:    { bg: 'rgba(244,63,94,0.1)',   border: 'rgba(244,63,94,0.2)',   text: '#fb7185' },
-            yellow:  { bg: 'rgba(234,179,8,0.1)',   border: 'rgba(234,179,8,0.2)',   text: '#facc15' }
+            blue: { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.2)', text: '#60a5fa' },
+            purple: { bg: 'rgba(168,85,247,0.1)', border: 'rgba(168,85,247,0.2)', text: '#c084fc' },
+            green: { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.2)', text: '#4ade80' },
+            orange: { bg: 'rgba(249,115,22,0.1)', border: 'rgba(249,115,22,0.2)', text: '#fb923c' },
+            cyan: { bg: 'rgba(6,182,212,0.1)', border: 'rgba(6,182,212,0.2)', text: '#22d3ee' },
+            pink: { bg: 'rgba(236,72,153,0.1)', border: 'rgba(236,72,153,0.2)', text: '#f472b6' },
+            violet: { bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.2)', text: '#a78bfa' },
+            amber: { bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)', text: '#fbbf24' },
+            red: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.2)', text: '#f87171' },
+            emerald: { bg: 'rgba(16,185,129,0.1)', border: 'rgba(16,185,129,0.2)', text: '#34d399' },
+            rose: { bg: 'rgba(244,63,94,0.1)', border: 'rgba(244,63,94,0.2)', text: '#fb7185' },
+            yellow: { bg: 'rgba(234,179,8,0.1)', border: 'rgba(234,179,8,0.2)', text: '#facc15' }
         };
 
         let currentCategory = 'all';

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebM to Lottie - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        /* =========================================
+           THEME VARIABLES — Light & Dark
+        ========================================= */
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: rgba(23, 23, 23, 0.3); --bg-nav: rgba(5, 5, 5, 0.8);
+            --bg-footer: #030303; --bg-input: #171717; --bg-dropzone-hover: rgba(255,255,255,0.02);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --border-primary: rgba(255, 255, 255, 0.05);
+            --border-secondary: rgba(255, 255, 255, 0.1); --scrollbar-track: #0a0a0a; --scrollbar-thumb: #333;
+            --accent-bg: rgba(249,115,22,0.1); --accent-border: rgba(249,115,22,0.2); 
+            --accent-text: #fb923c; --accent-solid: #f97316;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-nav: rgba(245, 245, 245, 0.85);
+            --bg-footer: #e5e5e5; --bg-input: #f9fafb; --bg-dropzone-hover: rgba(0,0,0,0.02);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --border-primary: #e5e7eb; --border-secondary: #d1d5db;
+            --scrollbar-track: #e5e5e5; --scrollbar-thumb: #c0c0c0;
+            --accent-bg: rgba(249,115,22,0.08); --accent-border: rgba(249,115,22,0.2); 
+            --accent-text: #ea580c; --accent-solid: #f97316;
+        }
+
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+        
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+        input[type="number"], select, input[type="range"] { background: var(--bg-input); border: 1px solid var(--border-secondary); color: var(--text-primary); transition: all 0.2s; }
+        input[type="number"]:focus, select:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 2px var(--accent-bg); }
+        input[type="range"] { -webkit-appearance: none; border: none; height: 6px; border-radius: 3px; cursor: pointer; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-solid); border: 2px solid var(--bg-body); cursor: pointer; }
+
+        .checker-bg { background-image: linear-gradient(45deg, #222 25%, transparent 25%), linear-gradient(-45deg, #222 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #222 75%), linear-gradient(-45deg, transparent 75%, #222 75%); background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0; background-color: #111; }
+        [data-theme="light"] .checker-bg { background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%); background-color: #f9fafb; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl" style="background: var(--bg-nav); border-bottom: 1px solid var(--border-primary);">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="text-lg font-semibold tracking-tight" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
+            </a>
+            <a href="../index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style="color: var(--text-tertiary);" onmouseover="this.style.color='var(--text-primary)'" onmouseout="this.style.color='var(--text-tertiary)'">
+                <i data-lucide="home" class="w-4 h-4"></i> Home
+            </a>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <div class="max-w-5xl mx-auto px-6 py-12">
+
+            <!-- Breadcrumb -->
+            <div class="animate-fade-up flex items-center gap-2 text-sm mb-8" style="color: var(--text-muted)">
+                <a href="../index.html" class="hover:opacity-80 transition-opacity flex items-center gap-1.5">
+                    <i data-lucide="home" class="w-3.5 h-3.5"></i> Home
+                </a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                <span>Developer</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                <span style="color: var(--text-secondary)">WebM to Lottie</span>
+            </div>
+
+            <!-- Tool Header -->
+            <div class="animate-fade-up flex flex-col md:flex-row md:items-center gap-6 mb-10">
+                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0"
+                     style="background: var(--accent-bg); border-color: var(--accent-border)">
+                    <i data-lucide="file-json" class="w-7 h-7" style="color: var(--accent-text)"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2" style="color: var(--text-primary)">WebM to Lottie</h1>
+                    <p class="font-light leading-relaxed" style="color: var(--text-tertiary)">Convert transparent WebM videos to optimized Lottie JSON.</p>
+                </div>
+            </div>
+
+            <!-- Info Banner -->
+            <div class="animate-fade-up mb-6 p-4 rounded-xl border flex items-start gap-3" style="background: var(--accent-bg); border-color: var(--accent-border);">
+                <i data-lucide="info" class="w-5 h-5 mt-0.5 shrink-0" style="color: var(--accent-text)"></i>
+                <div class="text-sm" style="color: var(--text-secondary)">
+                    <strong style="color: var(--accent-text)">Size Optimization:</strong> Uses <strong>WebP compression</strong> instead of PNG (50-70% smaller). Lower resolution & quality keep JSON small. Lottie scales it up smoothly.
+                </div>
+            </div>
+
+            <!-- Workspace -->
+            <div class="animate-fade-up rounded-2xl border overflow-hidden" style="background: var(--bg-card); border-color: var(--border-primary)">
+
+                <!-- Upload Zone -->
+                <div id="dropZone" class="p-12 text-center border-b cursor-pointer transition-colors" style="border-color: var(--border-primary);" onmouseover="this.style.background='var(--bg-dropzone-hover)'" onmouseout="this.style.background='transparent'" onclick="document.getElementById('fileInput').click()">
+                    <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mx-auto mb-4" style="border-color: var(--border-secondary)">
+                        <i data-lucide="upload-cloud" class="w-7 h-7" style="color: var(--text-muted)"></i>
+                    </div>
+                    <p class="font-medium mb-1" style="color: var(--text-secondary)">Drop your WebM video here</p>
+                    <p class="text-sm" style="color: var(--text-muted)">Supports transparent WebM (VP8/VP9 alpha)</p>
+                    <input type="file" id="fileInput" accept="video/webm,video/mp4" class="hidden" onchange="handleFile(this)">
+                </div>
+
+                <!-- File Info -->
+                <div id="fileInfo" class="hidden p-6 border-b" style="border-color: var(--border-primary)">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--accent-bg)">
+                                <i data-lucide="film" class="w-5 h-5" style="color: var(--accent-text)"></i>
+                            </div>
+                            <div>
+                                <p id="fileName" class="text-sm font-medium" style="color: var(--text-primary)"></p>
+                                <p id="fileSize" class="text-xs" style="color: var(--text-muted)"></p>
+                            </div>
+                        </div>
+                        <button onclick="removeFile()" class="p-2 rounded-lg transition-colors" style="color: var(--text-muted);" onmouseover="this.style.background='var(--bg-dropzone-hover)'" onmouseout="this.style.background='transparent'">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="mt-4 rounded-xl overflow-hidden checker-bg border flex items-center justify-center" style="border-color: var(--border-primary); max-height: 200px;">
+                        <video id="videoPreview" class="max-h-[200px] w-auto block" muted loop playsinline></video>
+                    </div>
+                </div>
+
+                <!-- Options -->
+                <div id="optionsPanel" class="hidden p-6 border-b space-y-5" style="border-color: var(--border-primary)">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="text-sm font-medium mb-2 block" style="color: var(--text-secondary)">FPS (Frames/sec)</label>
+                            <select id="fpsSelect" class="w-full rounded-lg px-4 py-2.5 text-sm">
+                                <option value="6">6 FPS (Smallest)</option>
+                                <option value="8" selected>8 FPS (Small)</option>
+                                <option value="12">12 FPS (Smooth)</option>
+                                <option value="15">15 FPS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium mb-2 block" style="color: var(--text-secondary)">Max Frames</label>
+                            <input type="number" id="maxFrames" value="50" min="5" max="200" class="w-full rounded-lg px-4 py-2.5 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-sm font-medium mb-2 block" style="color: var(--text-secondary)">Width (px)</label>
+                            <input type="number" id="outputWidth" value="200" min="50" max="600" class="w-full rounded-lg px-4 py-2.5 text-sm">
+                        </div>
+                    </div>
+
+                    <!-- Quality Slider -->
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="text-sm font-medium" style="color: var(--text-secondary)">WebP Quality</label>
+                            <span id="qualityVal" class="text-sm font-bold" style="color: var(--accent-text)">50%</span>
+                        </div>
+                        <input type="range" id="qualitySlider" min="10" max="90" value="50" class="w-full" oninput="document.getElementById('qualityVal').textContent = this.value + '%'">
+                        <p class="text-xs mt-2" style="color: var(--text-muted)">40-60% is best for Lottie. Looks smooth but keeps JSON small.</p>
+                    </div>
+
+                    <div class="p-3 rounded-lg border flex items-start gap-2" style="background: var(--bg-input); border-color: var(--border-primary)">
+                        <i data-lucide="lightbulb" class="w-4 h-4 mt-0.5 shrink-0" style="color: var(--accent-text)"></i>
+                        <p class="text-xs" style="color: var(--text-tertiary)">
+                            <strong>Tip:</strong> Lottie JSON size depends on Frames × Width × Quality. Keep video under 3-4 seconds. 200px width is enough for mobile/web UI — Lottie scales it without blur.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <div id="actionArea" class="hidden p-6">
+                    <button onclick="processVideo()" id="processBtn"
+                            class="w-full h-12 rounded-xl text-sm font-medium text-white transition-all flex items-center justify-center gap-2 hover:opacity-90" style="background: var(--accent-solid)">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span id="processBtnText">Convert to Lottie</span>
+                    </button>
+                </div>
+
+                <!-- Progress -->
+                <div id="progressArea" class="hidden p-6 border-b" style="border-color: var(--border-primary)">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm" style="color: var(--text-secondary)" id="progressLabel">Extracting frames...</span>
+                        <span id="progressPercent" class="text-sm font-mono" style="color: var(--accent-text)">0%</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full overflow-hidden" style="background: var(--bg-input)">
+                        <div id="progressBar" class="h-full rounded-full transition-all duration-300" style="width:0%; background: var(--accent-solid)"></div>
+                    </div>
+                </div>
+
+                <!-- Result -->
+                <div id="resultArea" class="hidden p-6">
+                    <div class="flex items-center gap-3 mb-5">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--accent-bg)">
+                            <i data-lucide="check" class="w-4 h-4" style="color: var(--accent-text)"></i>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium" style="color: var(--accent-text)">Conversion complete!</span>
+                            <p id="resultInfo" class="text-xs mt-0.5" style="color: var(--text-muted)"></p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button onclick="downloadLottie()"
+                                class="flex-1 h-12 px-8 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2" style="background: var(--text-primary); color: var(--bg-body);">
+                            <i data-lucide="download" class="w-4 h-4"></i> Download Lottie JSON
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="mt-8 flex flex-wrap gap-2">
+                <span class="text-xs px-3 py-1.5 rounded-lg" style="color: var(--text-muted); background: var(--bg-input)">#lottie</span>
+                <span class="text-xs px-3 py-1.5 rounded-lg" style="color: var(--text-muted); background: var(--bg-input)">#webm</span>
+                <span class="text-xs px-3 py-1.5 rounded-lg" style="color: var(--text-muted); background: var(--bg-input)">#animation</span>
+                <span class="text-xs px-3 py-1.5 rounded-lg" style="color: var(--text-muted); background: var(--bg-input)">#bodymovin</span>
+            </div>
+
+        </div>
+    </main>
+
+    <footer style="background: var(--bg-footer); border-top: 1px solid var(--border-primary)">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <a href="../index.html" class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center">
+                        <i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
+                </a>
+                <p class="text-xs" style="color: var(--text-muted)">All tools run locally. No data uploaded.</p>
+                <p class="text-xs" style="color: var(--text-muted)">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <video id="sourceVideo" style="display:none" crossorigin="anonymous" playsinline muted></video>
+    <canvas id="extractCanvas" style="display:none"></canvas>
+
+    <script>
+    // Theme Logic
+    (function() {
+        function getSystemTheme() { return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }
+        function applyTheme() { const s = localStorage.getItem('toolbox-theme'); document.documentElement.setAttribute('data-theme', s || getSystemTheme()); }
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (!localStorage.getItem('toolbox-theme')) applyTheme(); });
+        window.addEventListener('storage', (e) => { if (e.key === 'toolbox-theme') applyTheme(); });
+        applyTheme();
+    })();
+
+    // App Logic
+    const sourceVideo = document.getElementById('sourceVideo');
+    const extractCanvas = document.getElementById('extractCanvas');
+    const extractCtx = extractCanvas.getContext('2d', { willReadFrequently: true });
+    let videoObjectUrl = null;
+    let generatedLottieJSON = null;
+
+    function handleFile(input) {
+        const file = input.files[0]; if (!file) return;
+        if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+        videoObjectUrl = URL.createObjectURL(file);
+        sourceVideo.src = videoObjectUrl;
+        document.getElementById('videoPreview').src = videoObjectUrl;
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatSize(file.size);
+        document.getElementById('fileInfo').classList.remove('hidden');
+        document.getElementById('optionsPanel').classList.remove('hidden');
+        document.getElementById('actionArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('progressArea').classList.add('hidden');
+        sourceVideo.onloadedmetadata = () => { document.getElementById('outputWidth').value = Math.min(200, sourceVideo.videoWidth); };
+    }
+
+    function removeFile() {
+        document.getElementById('fileInput').value = '';
+        document.getElementById('fileInfo').classList.add('hidden');
+        document.getElementById('optionsPanel').classList.add('hidden');
+        document.getElementById('actionArea').classList.add('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('progressArea').classList.add('hidden');
+        if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+        generatedLottieJSON = null;
+    }
+
+    async function processVideo() {
+        const btn = document.getElementById('processBtn');
+        const btnText = document.getElementById('processBtnText');
+        btn.disabled = true; btn.style.opacity = '0.5'; btnText.textContent = 'Converting...';
+        document.getElementById('progressArea').classList.remove('hidden');
+
+        const fps = parseInt(document.getElementById('fpsSelect').value);
+        const maxFrames = Math.min(parseInt(document.getElementById('maxFrames').value), 200);
+        const targetWidth = parseInt(document.getElementById('outputWidth').value);
+        const quality = parseInt(document.getElementById('qualitySlider').value) / 100; // 0.1 to 0.9
+
+        const videoDuration = sourceVideo.duration;
+        const totalFrames = Math.min(Math.floor(videoDuration * fps), maxFrames);
+        const frameStep = 1 / fps;
+
+        const aspect = sourceVideo.videoWidth / sourceVideo.videoHeight;
+        const width = targetWidth;
+        const height = Math.round(width / aspect);
+
+        extractCanvas.width = width;
+        extractCanvas.height = height;
+
+        const lottieJSON = {
+            v: "5.5.2", fr: fps, ip: 0, op: totalFrames, w: width, h: height,
+            nm: "ToolBox_WebM_to_Lottie", ddd: 0, assets: [], layers: []
+        };
+
+        try {
+            for (let i = 0; i < totalFrames; i++) {
+                const pct = Math.round(((i + 1) / totalFrames) * 95);
+                document.getElementById('progressBar').style.width = pct + '%';
+                document.getElementById('progressPercent').textContent = pct + '%';
+                document.getElementById('progressLabel').textContent = `Extracting frame ${i + 1} / ${totalFrames}...`;
+
+                sourceVideo.currentTime = i * frameStep;
+                await new Promise(resolve => {
+                    const onSeeked = () => { sourceVideo.removeEventListener('seeked', onSeeked); resolve(); };
+                    sourceVideo.addEventListener('seeked', onSeeked);
+                    setTimeout(resolve, 300);
+                });
+                await new Promise(r => setTimeout(r, 50));
+
+                extractCtx.clearRect(0, 0, width, height);
+                extractCtx.drawImage(sourceVideo, 0, 0, width, height);
+
+                // 🔥 FIX: Using WebP instead of PNG (50-70% smaller)
+                const base64Data = extractCanvas.toDataURL('image/webp', quality);
+
+                const assetId = `img_${i}`;
+                lottieJSON.assets.push({
+                    id: assetId, w: width, h: height, u: "", p: base64Data, e: 0
+                });
+
+                lottieJSON.layers.push({
+                    ddd: 0, ind: i, ty: 2, nm: `Frame_${i}`, refId: assetId, sr: 1,
+                    ks: {
+                        o: { a: 0, k: 100 }, r: { a: 0, k: 0 },
+                        p: { a: 0, k: [width / 2, height / 2, 0] },
+                        a: { a: 0, k: [width / 2, height / 2, 0] },
+                        s: { a: 0, k: [100, 100, 100] }
+                    },
+                    ao: 0, ip: i, op: i + 1, st: i, bm: 0
+                });
+            }
+
+            document.getElementById('progressLabel').textContent = 'Generating JSON...';
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressPercent').textContent = '100%';
+
+            generatedLottieJSON = JSON.stringify(lottieJSON);
+            const jsonSize = new Blob([generatedLottieJSON]).size;
+
+            document.getElementById('progressArea').classList.add('hidden');
+            document.getElementById('actionArea').classList.add('hidden');
+            document.getElementById('resultArea').classList.remove('hidden');
+            document.getElementById('resultInfo').textContent = `${totalFrames} frames • ${formatSize(jsonSize)} • ${width}×${height}px • WebP ${Math.round(quality*100)}%`;
+
+        } catch (err) {
+            alert('Error: ' + err.message);
+        } finally {
+            btn.disabled = false; btn.style.opacity = '1'; btnText.textContent = 'Convert to Lottie';
+        }
+    }
+
+    function downloadLottie() {
+        if (!generatedLottieJSON) return;
+        const blob = new Blob([generatedLottieJSON], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'animation.json';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+    }
+
+    function formatSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    const dz = document.getElementById('dropZone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--accent-border)'; });
+    dz.addEventListener('dragleave', () => { dz.style.borderColor = 'var(--border-primary)'; });
+    dz.addEventListener('drop', e => {
+        e.preventDefault(); dz.style.borderColor = 'var(--border-primary)';
+        const file = e.dataTransfer.files[0];
+        if (file) { const input = document.getElementById('fileInput'); const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; handleFile(input); }
+    });
+
+    lucide.createIcons();
+    </script>
+
+</body>
+</html>
