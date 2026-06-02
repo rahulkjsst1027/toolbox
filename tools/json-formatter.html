@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* =========================================
+           THEME VARIABLES — Light & Dark
+        ========================================= */
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: #0a0a0a; --bg-input: #080808;
+            --bg-toolbar: #0d0d0d; --text-primary: #ffffff; --text-secondary: #a3a3a3;
+            --text-muted: #525252; --border-color: rgba(255,255,255,0.08);
+            --accent: #3b82f6; --accent-hover: #2563eb; --btn-bg: #171717; --btn-hover: #262626;
+            --error-bg: rgba(239, 68, 68, 0.1); --error-border: rgba(239, 68, 68, 0.2); --error-text: #f87171;
+            --success-bg: rgba(34, 197, 94, 0.1); --success-text: #4ade80;
+            --syntax-key: #93c5fd; --syntax-string: #86efac; --syntax-number: #fde68a;
+            --syntax-boolean: #c4b5fd; --syntax-null: #f87171;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f8f9fa; --bg-card: #ffffff; --bg-input: #f9fafb;
+            --bg-toolbar: #f3f4f6; --text-primary: #111827; --text-secondary: #4b5563;
+            --text-muted: #9ca3af; --border-color: #e5e7eb;
+            --accent: #2563eb; --accent-hover: #1d4ed8; --btn-bg: #f3f4f6; --btn-hover: #e5e7eb;
+            --error-bg: rgba(239, 68, 68, 0.05); --error-border: rgba(239, 68, 68, 0.2); --error-text: #dc2626;
+            --success-bg: rgba(34, 197, 94, 0.05); --success-text: #16a34a;
+            --syntax-key: #2563eb; --syntax-string: #16a34a; --syntax-number: #d97706;
+            --syntax-boolean: #7c3aed; --syntax-null: #dc2626;
+        }
+
+        * { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+        
+        @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
+        
+        .font-code { font-family: 'JetBrains Mono', monospace; }
+        
+        textarea {
+            resize: none; background: transparent;
+            color: var(--text-primary); caret-color: var(--accent);
+        }
+        textarea:focus { outline: none; }
+        textarea::placeholder { color: var(--text-muted); }
+        
+        .json-key { color: var(--syntax-key); }
+        .json-string { color: var(--syntax-string); }
+        .json-number { color: var(--syntax-number); }
+        .json-boolean { color: var(--syntax-boolean); }
+        .json-null { color: var(--syntax-null); }
+        
+        .tab-btn { color: var(--text-muted); border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent); background: var(--btn-bg); }
+        
+        .action-btn { background: var(--btn-bg); color: var(--text-secondary); border: 1px solid var(--border-color); transition: all 0.2s; }
+        .action-btn:hover { background: var(--btn-hover); color: var(--text-primary); }
+        .action-btn.primary { background: var(--accent); color: #ffffff; border-color: transparent; }
+        .action-btn.primary:hover { background: var(--accent-hover); }
+
+        .toast-show { opacity: 1; transform: translateY(0); }
+        .toast-hide { opacity: 0; transform: translateY(20px); pointer-events: none; }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake { animation: shake 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- NAVBAR -->
+    <nav style="background: var(--bg-card); border-bottom: 1px solid var(--border-color);" class="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="text-lg font-semibold tracking-tight" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
+            </a>
+            <a href="../index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all" style="color: var(--text-secondary);">
+                <i data-lucide="home" class="w-4 h-4"></i> Home
+            </a>
+        </div>
+    </nav>
+
+    <main class="pt-16 flex-1 flex flex-col">
+        <div class="flex-1 flex flex-col max-w-5xl mx-auto w-full px-4 md:px-6 py-8">
+            
+            <!-- Header -->
+            <div class="animate-fade-up mb-6">
+                <div class="flex items-center gap-2 text-sm mb-6" style="color: var(--text-muted)">
+                    <a href="../index.html" class="hover:opacity-80 transition-opacity flex items-center gap-1.5">
+                        <i data-lucide="home" class="w-3.5 h-3.5"></i> Home
+                    </a>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    <span>Developer</span>
+                    <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    <span style="color: var(--text-secondary)">JSON Formatter</span>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl border flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.2)">
+                        <i data-lucide="braces" class="w-6 h-6 text-blue-400"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-medium tracking-tight">JSON Formatter</h1>
+                        <p class="text-sm" style="color: var(--text-muted)">Beautify, minify & validate JSON data</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Editor Window -->
+            <div class="animate-fade-up flex-1 rounded-2xl border overflow-hidden flex flex-col min-h-[65vh] shadow-xl" style="background: var(--bg-card); border-color: var(--border-color);">
+                
+                <!-- Top Bar: Tabs -->
+                <div class="flex items-center justify-between border-b" style="background: var(--bg-toolbar); border-color: var(--border-color);">
+                    <div class="flex">
+                        <button onclick="switchTab('viewer')" id="tabViewer" class="tab-btn px-5 py-3 text-xs font-medium flex items-center gap-2">
+                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> Viewer
+                        </button>
+                        <button onclick="switchTab('text')" id="tabText" class="tab-btn active px-5 py-3 text-xs font-medium flex items-center gap-2">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Text
+                        </button>
+                    </div>
+                    <div class="px-4">
+                        <span id="statusBadge" class="text-[10px] font-medium px-2 py-0.5 rounded-md" style="background: var(--btn-bg); color: var(--text-muted)">Ready</span>
+                    </div>
+                </div>
+
+                <!-- Toolbar Buttons -->
+                <div class="flex flex-wrap items-center gap-2 p-3 border-b" style="border-color: var(--border-color);">
+                    <button onclick="pasteFromClipboard()" class="action-btn px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5">
+                        <i data-lucide="clipboard" class="w-3.5 h-3.5"></i> Paste
+                    </button>
+                    <button onclick="copyJSON()" class="action-btn px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5">
+                        <i data-lucide="clipboard-copy" class="w-3.5 h-3.5"></i> Copy
+                    </button>
+                    <button onclick="formatJSON()" class="action-btn primary px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5">
+                        <i data-lucide="magic-wand" class="w-3.5 h-3.5"></i> Format
+                    </button>
+                    <button onclick="removeWhitespace()" class="action-btn px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5">
+                        <i data-lucide="minimize-2" class="w-3.5 h-3.5"></i> Remove white space
+                    </button>
+                    <button onclick="clearAll()" class="action-btn px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 hover:!text-red-400 hover:!border-red-500/30">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear
+                    </button>
+                    <button onclick="loadSample()" class="action-btn px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5">
+                        <i data-lucide="database" class="w-3.5 h-3.5"></i> Load JSON data
+                    </button>
+                    
+                    <!-- Extra Features -->
+                    <div class="ml-auto flex items-center gap-2">
+                        <button onclick="downloadJSON()" class="action-btn px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5" title="Download File">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i> Download
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Content Area -->
+                <div class="flex-1 relative" style="background: var(--bg-input);">
+                    <!-- Text Area -->
+                    <textarea id="jsonInput" 
+                              oninput="handleInputChange()"
+                              placeholder="Paste the JSON code here (your code is not saved anywhere)"
+                              class="absolute inset-0 w-full h-full p-5 text-sm font-code leading-relaxed"></textarea>
+                    
+                    <!-- Viewer Area -->
+                    <pre id="jsonViewer" class="hidden absolute inset-0 w-full h-full p-5 text-sm font-code leading-relaxed overflow-auto cursor-text" onclick="switchTab('text')"></pre>
+                </div>
+
+                <!-- Bottom Status Bar -->
+                <div class="flex items-center justify-between px-4 py-2 border-t text-[10px]" style="background: var(--bg-toolbar); border-color: var(--border-color); color: var(--text-muted)">
+                    <div class="flex items-center gap-4">
+                        <span id="lineCount">Lines: 0</span>
+                        <span id="charCount">Chars: 0</span>
+                    </div>
+                    <span>UTF-8</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 transition-all duration-300 toast-hide">
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color);" class="rounded-lg px-5 py-3 text-sm shadow-2xl flex items-center gap-3">
+            <i data-lucide="check-circle" class="w-4 h-4 text-green-400" id="toastIcon"></i>
+            <span id="toastMsg" style="color: var(--text-primary)">Copied!</span>
+        </div>
+    </div>
+
+    <script>
+    // =============================================
+    //  🎨 AUTO THEME (Reads from Home Page Toggle)
+    // =============================================
+    (function() {
+        function getSystemTheme() {
+            return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        function applyTheme() {
+            const saved = localStorage.getItem('toolbox-theme');
+            const theme = saved || getSystemTheme();
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
+            if (!localStorage.getItem('toolbox-theme')) applyTheme();
+        });
+        // Listen for manual changes from Home page if opened in another tab
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'toolbox-theme') applyTheme();
+        });
+        applyTheme();
+    })();
+
+    // =============================================
+    //  JSON FORMATTER LOGIC
+    // =============================================
+    const inputEl = document.getElementById('jsonInput');
+    const viewerEl = document.getElementById('jsonViewer');
+    const charCountEl = document.getElementById('charCount');
+    const lineCountEl = document.getElementById('lineCount');
+    const statusBadgeEl = document.getElementById('statusBadge');
+
+    let currentTab = 'text';
+
+    function switchTab(tab) {
+        currentTab = tab;
+        const tabTextEl = document.getElementById('tabText');
+        const tabViewerEl = document.getElementById('tabViewer');
+
+        if (tab === 'text') {
+            inputEl.classList.remove('hidden');
+            viewerEl.classList.add('hidden');
+            tabTextEl.classList.add('active');
+            tabViewerEl.classList.remove('active');
+            inputEl.focus();
+        } else {
+            // Viewer Tab clicked: Try to parse and format
+            const val = inputEl.value;
+            if (!val.trim()) {
+                showToast('No data to view', true);
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(val);
+                const formatted = JSON.stringify(parsed, null, 2);
+                viewerEl.innerHTML = syntaxHighlight(formatted);
+                
+                inputEl.classList.add('hidden');
+                viewerEl.classList.remove('hidden');
+                tabTextEl.classList.remove('active');
+                tabViewerEl.classList.add('active');
+                
+                updateStatus(true);
+            } catch (e) {
+                showToast('Invalid JSON! Cannot view.', true);
+                inputEl.classList.add('shake');
+                setTimeout(() => inputEl.classList.remove('shake'), 300);
+                // Stay on text tab
+                tabTextEl.classList.add('active');
+                tabViewerEl.classList.remove('active');
+                updateStatus(false);
+            }
+        }
+    }
+
+    function handleInputChange() {
+        const val = inputEl.value;
+        charCountEl.textContent = 'Chars: ' + val.length;
+        lineCountEl.textContent = 'Lines: ' + (val.split('\n').length);
+        
+        if (!val.trim()) {
+            statusBadgeEl.textContent = 'Ready';
+            statusBadgeEl.style.background = 'var(--btn-bg)';
+            statusBadgeEl.style.color = 'var(--text-muted)';
+            return;
+        }
+        
+        // Live validation indicator
+        try {
+            JSON.parse(val);
+            updateStatus(true);
+        } catch (e) {
+            updateStatus(false);
+        }
+    }
+
+    function updateStatus(isValid) {
+        if (isValid) {
+            statusBadgeEl.textContent = '✓ Valid JSON';
+            statusBadgeEl.style.background = 'var(--success-bg)';
+            statusBadgeEl.style.color = 'var(--success-text)';
+        } else {
+            statusBadgeEl.textContent = '✗ Invalid JSON';
+            statusBadgeEl.style.background = 'var(--error-bg)';
+            statusBadgeEl.style.color = 'var(--error-text)';
+        }
+    }
+
+    function formatJSON() {
+        const val = inputEl.value;
+        if (!val.trim()) return;
+
+        try {
+            const parsed = JSON.parse(val);
+            const formatted = JSON.stringify(parsed, null, 2);
+            inputEl.value = formatted;
+            handleInputChange();
+            showToast('JSON Formatted!');
+        } catch (e) {
+            const basicFormat = val.replace(/,/g, ',\n').replace(/:/g, ': ').replace(/;/g, ';\n');
+            inputEl.value = basicFormat;
+            showToast('Text formatted (Not valid JSON)', true);
+            updateStatus(false);
+        }
+    }
+
+    function removeWhitespace() {
+        const val = inputEl.value;
+        if (!val.trim()) return;
+
+        try {
+            const parsed = JSON.parse(val);
+            const minified = JSON.stringify(parsed);
+            inputEl.value = minified;
+            handleInputChange();
+            showToast('Whitespace removed!');
+        } catch (e) {
+            const minified = val.replace(/\s+/g, ' ').trim();
+            inputEl.value = minified;
+            handleInputChange();
+            showToast('Whitespace removed (Not valid JSON)', true);
+        }
+    }
+
+    function copyJSON() {
+        const textToCopy = inputEl.value;
+        if (!textToCopy.trim()) return;
+        navigator.clipboard.writeText(textToCopy);
+        showToast('Copied to clipboard!');
+    }
+
+    async function pasteFromClipboard() {
+        try {
+            const text = await navigator.clipboard.readText();
+            inputEl.value = text;
+            handleInputChange();
+            switchTab('text');
+            showToast('Pasted from clipboard!');
+        } catch (err) {
+            showToast('Clipboard access denied', true);
+        }
+    }
+
+    function clearAll() {
+        inputEl.value = '';
+        viewerEl.innerHTML = '';
+        handleInputChange();
+        switchTab('text');
+        statusBadgeEl.textContent = 'Ready';
+        statusBadgeEl.style.background = 'var(--btn-bg)';
+        statusBadgeEl.style.color = 'var(--text-muted)';
+    }
+
+    function loadSample() {
+        const sample = {
+            "appComponentFactory": "androidx.core.app.CoreComponentFactory",
+            "category": "android.intent.category.LAUNCHER",
+            "className": "com.toolbox.app.MainActivity",
+            "compileSdkVersion": 34,
+            "dataBinding": true,
+            "enableV2Signing": false,
+            "dependencies": [
+                "androidx.core:core-ktx:1.12.0",
+                "com.google.code.gson:gson:2.10.1"
+            ],
+            "environment": null,
+            "features": {
+                "videoTools": true,
+                "imageTools": true,
+                "maxFileSize": 52428800
+            }
+        };
+        inputEl.value = JSON.stringify(sample);
+        handleInputChange();
+        switchTab('text');
+        showToast('Sample data loaded!');
+    }
+
+    function downloadJSON() {
+        const val = inputEl.value;
+        if (!val.trim()) return;
+        const blob = new Blob([val], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'toolbox-data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('File downloaded!');
+    }
+
+    function syntaxHighlight(json) {
+        if (typeof json !== 'string') {
+            json = JSON.stringify(json, null, 2);
+        }
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            let cls = 'json-number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'json-key';
+                } else {
+                    cls = 'json-string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'json-boolean';
+            } else if (/null/.test(match)) {
+                cls = 'json-null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
+    function showToast(msg, isError = false) {
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toastIcon');
+        document.getElementById('toastMsg').textContent = msg;
+        
+        if(isError) {
+            icon.setAttribute('data-lucide', 'alert-circle');
+            icon.className = 'w-4 h-4';
+            icon.style.color = 'var(--error-text)';
+        } else {
+            icon.setAttribute('data-lucide', 'check-circle');
+            icon.className = 'w-4 h-4';
+            icon.style.color = 'var(--success-text)';
+        }
+        lucide.createIcons();
+
+        toast.classList.remove('toast-hide');
+        toast.classList.add('toast-show');
+        setTimeout(() => {
+            toast.classList.remove('toast-show');
+            toast.classList.add('toast-hide');
+        }, 2500);
+    }
+
+    lucide.createIcons();
+    </script>
+
+</body>
+</html>
