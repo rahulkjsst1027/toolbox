@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upscale - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: rgba(23,23,23,0.3); --bg-nav: rgba(5,5,5,0.8);
+            --bg-footer: #030303; --bg-input: #171717; --bg-dropzone-hover: rgba(255,255,255,0.02);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --border-primary: rgba(255,255,255,0.05);
+            --border-secondary: rgba(255,255,255,0.1); --scrollbar-track: #0a0a0a; --scrollbar-thumb: #333;
+            --accent-bg: rgba(168,85,247,0.1); --accent-border: rgba(168,85,247,0.2);
+            --accent-text: #c084fc; --accent-solid: #a855f7;
+            --accent-glow: rgba(168,85,247,0.15);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-nav: rgba(245,245,245,0.85);
+            --bg-footer: #e5e5e5; --bg-input: #f9fafb; --bg-dropzone-hover: rgba(0,0,0,0.02);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --border-primary: #e5e7eb; --border-secondary: #d1d5db;
+            --scrollbar-track: #e5e5e5; --scrollbar-thumb: #c0c0c0;
+            --accent-bg: rgba(168,85,247,0.08); --accent-border: rgba(168,85,247,0.2);
+            --accent-text: #9333ea; --accent-solid: #a855f7;
+            --accent-glow: rgba(168,85,247,0.08);
+        }
+
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+        .workspace-card { background: var(--bg-card); border: 1px solid var(--border-primary); }
+        .border-b-theme { border-bottom: 1px solid var(--border-primary); }
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-tertiary { color: var(--text-tertiary); }
+        .text-theme-muted { color: var(--text-muted); }
+        .text-theme-accent { color: var(--accent-text); }
+
+        .drop-zone { border-color: var(--border-primary); cursor: pointer; transition: background 0.2s; }
+        .drop-zone:hover { background: var(--bg-dropzone-hover); }
+
+        select { background: var(--bg-input); border: 1px solid var(--border-secondary); color: var(--text-primary); transition: all 0.2s; }
+        select:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 2px var(--accent-bg); }
+
+        .scale-btn { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .scale-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .scale-btn.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); box-shadow: 0 0 20px var(--accent-glow); }
+
+        .btn-primary { background: var(--accent-solid); color: #ffffff; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-download { background: var(--text-primary); color: var(--bg-body); transition: opacity 0.2s; }
+        .btn-download:hover { opacity: 0.85; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .btn-secondary:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .tag { background: var(--bg-input); color: var(--text-muted); }
+
+        @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
+
+        .compare-container { position: relative; overflow: hidden; cursor: ew-resize; user-select: none; -webkit-user-select: none; background: #0a0a0a; }
+        .compare-container canvas { display: block; width: 100%; height: 100%; pointer-events: none; }
+        .compare-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; }
+        .compare-overlay canvas { position: absolute; top: 0; left: 0; }
+        .compare-line { position: absolute; top: 0; bottom: 0; width: 2px; background: var(--accent-solid); z-index: 10; pointer-events: none; }
+        .compare-handle { position: absolute; top: 50%; width: 36px; height: 36px; border-radius: 50%; background: var(--accent-solid); transform: translate(-50%, -50%); z-index: 11; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 15px var(--accent-glow); pointer-events: none; }
+        .compare-label { position: absolute; top: 12px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 500; z-index: 5; pointer-events: none; backdrop-filter: blur(8px); }
+
+        .res-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; }
+
+        .warning-box { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fbbf24; }
+
+        .zoom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .zoom-grid canvas { width: 100%; height: auto; border-radius: 8px; image-rendering: auto; display: block; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl" style="background: var(--bg-nav); border-bottom: 1px solid var(--border-primary);">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="text-lg font-semibold tracking-tight text-theme-primary">Tool<span class="text-purple-400">Box</span></span>
+            </a>
+            <a href="../index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-theme-tertiary hover:text-theme-primary hover:bg-white/5 transition-all">
+                <i data-lucide="home" class="w-4 h-4"></i> Home
+            </a>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <div class="max-w-5xl mx-auto px-6 py-12">
+
+            <!-- Breadcrumb -->
+            <div class="animate-fade-up flex items-center gap-2 text-sm mb-8 text-theme-muted">
+                <a href="../index.html" class="hover:opacity-80 transition-opacity flex items-center gap-1.5">
+                    <i data-lucide="home" class="w-3.5 h-3.5"></i> Home
+                </a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                <span>Image</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                <span class="text-theme-secondary">Image Upscale</span>
+            </div>
+
+            <!-- Tool Header -->
+            <div class="animate-fade-up flex flex-col md:flex-row md:items-center gap-6 mb-10">
+                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0"
+                     style="background: var(--accent-bg); border-color: var(--accent-border)">
+                    <i data-lucide="maximize-2" class="w-7 h-7 text-theme-accent"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">Image Upscale</h1>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Enhance image resolution up to 8K with CAS sharpening & detail enhancement. Zoom in — edges stay crisp, not blurry.</p>
+                </div>
+            </div>
+
+            <!-- Workspace -->
+            <div class="animate-fade-up workspace-card rounded-2xl overflow-hidden">
+
+                <!-- Upload Zone -->
+                <div id="dropZone" class="drop-zone p-12 text-center border-b-theme"
+                     onclick="document.getElementById('fileInput').click()">
+                    <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mx-auto mb-4" style="border-color: var(--border-secondary)">
+                        <i data-lucide="image-plus" class="w-7 h-7 text-theme-muted"></i>
+                    </div>
+                    <p class="font-medium mb-1 text-theme-secondary">Drop your image here or click to browse</p>
+                    <p class="text-sm text-theme-muted">Supports: PNG, JPG, WebP, BMP</p>
+                    <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFile(this)">
+                </div>
+
+                <!-- File Info -->
+                <div id="fileInfo" class="hidden p-6 border-b-theme">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--accent-bg)">
+                                <i data-lucide="image" class="w-5 h-5 text-theme-accent"></i>
+                            </div>
+                            <div>
+                                <p id="fileName" class="text-sm font-medium text-theme-primary"></p>
+                                <div class="flex items-center gap-3 mt-0.5">
+                                    <span id="fileSize" class="text-xs text-theme-muted"></span>
+                                    <span id="fileDims" class="text-xs text-theme-muted"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="removeFile()" id="removeBtn" class="p-2 rounded-lg hover:bg-white/5 transition-colors text-theme-muted">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div id="originalPreviewWrap" class="mt-4 rounded-xl overflow-hidden hidden flex items-center justify-center" style="background: #0a0a0a; max-height: 280px;">
+                        <img id="originalPreview" class="max-w-full max-h-[280px] object-contain" />
+                    </div>
+                </div>
+
+                <!-- Scale Options -->
+                <div id="optionsPanel" class="hidden p-6 border-b-theme">
+                    <label class="text-sm font-medium mb-4 block text-theme-secondary">Target Scale</label>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3" id="scaleBtns">
+                        <button onclick="selectScale(this,'2x')" class="scale-btn rounded-xl p-4 text-center">
+                            <div class="text-2xl font-semibold mb-1">2×</div>
+                            <div class="text-xs text-theme-muted" id="label2x">—</div>
+                        </button>
+                        <button onclick="selectScale(this,'4x')" class="scale-btn active rounded-xl p-4 text-center">
+                            <div class="text-2xl font-semibold mb-1">4×</div>
+                            <div class="text-xs text-theme-muted" id="label4x">—</div>
+                        </button>
+                        <button onclick="selectScale(this,'6x')" class="scale-btn rounded-xl p-4 text-center">
+                            <div class="text-2xl font-semibold mb-1">6×</div>
+                            <div class="text-xs text-theme-muted" id="label6x">—</div>
+                        </button>
+                        <button onclick="selectScale(this,'8x')" class="scale-btn rounded-xl p-4 text-center">
+                            <div class="text-2xl font-semibold mb-1">8×</div>
+                            <div class="text-xs text-theme-muted" id="label8x">—</div>
+                        </button>
+                    </div>
+
+                    <div class="mt-5">
+                        <label class="text-sm font-medium mb-3 block text-theme-secondary">Quick Presets</label>
+                        <div class="flex flex-wrap gap-2" id="presetBtns">
+                            <button onclick="selectPreset(this,'2k')" class="scale-btn px-4 py-2 rounded-lg text-sm font-medium">2K <span class="text-theme-muted text-xs ml-1">2560×1440</span></button>
+                            <button onclick="selectPreset(this,'4k')" class="scale-btn px-4 py-2 rounded-lg text-sm font-medium">4K <span class="text-theme-muted text-xs ml-1">3840×2160</span></button>
+                            <button onclick="selectPreset(this,'8k')" class="scale-btn px-4 py-2 rounded-lg text-sm font-medium">8K <span class="text-theme-muted text-xs ml-1">7680×4320</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Memory Warning -->
+                    <div id="memoryWarning" class="hidden mt-4 warning-box rounded-lg p-3 flex items-start gap-2">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                        <p id="memoryWarningText" class="text-xs opacity-90"></p>
+                    </div>
+
+                    <!-- Enhancement Controls -->
+                    <div class="mt-6 p-4 rounded-xl" style="background: var(--bg-input); border: 1px solid var(--border-primary);">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-theme-accent"></i>
+                            <span class="text-sm font-medium text-theme-secondary">Enhancement Engine</span>
+                        </div>
+
+                        <!-- Sharpness -->
+                        <div class="mb-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-medium text-theme-tertiary">Edge Sharpness (CAS)</label>
+                                <span id="sharpVal" class="text-xs font-mono text-theme-accent">70%</span>
+                            </div>
+                            <input type="range" id="sharpnessSlider" min="0" max="100" value="70"
+                                   oninput="document.getElementById('sharpVal').textContent=this.value+'%'"
+                                   class="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                                   style="background: var(--border-secondary); accent-color: var(--accent-solid);">
+                            <p class="text-[10px] text-theme-muted mt-1">Contrast Adaptive Sharpening — crisp edges, no halos</p>
+                        </div>
+
+                        <!-- Detail -->
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-medium text-theme-tertiary">Detail Enhancement</label>
+                                <span id="detailVal" class="text-xs font-mono text-theme-accent">50%</span>
+                            </div>
+                            <input type="range" id="detailSlider" min="0" max="100" value="50"
+                                   oninput="document.getElementById('detailVal').textContent=this.value+'%'"
+                                   class="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                                   style="background: var(--border-secondary); accent-color: var(--accent-solid);">
+                            <p class="text-[10px] text-theme-muted mt-1">Local contrast boost — textures & fine details pop</p>
+                        </div>
+                    </div>
+
+                    <!-- Output Format -->
+                    <div class="mt-5">
+                        <label class="text-sm font-medium mb-3 block text-theme-secondary">Output Format</label>
+                        <select id="outputFormat" class="rounded-lg px-4 py-2.5 text-sm">
+                            <option value="png">PNG (Lossless — best quality)</option>
+                            <option value="webp">WebP (High quality, smaller file)</option>
+                            <option value="jpeg">JPEG (Smallest file, some loss)</option>
+                        </select>
+                    </div>
+
+                    <p class="mt-4 text-xs text-theme-muted flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-3.5 h-3.5 shrink-0"></i>
+                        Progressive 2× upscale → CAS sharpen → Detail enhance. No cropping. Full image preserved.
+                    </p>
+                </div>
+
+                <!-- Action Button -->
+                <div id="actionArea" class="hidden p-6">
+                    <button onclick="processImage()" id="processBtn"
+                            class="btn-primary w-full h-12 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        <span id="processBtnText">Upscale & Enhance</span>
+                    </button>
+                </div>
+
+                <!-- Progress -->
+                <div id="progressArea" class="hidden p-6 border-b-theme">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-theme-secondary flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full pulse-dot" style="background: var(--accent-solid)"></span>
+                            <span id="progressLabel">Upscaling…</span>
+                        </span>
+                        <span id="progressPercent" class="text-sm font-mono text-theme-accent">0%</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full overflow-hidden" style="background: var(--bg-input)">
+                        <div id="progressBar" class="h-full rounded-full transition-all duration-200" style="width:0%; background: var(--accent-solid)"></div>
+                    </div>
+                    <p id="progressDetail" class="text-xs text-theme-muted mt-2"></p>
+                </div>
+
+                <!-- Result -->
+                <div id="resultArea" class="hidden">
+                    <!-- Info Bar -->
+                    <div class="p-6 border-b-theme">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: rgba(34,197,94,0.1)">
+                                <i data-lucide="check" class="w-4 h-4 text-green-400"></i>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-green-400">Upscaling complete!</span>
+                                <p id="resultInfo" class="text-xs text-theme-muted mt-0.5"></p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 flex-wrap">
+                            <div class="res-badge" style="background: var(--bg-input); color: var(--text-muted);">
+                                <i data-lucide="minimize-2" class="w-3 h-3"></i>
+                                <span id="resOriginal">—</span>
+                            </div>
+                            <i data-lucide="arrow-right" class="w-4 h-4 text-theme-muted"></i>
+                            <div class="res-badge" style="background: var(--accent-bg); color: var(--accent-text);">
+                                <i data-lucide="maximize-2" class="w-3 h-3"></i>
+                                <span id="resUpscaled">—</span>
+                            </div>
+                            <div class="res-badge" style="background: rgba(34,197,94,0.1); color: #4ade80;">
+                                <i data-lucide="trending-up" class="w-3 h-3"></i>
+                                <span id="resMultiplier">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Zoom Crop Comparison -->
+                    <div class="p-6 border-b-theme">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-theme-secondary">Zoom Comparison (pixel-level detail)</span>
+                            <span class="text-xs text-theme-muted">Same area, actual pixels</span>
+                        </div>
+                        <div class="zoom-grid">
+                            <div>
+                                <div class="text-[10px] text-theme-muted mb-1.5 text-center uppercase tracking-wider">Before · Bilinear</div>
+                                <canvas id="zoomBefore" class="rounded-lg" style="background:#0a0a0a; border: 1px solid var(--border-primary);"></canvas>
+                            </div>
+                            <div>
+                                <div class="text-[10px] text-theme-accent mb-1.5 text-center uppercase tracking-wider">After · Enhanced</div>
+                                <canvas id="zoomAfter" class="rounded-lg" style="background:#0a0a0a; border: 1px solid var(--accent-border);"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Full Comparison Slider -->
+                    <div class="p-6 border-b-theme">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-medium text-theme-secondary">Full Before / After</span>
+                            <span class="text-xs text-theme-muted">Drag to compare</span>
+                        </div>
+                        <div id="compareContainer" class="compare-container rounded-xl" style="max-height: 420px;">
+                            <canvas id="compareBeforeCanvas"></canvas>
+                            <div class="compare-overlay" id="compareAfterWrap">
+                                <canvas id="compareAfterCanvas"></canvas>
+                            </div>
+                            <div class="compare-line" id="compareLine"></div>
+                            <div class="compare-handle" id="compareHandle">
+                                <i data-lucide="move-horizontal" class="w-4 h-4 text-white"></i>
+                            </div>
+                            <div class="compare-label left-3" style="background: rgba(0,0,0,0.7); color: #a3a3a3;">Bilinear</div>
+                            <div class="compare-label right-3" style="background: rgba(168,85,247,0.3); color: #c084fc;">Enhanced</div>
+                        </div>
+                    </div>
+
+                    <!-- Download Buttons -->
+                    <div class="p-6">
+                        <div class="flex flex-wrap gap-3">
+                            <button onclick="downloadImage()" id="downloadBtn"
+                                    class="btn-download h-12 px-8 rounded-xl text-sm font-medium flex items-center gap-2">
+                                <i data-lucide="download" class="w-4 h-4"></i> Download Enhanced Image
+                            </button>
+                            <button onclick="upscaleAgain()"
+                                    class="btn-secondary h-12 px-6 rounded-xl text-sm font-medium flex items-center gap-2">
+                                <i data-lucide="refresh-cw" class="w-4 h-4"></i> Upscale Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="mt-8 flex flex-wrap gap-2">
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#upscale</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#enhance</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#2k</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#4k</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#8k</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#cas</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#sharpen</span>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="background: var(--bg-footer); border-top: 1px solid var(--border-primary)">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <a href="../index.html" class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 bg-purple-500 rounded-md flex items-center justify-center">
+                        <i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-theme-primary">Tool<span class="text-purple-400">Box</span></span>
+                </a>
+                <p class="text-xs text-theme-muted">All tools run locally. No data uploaded.</p>
+                <p class="text-xs text-theme-muted">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // =============================================
+    //  🎨 THEME
+    // =============================================
+    (function() {
+        function getSystemTheme() { return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }
+        function applyTheme() {
+            const theme = localStorage.getItem('toolbox-theme') || getSystemTheme();
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (!localStorage.getItem('toolbox-theme')) applyTheme(); });
+        window.addEventListener('storage', (e) => { if (e.key === 'toolbox-theme') applyTheme(); });
+        applyTheme();
+    })();
+
+    // =============================================
+    //  IMAGE UPSCALE ENGINE
+    //  ✅ CAS (Contrast Adaptive Sharpening) — edges crisp, no halos
+    //  ✅ Local Contrast Enhancement — details pop
+    //  ✅ Progressive 2× steps — maximum quality
+    //  ✅ No cropping — full image preserved
+    //  ✅ Memory safe — auto-caps dimensions
+    // =============================================
+
+    const MAX_DIM = 16384;
+    const MAX_PIXELS = 120_000_000; // ~480MB single canvas
+
+    let originalImage = null;
+    let originalWidth = 0;
+    let originalHeight = 0;
+    let upscaledBlob = null;
+    let selectedScale = '4x';
+    let isProcessing = false;
+    let targetWidth = 0;
+    let targetHeight = 0;
+
+    const PRESETS = { '2k': {w:2560,h:1440}, '4k': {w:3840,h:2160}, '8k': {w:7680,h:4320} };
+
+    // ---------- FILE HANDLING ----------
+    function handleFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatSize(file.size);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                originalImage = img;
+                originalWidth = img.naturalWidth;
+                originalHeight = img.naturalHeight;
+                document.getElementById('fileDims').textContent = `${originalWidth} × ${originalHeight}`;
+                updateScaleLabels();
+                updateMemoryWarning();
+                document.getElementById('originalPreview').src = e.target.result;
+                document.getElementById('originalPreviewWrap').classList.remove('hidden');
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+        document.getElementById('fileInfo').classList.remove('hidden');
+        document.getElementById('optionsPanel').classList.remove('hidden');
+        document.getElementById('actionArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('progressArea').classList.add('hidden');
+    }
+
+    function updateScaleLabels() {
+        if (!originalImage) return;
+        [2,4,6,8].forEach(s => {
+            const el = document.getElementById(`label${s}x`);
+            if (!el) return;
+            const d = getSafeDims(originalWidth, originalHeight, s);
+            const raw = originalWidth * s;
+            if (raw !== d.w) {
+                el.innerHTML = `${d.w}×${d.h} <span class="text-amber-400 text-[10px]">capped</span>`;
+            } else {
+                el.textContent = `${d.w}×${d.h}`;
+            }
+        });
+    }
+
+    function getSafeDims(srcW, srcH, scale) {
+        let w = Math.round(srcW * scale), h = Math.round(srcH * scale);
+        if (w > MAX_DIM) { h = Math.round(h * (MAX_DIM / w)); w = MAX_DIM; }
+        if (h > MAX_DIM) { w = Math.round(w * (MAX_DIM / h)); h = MAX_DIM; }
+        if (w * h > MAX_PIXELS) { const r = Math.sqrt(MAX_PIXELS / (w * h)); w = Math.round(w * r); h = Math.round(h * r); }
+        w = w % 2 === 0 ? Math.max(w, 2) : w + 1;
+        h = h % 2 === 0 ? Math.max(h, 2) : h + 1;
+        return { w, h };
+    }
+
+    function updateMemoryWarning() {
+        if (!originalImage) return;
+        const scale = parseInt(selectedScale);
+        const d = getSafeDims(originalWidth, originalHeight, scale);
+        const rawW = originalWidth * scale, rawH = originalHeight * scale;
+        const memMB = Math.round((d.w * d.h * 4) / (1024 * 1024));
+        const el = document.getElementById('memoryWarning');
+        const txt = document.getElementById('memoryWarningText');
+        if (rawW > MAX_DIM || rawH > MAX_DIM || rawW * rawH > MAX_PIXELS) {
+            el.classList.remove('hidden');
+            txt.textContent = `Output capped to ${d.w}×${d.h} (~${memMB}MB) to prevent out-of-memory.`;
+        } else if (memMB > 250) {
+            el.classList.remove('hidden');
+            txt.textContent = `Output ${d.w}×${d.h} (~${memMB}MB). May be slow on low-end devices.`;
+        } else { el.classList.add('hidden'); }
+    }
+
+    function removeFile() {
+        originalImage = null; upscaledBlob = null;
+        document.getElementById('fileInput').value = '';
+        ['fileInfo','optionsPanel','actionArea','resultArea','progressArea','originalPreviewWrap','memoryWarning'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    }
+
+    function selectScale(el, val) {
+        selectedScale = val;
+        document.querySelectorAll('#scaleBtns .scale-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        document.querySelectorAll('#presetBtns .scale-btn').forEach(b => b.classList.remove('active'));
+        updateMemoryWarning();
+    }
+
+    function selectPreset(el, preset) {
+        if (!originalImage) return;
+        document.querySelectorAll('#presetBtns .scale-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        const t = PRESETS[preset];
+        const scale = Math.max(t.w / originalWidth, t.h / originalHeight);
+        selectedScale = scale <= 2 ? '2x' : scale <= 4 ? '4x' : scale <= 6 ? '6x' : '8x';
+        document.querySelectorAll('#scaleBtns .scale-btn').forEach(b => {
+            const s = b.querySelector('.text-2xl')?.textContent?.replace('×','');
+            b.classList.toggle('active', s === selectedScale.replace('x',''));
+        });
+        updateMemoryWarning();
+    }
+
+    // ---------- MAIN PROCESSING PIPELINE ----------
+    async function processImage() {
+        if (!originalImage || isProcessing) return;
+        isProcessing = true;
+
+        const scaleVal = parseInt(selectedScale);
+        const dims = getSafeDims(originalWidth, originalHeight, scaleVal);
+        targetWidth = dims.w;
+        targetHeight = dims.h;
+
+        if (targetWidth * targetHeight > MAX_PIXELS) {
+            alert(`Output too large. Try a lower scale.`); isProcessing = false; return;
+        }
+
+        const btn = document.getElementById('processBtn');
+        btn.disabled = true;
+        document.getElementById('processBtnText').textContent = 'Processing…';
+        document.getElementById('progressArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+
+        const sharpness = parseInt(document.getElementById('sharpnessSlider').value) / 100;
+        const detailStr = parseInt(document.getElementById('detailSlider').value) / 100;
+        const format = document.getElementById('outputFormat').value;
+
+        // Step 1: Progressive 2× upscale with CAS after each step
+        let canvas = document.createElement('canvas');
+        canvas.width = originalWidth;
+        canvas.height = originalHeight;
+        canvas.getContext('2d').drawImage(originalImage, 0, 0);
+
+        const steps = Math.ceil(Math.log2(scaleVal));
+
+        for (let i = 0; i < steps; i++) {
+            setProgress(`Upscaling step ${i+1}/${steps} (2×)...`, (i / steps) * 70);
+            await yieldUI();
+
+            // Upscale 2×
+            const newW = Math.min(canvas.width * 2, targetWidth);
+            const newH = Math.min(canvas.height * 2, targetHeight);
+            const next = document.createElement('canvas');
+            next.width = newW; next.height = newH;
+            const nCtx = next.getContext('2d');
+            nCtx.imageSmoothingEnabled = true;
+            nCtx.imageSmoothingQuality = 'high';
+            nCtx.drawImage(canvas, 0, 0, newW, newH);
+            canvas.width = 0; canvas.height = 0; // free
+            canvas = next;
+
+            // CAS sharpening after each step (lighter for intermediate steps)
+            if (sharpness > 0) {
+                const stepSharp = i < steps - 1 ? sharpness * 0.5 : sharpness * 0.8;
+                setProgress(`CAS sharpening step ${i+1}/${steps}...`, ((i + 0.5) / steps) * 70);
+                canvas = await applyCASAsync(canvas, stepSharp);
+            }
+        }
+
+        // Step 2: Resize to exact target if needed
+        if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+            setProgress('Final resize...', 75);
+            await yieldUI();
+            const final = document.createElement('canvas');
+            final.width = targetWidth; final.height = targetHeight;
+            const fCtx = final.getContext('2d');
+            fCtx.imageSmoothingEnabled = true;
+            fCtx.imageSmoothingQuality = 'high';
+            fCtx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
+            canvas.width = 0; canvas.height = 0;
+            canvas = final;
+        }
+
+        // Step 3: Local contrast enhancement (detail pop)
+        if (detailStr > 0) {
+            setProgress('Enhancing details (local contrast)...', 80);
+            await yieldUI();
+            canvas = await applyLocalContrastAsync(canvas, detailStr);
+        }
+
+        // Step 4: Final CAS pass at full strength
+        if (sharpness > 0) {
+            setProgress('Final CAS sharpening...', 90);
+            await yieldUI();
+            canvas = await applyCASAsync(canvas, sharpness);
+        }
+
+        // Done — generate output
+        setProgress('Generating output...', 95);
+        finishProcessing(canvas, format);
+    }
+
+    // =============================================
+    //  CAS — Contrast Adaptive Sharpening
+    //  Same algorithm as AMD FidelityFX CAS
+    //  Sharpens edges, protects flat areas, no halos
+    // =============================================
+    async function applyCASAsync(canvas, sharpness) {
+        const w = canvas.width, h = canvas.height;
+        const ctx = canvas.getContext('2d');
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const src = new Uint8ClampedArray(imgData.data);
+        const dst = imgData.data;
+        const CHUNK = 40;
+
+        for (let startY = 0; startY < h; startY += CHUNK) {
+            const endY = Math.min(startY + CHUNK, h);
+            for (let y = startY; y < endY; y++) {
+                const y0 = Math.max(0, y - 1);
+                const y1 = Math.min(h - 1, y + 1);
+                for (let x = 0; x < w; x++) {
+                    const idx = (y * w + x) * 4;
+                    const x0 = Math.max(0, x - 1);
+                    const x1 = Math.min(w - 1, x + 1);
+
+                    for (let c = 0; c < 3; c++) {
+                        const center = src[idx + c];
+
+                        // 3×3 neighborhood
+                        const top    = src[(y0 * w + x)  * 4 + c];
+                        const bottom = src[(y1 * w + x)  * 4 + c];
+                        const left   = src[(y  * w + x0) * 4 + c];
+                        const right  = src[(y  * w + x1) * 4 + c];
+                        const tl     = src[(y0 * w + x0) * 4 + c];
+                        const tr     = src[(y0 * w + x1) * 4 + c];
+                        const bl     = src[(y1 * w + x0) * 4 + c];
+                        const br     = src[(y1 * w + x1) * 4 + c];
+
+                        // Min/max of 3×3
+                        const minVal = Math.min(tl, top, tr, left, center, right, bl, bottom, br);
+                        const maxVal = Math.max(tl, top, tr, left, center, right, bl, bottom, br);
+                        const range = maxVal - minVal;
+
+                        if (range < 3) { dst[idx + c] = center; continue; } // Skip flat areas
+
+                        // CAS adaptive weight
+                        // Low weight = center is near edge → sharpen MORE
+                        // High weight = center is in middle → sharpen LESS (avoid halos)
+                        const distMin = center - minVal;
+                        const distMax = maxVal - center;
+                        const weight = Math.min(distMin, distMax) / range;
+
+                        // Adaptive sharpening: stronger on edges, weaker on gradients
+                        const adaptive = sharpness * (1.0 - weight * weight);
+
+                        // Laplacian (high-pass)
+                        const laplacian = 4 * center - top - bottom - left - right;
+
+                        // Apply
+                        dst[idx + c] = Math.max(0, Math.min(255, Math.round(center + adaptive * laplacian * 0.25)));
+                    }
+                }
+            }
+            await yieldUI();
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        return canvas;
+    }
+
+    // =============================================
+    //  LOCAL CONTRAST ENHANCEMENT
+    //  Like Photoshop "Clarity" — makes textures & details pop
+    //  local_detail = original - blurred
+    //  enhanced = original + strength * local_detail
+    // =============================================
+    async function applyLocalContrastAsync(canvas, strength) {
+        const w = canvas.width, h = canvas.height;
+        const ctx = canvas.getContext('2d');
+
+        // Create blurred version (large radius for mid-frequency contrast)
+        const blurRadius = Math.max(5, Math.round(Math.min(w, h) / 80));
+        const blurred = document.createElement('canvas');
+        blurred.width = w; blurred.height = h;
+        const bCtx = blurred.getContext('2d');
+        bCtx.filter = `blur(${blurRadius}px)`;
+        bCtx.drawImage(canvas, 0, 0);
+
+        const origData = ctx.getImageData(0, 0, w, h);
+        const blurData = bCtx.getImageData(0, 0, w, h);
+        const orig = origData.data;
+        const blur = blurData.data;
+
+        // Enhance local contrast
+        const amp = 1.0 + strength * 2.0; // Amplification factor
+        const CHUNK = 80;
+        for (let startY = 0; startY < h; startY += CHUNK) {
+            const endY = Math.min(startY + CHUNK, h);
+            for (let y = startY; y < endY; y++) {
+                for (let x = 0; x < w; x++) {
+                    const i = (y * w + x) * 4;
+                    for (let c = 0; c < 3; c++) {
+                        // Detail = difference from blurred
+                        const detail = orig[i + c] - blur[i + c];
+                        // Enhance: original + amplified detail
+                        orig[i + c] = Math.max(0, Math.min(255, Math.round(orig[i + c] + (amp - 1) * detail)));
+                    }
+                }
+            }
+            await yieldUI();
+        }
+
+        ctx.putImageData(origData, 0, 0);
+        blurred.width = 0; blurred.height = 0; // free
+        return canvas;
+    }
+
+    // =============================================
+    //  FINISH
+    // =============================================
+    function finishProcessing(canvas, format) {
+        const mimeType = format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
+        const quality = format === 'jpeg' ? 0.95 : format === 'webp' ? 0.92 : undefined;
+
+        canvas.toBlob((blob) => {
+            if (!blob) { alert('Error creating output. Try smaller scale or different format.'); resetBtn(); return; }
+            upscaledBlob = blob;
+            const newW = canvas.width, newH = canvas.height;
+
+            setTimeout(() => {
+                document.getElementById('progressArea').classList.add('hidden');
+                document.getElementById('actionArea').classList.add('hidden');
+                document.getElementById('resultArea').classList.remove('hidden');
+
+                document.getElementById('resultInfo').textContent = `${originalWidth}×${originalHeight} → ${newW}×${newH} · ${formatSize(blob.size)}`;
+                document.getElementById('resOriginal').textContent = `${originalWidth}×${originalHeight}`;
+                document.getElementById('resUpscaled').textContent = `${newW}×${newH}`;
+                document.getElementById('resMultiplier').textContent = `${Math.round((newW * newH) / (originalWidth * originalHeight))}× more pixels`;
+
+                setupZoomComparison(canvas);
+                setupSlider(canvas);
+                resetBtn();
+                lucide.createIcons();
+            }, 200);
+        }, mimeType, quality);
+    }
+
+    // =============================================
+    //  ZOOM CROP COMPARISON — Pixel-level proof
+    // =============================================
+    function setupZoomComparison(enhancedCanvas) {
+        const w = enhancedCanvas.width, h = enhancedCanvas.height;
+
+        // Create "before" canvas — same size but only bilinear (no enhancement)
+        const beforeFull = document.createElement('canvas');
+        beforeFull.width = w; beforeFull.height = h;
+        const bCtx = beforeFull.getContext('2d');
+        bCtx.imageSmoothingEnabled = true;
+        bCtx.imageSmoothingQuality = 'high';
+        bCtx.drawImage(originalImage, 0, 0, w, h);
+
+        // Crop center area for zoom
+        const cropSize = Math.round(Math.min(w, h) * 0.15);
+        const cropX = Math.round((w - cropSize) / 2);
+        const cropY = Math.round((h - cropSize) / 2);
+
+        // Display at 2× zoom for visibility
+        const displaySize = Math.min(350, cropSize * 2);
+
+        const zBefore = document.getElementById('zoomBefore');
+        zBefore.width = displaySize; zBefore.height = displaySize;
+        const zbCtx = zBefore.getContext('2d');
+        zbCtx.imageSmoothingEnabled = false; // Show actual pixels
+        zbCtx.drawImage(beforeFull, cropX, cropY, cropSize, cropSize, 0, 0, displaySize, displaySize);
+
+        const zAfter = document.getElementById('zoomAfter');
+        zAfter.width = displaySize; zAfter.height = displaySize;
+        const zaCtx = zAfter.getContext('2d');
+        zaCtx.imageSmoothingEnabled = false;
+        zaCtx.drawImage(enhancedCanvas, cropX, cropY, cropSize, cropSize, 0, 0, displaySize, displaySize);
+
+        beforeFull.width = 0; beforeFull.height = 0;
+    }
+
+    // =============================================
+    //  COMPARISON SLIDER
+    // =============================================
+    function setupSlider(enhancedCanvas) {
+        const container = document.getElementById('compareContainer');
+        const beforeC = document.getElementById('compareBeforeCanvas');
+        const afterC = document.getElementById('compareAfterCanvas');
+        const afterWrap = document.getElementById('compareAfterWrap');
+        const line = document.getElementById('compareLine');
+        const handle = document.getElementById('compareHandle');
+
+        const w = enhancedCanvas.width, h = enhancedCanvas.height;
+        beforeC.width = w; beforeC.height = h;
+        afterC.width = w; afterC.height = h;
+
+        // Before: bilinear only
+        const bCtx = beforeC.getContext('2d');
+        bCtx.imageSmoothingEnabled = true;
+        bCtx.imageSmoothingQuality = 'high';
+        bCtx.drawImage(originalImage, 0, 0, w, h);
+
+        // After: enhanced
+        afterC.getContext('2d').drawImage(enhancedCanvas, 0, 0);
+
+        container.style.aspectRatio = `${w} / ${h}`;
+        container.style.maxHeight = '420px';
+
+        let pos = 50;
+        function update(pct) {
+            pos = Math.max(1, Math.min(99, pct));
+            afterWrap.style.clipPath = `inset(0 0 0 ${pos}%)`;
+            line.style.left = pos + '%';
+            handle.style.left = pos + '%';
+        }
+
+        let dragging = false;
+        function getPos(e) {
+            const rect = container.getBoundingClientRect();
+            return ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) / rect.width * 100;
+        }
+        container.onmousedown = (e) => { dragging = true; update(getPos(e)); };
+        container.ontouchstart = (e) => { dragging = true; update(getPos(e)); };
+        window.onmousemove = (e) => { if (dragging) update(getPos(e)); };
+        window.ontouchmove = (e) => { if (dragging) update(getPos(e)); };
+        window.onmouseup = () => { dragging = false; };
+        window.ontouchend = () => { dragging = false; };
+        update(50);
+    }
+
+    // =============================================
+    //  DOWNLOAD
+    // =============================================
+    function downloadImage() {
+        if (!upscaledBlob) { alert('No image available.'); return; }
+        const format = document.getElementById('outputFormat').value;
+        const name = document.getElementById('fileName').textContent.replace(/\.[^/.]+$/, '');
+        const ext = format === 'jpeg' ? 'jpg' : format;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(upscaledBlob);
+        a.download = `${name}_${targetWidth}x${targetHeight}_enhanced.${ext}`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    function upscaleAgain() {
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('actionArea').classList.remove('hidden');
+        upscaledBlob = null;
+    }
+
+    // =============================================
+    //  HELPERS
+    // =============================================
+    function setProgress(label, pct) {
+        document.getElementById('progressLabel').textContent = label;
+        document.getElementById('progressBar').style.width = Math.min(pct, 98) + '%';
+        document.getElementById('progressPercent').textContent = Math.round(Math.min(pct, 98)) + '%';
+        document.getElementById('progressDetail').textContent = label;
+    }
+
+    function resetBtn() {
+        document.getElementById('processBtn').disabled = false;
+        document.getElementById('processBtnText').textContent = 'Upscale & Enhance';
+        isProcessing = false;
+    }
+
+    function yieldUI() { return new Promise(r => setTimeout(r, 0)); }
+
+    function formatSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024, s = ['Bytes','KB','MB','GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + s[i];
+    }
+
+    // Drag & Drop
+    const dz = document.getElementById('dropZone');
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--accent-border)'; });
+    dz.addEventListener('dragleave', () => { dz.style.borderColor = 'var(--border-primary)'; });
+    dz.addEventListener('drop', (e) => {
+        e.preventDefault(); dz.style.borderColor = 'var(--border-primary)';
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const input = document.getElementById('fileInput');
+            const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+            handleFile(input);
+        }
+    });
+
+    lucide.createIcons();
+    </script>
+
+</body>
+</html>

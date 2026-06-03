@@ -10,9 +10,6 @@
     <style>
         * { font-family: 'Inter', sans-serif; }
 
-        /* =========================================
-           THEME VARIABLES — Light & Dark
-        ========================================= */
         :root, [data-theme="dark"] {
             --bg-body: #050505; --bg-card: rgba(23, 23, 23, 0.3); --bg-nav: rgba(5, 5, 5, 0.8);
             --bg-footer: #030303; --bg-input: #171717; --bg-dropzone-hover: rgba(255,255,255,0.02);
@@ -42,7 +39,6 @@
         ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
         ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 
-        /* Theme-Aware Utility Classes */
         .workspace-card { background: var(--bg-card); border: 1px solid var(--border-primary); }
         .border-b-theme { border-bottom: 1px solid var(--border-primary); }
         .text-theme-primary { color: var(--text-primary); }
@@ -66,7 +62,12 @@
         .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
         .btn-download { background: var(--text-primary); color: var(--bg-body); transition: opacity 0.2s; }
         .btn-download:hover { opacity: 0.85; }
+        .btn-cancel { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .btn-cancel:hover { color: #f87171; border-color: rgba(248,113,113,0.3); }
         .tag { background: var(--bg-input); color: var(--text-muted); }
+
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -108,7 +109,7 @@
                 </div>
                 <div>
                     <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">Video Compress</h1>
-                    <p class="font-light leading-relaxed text-theme-tertiary">Reduce video file size without losing quality. Supports MP4, WebM, MOV formats.</p>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Reduce video file size using browser-based encoding. Supports MP4 & WebM output with real compression.</p>
                 </div>
             </div>
 
@@ -126,7 +127,7 @@
                     <input type="file" id="fileInput" accept="video/*" class="hidden" onchange="handleFile(this)">
                 </div>
 
-                <!-- File Info (hidden) -->
+                <!-- File Info -->
                 <div id="fileInfo" class="hidden p-6 border-b-theme">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
@@ -138,9 +139,13 @@
                                 <p id="fileSize" class="text-xs text-theme-muted"></p>
                             </div>
                         </div>
-                        <button onclick="removeFile()" class="p-2 rounded-lg hover:bg-white/5 transition-colors text-theme-muted">
+                        <button onclick="removeFile()" id="removeBtn" class="p-2 rounded-lg hover:bg-white/5 transition-colors text-theme-muted">
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
+                    </div>
+                    <!-- Video Preview -->
+                    <div id="videoPreviewWrap" class="mt-4 rounded-lg overflow-hidden hidden" style="background: #000;">
+                        <video id="videoPreview" class="w-full max-h-64 object-contain" muted playsinline></video>
                     </div>
                 </div>
 
@@ -160,14 +165,18 @@
                     </div>
                     <div class="mt-5">
                         <label class="text-sm font-medium mb-3 block text-theme-secondary">Output Format</label>
-                        <select class="rounded-lg px-4 py-2.5 text-sm">
-                            <option>MP4</option>
-                            <option>WebM</option>
+                        <select id="outputFormat" class="rounded-lg px-4 py-2.5 text-sm">
+                            <option value="webm">WebM (Recommended)</option>
+                            <option value="mp4">MP4</option>
                         </select>
                     </div>
+                    <p class="mt-3 text-xs text-theme-muted flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                        Compression runs in your browser. Processing time depends on video length.
+                    </p>
                 </div>
 
-                <!-- Action Button -->
+                <!-- Action Buttons -->
                 <div id="actionArea" class="hidden p-6">
                     <button onclick="processVideo()" id="processBtn"
                             class="btn-primary w-full h-12 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
@@ -178,18 +187,27 @@
 
                 <!-- Progress -->
                 <div id="progressArea" class="hidden p-6 border-b-theme">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-sm text-theme-secondary">Compressing...</span>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-theme-secondary flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-400 pulse-dot"></span>
+                            Compressing…
+                        </span>
                         <span id="progressPercent" class="text-sm font-mono text-theme-accent">0%</span>
                     </div>
                     <div class="w-full h-2 rounded-full overflow-hidden" style="background: var(--bg-input)">
                         <div id="progressBar" class="h-full rounded-full transition-all duration-300" style="width:0%; background: var(--accent-solid)"></div>
                     </div>
+                    <div class="mt-3 flex justify-between items-center">
+                        <span id="progressETA" class="text-xs text-theme-muted"></span>
+                        <button onclick="cancelCompression()" id="cancelBtn" class="btn-cancel px-4 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5">
+                            <i data-lucide="x" class="w-3 h-3"></i> Cancel
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Result -->
                 <div id="resultArea" class="hidden p-6">
-                    <div class="flex items-center gap-3 mb-5">
+                    <div class="flex items-center gap-3 mb-4">
                         <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: rgba(34,197,94,0.1)">
                             <i data-lucide="check" class="w-4 h-4 text-green-400"></i>
                         </div>
@@ -198,10 +216,20 @@
                             <p id="resultInfo" class="text-xs text-theme-muted mt-0.5"></p>
                         </div>
                     </div>
-                    <button onclick="alert('Demo: Download would start here')"
-                            class="btn-download h-12 px-8 rounded-xl text-sm font-medium flex items-center gap-2">
-                        <i data-lucide="download" class="w-4 h-4"></i> Download Compressed Video
-                    </button>
+                    <!-- Preview compressed -->
+                    <div id="compressedPreviewWrap" class="mb-4 rounded-lg overflow-hidden hidden" style="background: #000;">
+                        <video id="compressedPreview" class="w-full max-h-64 object-contain" controls></video>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="downloadCompressed()" id="downloadBtn"
+                                class="btn-download h-12 px-8 rounded-xl text-sm font-medium flex items-center gap-2">
+                            <i data-lucide="download" class="w-4 h-4"></i> Download Compressed Video
+                        </button>
+                        <button onclick="compressAgain()"
+                                class="btn-cancel h-12 px-6 rounded-xl text-sm font-medium flex items-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Compress Again
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -234,7 +262,7 @@
 
     <script>
     // =============================================
-    //  🎨 AUTO THEME (Reads from Home Page Toggle)
+    //  🎨 AUTO THEME
     // =============================================
     (function() {
         function getSystemTheme() {
@@ -248,7 +276,6 @@
         window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => {
             if (!localStorage.getItem('toolbox-theme')) applyTheme();
         });
-        // Listen for manual changes from Home page if opened in another tab
         window.addEventListener('storage', (e) => {
             if (e.key === 'toolbox-theme') applyTheme();
         });
@@ -256,9 +283,14 @@
     })();
 
     // =============================================
-    //  VIDEO COMPRESS LOGIC
+    //  VIDEO COMPRESS — REAL IMPLEMENTATION
     // =============================================
     let selectedQuality = 'medium';
+    let compressedBlob = null;
+    let currentRecorder = null;
+    let isCompressing = false;
+    let compressionVideo = null;
+    let audioCtxRef = null;
 
     function handleFile(input) {
         const file = input.files[0];
@@ -270,15 +302,26 @@
         document.getElementById('actionArea').classList.remove('hidden');
         document.getElementById('resultArea').classList.add('hidden');
         document.getElementById('progressArea').classList.add('hidden');
+
+        // Show preview
+        const preview = document.getElementById('videoPreview');
+        const previewWrap = document.getElementById('videoPreviewWrap');
+        preview.src = URL.createObjectURL(file);
+        previewWrap.classList.remove('hidden');
     }
 
     function removeFile() {
+        cancelCompression();
+        const preview = document.getElementById('videoPreview');
+        if (preview.src) URL.revokeObjectURL(preview.src);
+        preview.src = '';
         document.getElementById('fileInput').value = '';
         document.getElementById('fileInfo').classList.add('hidden');
         document.getElementById('optionsPanel').classList.add('hidden');
         document.getElementById('actionArea').classList.add('hidden');
         document.getElementById('resultArea').classList.add('hidden');
         document.getElementById('progressArea').classList.add('hidden');
+        document.getElementById('videoPreviewWrap').classList.add('hidden');
     }
 
     function selectQuality(el, val) {
@@ -288,35 +331,242 @@
     }
 
     function processVideo() {
-        const btn = document.getElementById('processBtn');
-        const btnText = document.getElementById('processBtnText');
-        btn.disabled = true;
-        btnText.textContent = 'Compressing...';
-        document.getElementById('progressArea').classList.remove('hidden');
+        const file = document.getElementById('fileInput').files[0];
+        if (!file) return;
 
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 12 + 3;
-            if (progress >= 100) {
-                progress = 100; clearInterval(interval);
-                setTimeout(() => {
-                    document.getElementById('progressArea').classList.add('hidden');
-                    document.getElementById('actionArea').classList.add('hidden');
-                    document.getElementById('resultArea').classList.remove('hidden');
-                    const reduction = selectedQuality === 'low' ? '72%' : selectedQuality === 'medium' ? '48%' : '25%';
-                    document.getElementById('resultInfo').textContent = `File size reduced by ${reduction}`;
-                    btn.disabled = false;
-                    btnText.textContent = 'Compress Video';
-                }, 500);
+        isCompressing = true;
+        compressedBlob = null;
+        const originalSize = file.size;
+
+        // UI
+        const btn = document.getElementById('processBtn');
+        btn.disabled = true;
+        document.getElementById('processBtnText').textContent = 'Compressing…';
+        document.getElementById('progressArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('removeBtn').style.pointerEvents = 'none';
+        document.getElementById('removeBtn').style.opacity = '0.3';
+
+        // Quality settings — scale reduces resolution, bitrate controls file size
+        const qualitySettings = {
+            low:    { scale: 0.5,  bitrate: 800_000  },
+            medium: { scale: 0.75, bitrate: 2_000_000 },
+            high:   { scale: 1.0,  bitrate: 5_000_000 }
+        };
+        const settings = qualitySettings[selectedQuality];
+        const outputFormat = document.getElementById('outputFormat').value;
+
+        // Create offscreen video
+        const video = document.createElement('video');
+        video.playsInline = true;
+        video.muted = true; // Mute so autoplay works; audio captured separately
+        video.src = URL.createObjectURL(file);
+        compressionVideo = video;
+
+        video.onloadedmetadata = () => {
+            // Setup canvas at target resolution
+            const canvas = document.createElement('canvas');
+            let w = Math.round(video.videoWidth * settings.scale);
+            let h = Math.round(video.videoHeight * settings.scale);
+            // Encoders require even dimensions
+            w = w % 2 === 0 ? Math.max(w, 2) : w + 1;
+            h = h % 2 === 0 ? Math.max(h, 2) : h + 1;
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+
+            // Video stream from canvas
+            const canvasStream = canvas.captureStream(30);
+
+            // Try to capture audio from the video via AudioContext
+            let audioCaptured = false;
+            try {
+                const audioCtx = new AudioContext();
+                audioCtxRef = audioCtx;
+                const source = audioCtx.createMediaElementSource(video);
+                const dest = audioCtx.createMediaStreamDestination();
+                source.connect(dest);
+                // Don't connect to audioCtx.destination — we want silent playback
+                const audioTracks = dest.stream.getAudioTracks();
+                if (audioTracks.length > 0) {
+                    audioTracks.forEach(t => canvasStream.addTrack(t));
+                    audioCaptured = true;
+                }
+            } catch (e) {
+                // No audio or not supported — continue without audio
+                console.log('Audio capture skipped:', e.message);
             }
-            document.getElementById('progressBar').style.width = progress + '%';
-            document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
-        }, 200);
+
+            // Determine MIME type
+            let mimeType = 'video/webm';
+            const candidates = outputFormat === 'mp4'
+                ? ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+                : ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+
+            for (const mt of candidates) {
+                if (MediaRecorder.isTypeSupported(mt)) { mimeType = mt; break; }
+            }
+
+            console.log('Using MIME:', mimeType, 'Resolution:', w + 'x' + h, 'Bitrate:', settings.bitrate);
+
+            // Create MediaRecorder
+            const recorder = new MediaRecorder(canvasStream, {
+                mimeType: mimeType,
+                videoBitsPerSecond: settings.bitrate
+            });
+            currentRecorder = recorder;
+
+            const chunks = [];
+            recorder.ondataavailable = e => {
+                if (e.data && e.data.size > 0) chunks.push(e.data);
+            };
+
+            recorder.onstop = () => {
+                isCompressing = false;
+                document.getElementById('removeBtn').style.pointerEvents = '';
+                document.getElementById('removeBtn').style.opacity = '';
+
+                if (!isCompressing && chunks.length === 0) {
+                    // Cancelled
+                    resetProcessBtn();
+                    return;
+                }
+
+                const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+                compressedBlob = new Blob(chunks, { type: mimeType.split(';')[0] });
+
+                // Update UI
+                document.getElementById('progressArea').classList.add('hidden');
+                document.getElementById('actionArea').classList.add('hidden');
+                document.getElementById('resultArea').classList.remove('hidden');
+
+                const reduction = Math.round((1 - compressedBlob.size / originalSize) * 100);
+                if (reduction > 0) {
+                    document.getElementById('resultInfo').textContent =
+                        `${formatSize(originalSize)} → ${formatSize(compressedBlob.size)} (${reduction}% smaller)`;
+                } else {
+                    document.getElementById('resultInfo').textContent =
+                        `${formatSize(originalSize)} → ${formatSize(compressedBlob.size)} (already well compressed)`;
+                }
+
+                // Show compressed video preview
+                const cPreview = document.getElementById('compressedPreview');
+                if (cPreview.src) URL.revokeObjectURL(cPreview.src);
+                cPreview.src = URL.createObjectURL(compressedBlob);
+                document.getElementById('compressedPreviewWrap').classList.remove('hidden');
+
+                resetProcessBtn();
+                URL.revokeObjectURL(video.src);
+                if (audioCtxRef) { audioCtxRef.close().catch(()=>{}); audioCtxRef = null; }
+            };
+
+            // Track progress via video time
+            const startTime = Date.now();
+            video.ontimeupdate = () => {
+                if (!isCompressing) return;
+                const duration = video.duration || 1;
+                const pct = Math.min((video.currentTime / duration) * 100, 99);
+                document.getElementById('progressBar').style.width = pct + '%';
+                document.getElementById('progressPercent').textContent = Math.round(pct) + '%';
+
+                // ETA
+                const elapsed = (Date.now() - startTime) / 1000;
+                const rate = video.currentTime / elapsed;
+                if (rate > 0) {
+                    const remaining = (duration - video.currentTime) / rate;
+                    document.getElementById('progressETA').textContent = `~${Math.ceil(remaining)}s remaining`;
+                }
+            };
+
+            video.onended = () => {
+                if (recorder.state === 'recording') {
+                    // Set progress to 100%
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('progressPercent').textContent = '100%';
+                    document.getElementById('progressETA').textContent = 'Finalizing…';
+                    setTimeout(() => recorder.stop(), 300);
+                }
+            };
+
+            // Start recording
+            recorder.start(100);
+            video.play().catch(err => {
+                console.error('Playback error:', err);
+                alert('Could not play video for compression. Try a different file.');
+                resetProcessBtn();
+                document.getElementById('progressArea').classList.add('hidden');
+                isCompressing = false;
+            });
+
+            // Draw loop
+            function drawFrame() {
+                if (video.paused || video.ended) return;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                requestAnimationFrame(drawFrame);
+            }
+            video.onplay = drawFrame;
+        };
+
+        video.onerror = () => {
+            alert('Error loading video. Please try a different file format.');
+            resetProcessBtn();
+            document.getElementById('progressArea').classList.add('hidden');
+            isCompressing = false;
+            URL.revokeObjectURL(video.src);
+        };
+    }
+
+    function cancelCompression() {
+        if (!isCompressing) return;
+        isCompressing = false;
+        if (currentRecorder && currentRecorder.state === 'recording') {
+            currentRecorder.stop();
+        }
+        if (compressionVideo) {
+            compressionVideo.pause();
+            URL.revokeObjectURL(compressionVideo.src);
+            compressionVideo = null;
+        }
+        if (audioCtxRef) { audioCtxRef.close().catch(()=>{}); audioCtxRef = null; }
+        document.getElementById('progressArea').classList.add('hidden');
+        resetProcessBtn();
+    }
+
+    function resetProcessBtn() {
+        const btn = document.getElementById('processBtn');
+        btn.disabled = false;
+        document.getElementById('processBtnText').textContent = 'Compress Video';
+    }
+
+    function downloadCompressed() {
+        if (!compressedBlob) {
+            alert('No compressed video available. Please compress first.');
+            return;
+        }
+        const url = URL.createObjectURL(compressedBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        const originalName = document.getElementById('fileName').textContent.replace(/\.[^/.]+$/, '');
+        const ext = compressedBlob.type.includes('mp4') ? 'mp4' : 'webm';
+        a.download = `${originalName}_compressed.${ext}`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    }
+
+    function compressAgain() {
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('actionArea').classList.remove('hidden');
+        document.getElementById('compressedPreviewWrap').classList.add('hidden');
+        const cPreview = document.getElementById('compressedPreview');
+        if (cPreview.src) { URL.revokeObjectURL(cPreview.src); cPreview.src = ''; }
+        compressedBlob = null;
     }
 
     function formatSize(bytes) {
         if (bytes === 0) return '0 Bytes';
-        const k = 1024, sizes = ['Bytes','KB','MB','GB'];
+        const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
@@ -326,11 +576,14 @@
     dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--accent-border)'; });
     dz.addEventListener('dragleave', () => { dz.style.borderColor = 'var(--border-primary)'; });
     dz.addEventListener('drop', e => {
-        e.preventDefault(); dz.style.borderColor = 'var(--border-primary)';
+        e.preventDefault();
+        dz.style.borderColor = 'var(--border-primary)';
         const file = e.dataTransfer.files[0];
-        if (file) {
+        if (file && file.type.startsWith('video/')) {
             const input = document.getElementById('fileInput');
-            const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
             handleFile(input);
         }
     });
