@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: rgba(23,23,23,0.3); --bg-nav: rgba(5,5,5,0.8);
+            --bg-footer: #030303; --bg-input: #171717; --bg-dropzone-hover: rgba(255,255,255,0.02);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --border-primary: rgba(255,255,255,0.05);
+            --border-secondary: rgba(255,255,255,0.1); --scrollbar-track: #0a0a0a; --scrollbar-thumb: #333;
+            --accent-bg: rgba(20,184,166,0.1); --accent-border: rgba(20,184,166,0.2);
+            --accent-text: #2dd4bf; --accent-solid: #14b8a6; --accent-glow: rgba(20,184,166,0.15);
+        }
+        [data-theme="light"] {
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-nav: rgba(245,245,245,0.85);
+            --bg-footer: #e5e5e5; --bg-input: #f9fafb; --bg-dropzone-hover: rgba(0,0,0,0.02);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --border-primary: #e5e7eb; --border-secondary: #d1d5db;
+            --scrollbar-track: #e5e5e5; --scrollbar-thumb: #c0c0c0;
+            --accent-bg: rgba(20,184,166,0.08); --accent-border: rgba(20,184,166,0.2);
+            --accent-text: #0d9488; --accent-solid: #14b8a6; --accent-glow: rgba(20,184,166,0.08);
+        }
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+        .workspace-card { background: var(--bg-card); border: 1px solid var(--border-primary); }
+        .border-b-theme { border-bottom: 1px solid var(--border-primary); }
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-tertiary { color: var(--text-tertiary); }
+        .text-theme-muted { color: var(--text-muted); }
+        .text-theme-accent { color: var(--accent-text); }
+        input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="password"], textarea, select {
+            background: var(--bg-input); border: 1px solid var(--border-secondary); color: var(--text-primary); transition: all 0.2s; width: 100%;
+        }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 2px var(--accent-bg); }
+        .type-btn { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .type-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .type-btn.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); }
+        .btn-primary { background: var(--accent-solid); color: #ffffff; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-download { background: var(--text-primary); color: var(--bg-body); transition: opacity 0.2s; }
+        .btn-download:hover { opacity: 0.85; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .btn-secondary:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .tag { background: var(--bg-input); color: var(--text-muted); }
+        .form-label { display: block; font-size: 0.75rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .form-input { padding: 0.625rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; width: 100%; }
+        .form-select { padding: 0.625rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; }
+        .hidden-form { display: none; }
+        .active-form { display: block; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl" style="background: var(--bg-nav); border-bottom: 1px solid var(--border-primary);">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-teal-500 rounded-lg flex items-center justify-center"><i data-lucide="wrench" class="w-4 h-4 text-white"></i></div>
+                <span class="text-lg font-semibold tracking-tight text-theme-primary">Tool<span class="text-teal-400">Box</span></span>
+            </a>
+            <a href="../index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-theme-tertiary hover:text-theme-primary hover:bg-white/5 transition-all"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <div class="max-w-6xl mx-auto px-6 py-12">
+            <div class="animate-fade-up flex items-center gap-2 text-sm mb-8 text-theme-muted">
+                <a href="../index.html" class="hover:opacity-80 transition-opacity flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Home</a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span>Generator</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span class="text-theme-secondary">QR Code</span>
+            </div>
+
+            <div class="animate-fade-up flex flex-col md:flex-row md:items-center gap-6 mb-10">
+                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0" style="background: var(--accent-bg); border-color: var(--accent-border)">
+                    <i data-lucide="qr-code" class="w-7 h-7 text-theme-accent"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">QR Code Generator</h1>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Create QR codes for WiFi, URLs, Contacts, and more. Customize colors and add your logo.</p>
+                </div>
+            </div>
+
+            <div class="animate-fade-up workspace-card rounded-2xl overflow-hidden">
+                <!-- Type Selector -->
+                <div class="p-6 border-b-theme">
+                    <label class="text-sm font-medium mb-4 block text-theme-secondary">Content Type</label>
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2" id="typeButtons">
+                        <button onclick="setType(this,'url')" class="type-btn active rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="link" class="w-4 h-4"></i>URL</button>
+                        <button onclick="setType(this,'text')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="type" class="w-4 h-4"></i>Text</button>
+                        <button onclick="setType(this,'wifi')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="wifi" class="w-4 h-4"></i>WiFi</button>
+                        <button onclick="setType(this,'email')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="mail" class="w-4 h-4"></i>Email</button>
+                        <button onclick="setType(this,'phone')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="phone" class="w-4 h-4"></i>Phone</button>
+                        <button onclick="setType(this,'sms')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="message-square" class="w-4 h-4"></i>SMS</button>
+                        <button onclick="setType(this,'vcard')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="contact" class="w-4 h-4"></i>Contact</button>
+                        <button onclick="setType(this,'json')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="braces" class="w-4 h-4"></i>JSON</button>
+                        <button onclick="setType(this,'multiurl')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="list" class="w-4 h-4"></i>Multi-URL</button>
+                        <button onclick="setType(this,'app')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="smartphone" class="w-4 h-4"></i>App</button>
+                        <button onclick="setType(this,'pdf')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="file-text" class="w-4 h-4"></i>PDF</button>
+                        <button onclick="setType(this,'long')" class="type-btn rounded-lg p-2.5 text-xs font-medium flex flex-col items-center gap-1.5"><i data-lucide="scroll-text" class="w-4 h-4"></i>Long Text</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2">
+                    <!-- Left: Forms -->
+                    <div class="p-6 lg:border-r border-b-theme lg:border-b-0" style="border-color: var(--border-primary)">
+
+                        <!-- URL -->
+                        <div id="form-url" class="active-form space-y-4">
+                            <div><label class="form-label">Website URL</label><input type="url" id="input-url" class="form-input" placeholder="https://example.com"></div>
+                        </div>
+                        <!-- Text -->
+                        <div id="form-text" class="hidden-form space-y-4">
+                            <div><label class="form-label">Plain Text</label><textarea id="input-text" class="form-input" rows="4" placeholder="Enter your text here"></textarea></div>
+                        </div>
+                        <!-- WiFi (Special) -->
+                        <div id="form-wifi" class="hidden-form space-y-4">
+                            <p class="text-xs text-theme-muted mb-2 flex items-center gap-1.5"><i data-lucide="wifi" class="w-3.5 h-3.5"></i> Enter your WiFi network information</p>
+                            <div><label class="form-label">SSID (Network Name)</label><input type="text" id="input-wifi-ssid" class="form-input" placeholder="MyNetwork"></div>
+                            <div><label class="form-label">Password</label><input type="password" id="input-wifi-pass" class="form-input" placeholder="Password"></div>
+                            <div><label class="form-label">Encryption</label>
+                                <select id="input-wifi-enc" class="form-select">
+                                    <option value="WPA">WPA/WPA2</option>
+                                    <option value="WEP">WEP</option>
+                                    <option value="nopass">None</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-3 pt-1">
+                                <input type="checkbox" id="input-wifi-hidden" class="w-4 h-4 rounded accent-teal-500">
+                                <label for="input-wifi-hidden" class="text-sm text-theme-secondary">Is this a hidden WiFi network?</label>
+                            </div>
+                        </div>
+                        <!-- Email -->
+                        <div id="form-email" class="hidden-form space-y-4">
+                            <div><label class="form-label">Email Address</label><input type="email" id="input-email-to" class="form-input" placeholder="name@example.com"></div>
+                            <div><label class="form-label">Subject</label><input type="text" id="input-email-sub" class="form-input" placeholder="Subject line"></div>
+                            <div><label class="form-label">Body</label><textarea id="input-email-body" class="form-input" rows="3" placeholder="Email content"></textarea></div>
+                        </div>
+                        <!-- Phone -->
+                        <div id="form-phone" class="hidden-form space-y-4">
+                            <div><label class="form-label">Phone Number</label><input type="tel" id="input-phone" class="form-input" placeholder="+91 98765 43210"></div>
+                        </div>
+                        <!-- SMS -->
+                        <div id="form-sms" class="hidden-form space-y-4">
+                            <div><label class="form-label">Phone Number</label><input type="tel" id="input-sms-to" class="form-input" placeholder="+91 98765 43210"></div>
+                            <div><label class="form-label">Message</label><textarea id="input-sms-body" class="form-input" rows="3" placeholder="Your message"></textarea></div>
+                        </div>
+                        <!-- Contact (vCard) -->
+                        <div id="form-vcard" class="hidden-form space-y-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div><label class="form-label">First Name</label><input type="text" id="input-vc-fn" class="form-input" placeholder="John"></div>
+                                <div><label class="form-label">Last Name</label><input type="text" id="input-vc-ln" class="form-input" placeholder="Doe"></div>
+                            </div>
+                            <div><label class="form-label">Phone</label><input type="tel" id="input-vc-phone" class="form-input" placeholder="+91..."></div>
+                            <div><label class="form-label">Email</label><input type="email" id="input-vc-email" class="form-input" placeholder="john@doe.com"></div>
+                            <div><label class="form-label">Organization</label><input type="text" id="input-vc-org" class="form-input" placeholder="Company Inc."></div>
+                            <div><label class="form-label">Website</label><input type="url" id="input-vc-url" class="form-input" placeholder="https://doe.com"></div>
+                        </div>
+                        <!-- JSON -->
+                        <div id="form-json" class="hidden-form space-y-4">
+                            <div><label class="form-label">JSON Data</label><textarea id="input-json" class="form-input font-mono text-xs" rows="6" placeholder='{"key": "value"}'></textarea></div>
+                        </div>
+                        <!-- Multi-URL -->
+                        <div id="form-multiurl" class="hidden-form space-y-4">
+                            <div><label class="form-label">URLs (One per line)</label><textarea id="input-multiurl" class="form-input font-mono text-xs" rows="5" placeholder="https://example1.com&#10;https://example2.com"></textarea></div>
+                        </div>
+                        <!-- App -->
+                        <div id="form-app" class="hidden-form space-y-4">
+                            <div><label class="form-label">App Store / Play Store URL</label><input type="url" id="input-app" class="form-input" placeholder="https://apps.apple.com/..."></div>
+                        </div>
+                        <!-- PDF -->
+                        <div id="form-pdf" class="hidden-form space-y-4">
+                            <div><label class="form-label">PDF Document URL</label><input type="url" id="input-pdf" class="form-input" placeholder="https://example.com/doc.pdf"></div>
+                        </div>
+                        <!-- Long Text -->
+                        <div id="form-long" class="hidden-form space-y-4">
+                            <div><label class="form-label">Long Text Content</label><textarea id="input-long" class="form-input" rows="8" placeholder="Paste your long text here..."></textarea></div>
+                            <p class="text-[10px] text-theme-muted">Very long text may make QR codes hard to scan.</p>
+                        </div>
+
+                        <!-- Customization -->
+                        <div class="mt-8 pt-6 border-t" style="border-color: var(--border-primary)">
+                            <h3 class="text-sm font-medium mb-4 text-theme-secondary flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4"></i> Color Customization</h3>
+                            <div class="grid grid-cols-2 gap-4 mb-6">
+                                <div>
+                                    <label class="form-label">QR Color</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" id="qrColor" value="#000000" class="w-10 h-10 rounded cursor-pointer border-0 p-0.5">
+                                        <input type="text" id="qrColorText" value="#000000" class="form-input flex-1 font-mono text-xs">
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="form-label">Background Color</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" id="bgColor" value="#FFFFFF" class="w-10 h-10 rounded cursor-pointer border-0 p-0.5">
+                                        <input type="text" id="bgColorText" value="#FFFFFF" class="form-input flex-1 font-mono text-xs">
+                                    </div>
+                                </div>
+                            </div>
+                            <h3 class="text-sm font-medium mb-4 text-theme-secondary flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> Add Logo</h3>
+                            <div class="flex items-center gap-4">
+                                <label class="btn-secondary px-4 py-2 rounded-lg text-xs font-medium cursor-pointer flex items-center gap-1.5">
+                                    <i data-lucide="upload" class="w-3 h-3"></i> Upload Logo
+                                    <input type="file" id="logoInput" accept="image/*" class="hidden" onchange="handleLogo(this)">
+                                </label>
+                                <div id="logoPreviewWrap" class="hidden items-center gap-2">
+                                    <img id="logoPreview" class="w-8 h-8 object-contain rounded bg-white p-0.5" />
+                                    <button onclick="removeLogo()" class="text-theme-muted hover:text-red-400 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="generateQR()" class="btn-primary w-full h-12 rounded-xl text-sm font-medium flex items-center justify-center gap-2 mt-8">
+                            <i data-lucide="qr-code" class="w-4 h-4"></i> Generate QR Code
+                        </button>
+                    </div>
+
+                    <!-- Right: Preview & Download -->
+                    <div class="p-6 flex flex-col items-center justify-center min-h-[400px]">
+                        <div id="qrPlaceholder" class="text-center py-12">
+                            <i data-lucide="scan-line" class="w-16 h-16 mx-auto text-theme-muted mb-4 opacity-30"></i>
+                            <p class="text-sm text-theme-muted">Your QR code will appear here</p>
+                        </div>
+                        <div id="qrResultArea" class="hidden w-full flex flex-col items-center">
+                            <div class="p-4 rounded-2xl" style="background: white;">
+                                <canvas id="qrPreviewCanvas" width="300" height="300"></canvas>
+                            </div>
+                            <p class="text-xs text-theme-muted mt-4 mb-6 text-center">Scan to verify your QR code works correctly</p>
+                            <div class="flex flex-wrap gap-3 w-full justify-center">
+                                <button onclick="downloadQR('png')" class="btn-download h-10 px-5 rounded-lg text-sm font-medium flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> PNG</button>
+                                <button onclick="downloadQR('svg')" class="btn-secondary h-10 px-5 rounded-lg text-sm font-medium flex items-center gap-2"><i data-lucide="file-code" class="w-4 h-4"></i> SVG</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex flex-wrap gap-2">
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#qr-code</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#wifi</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#vcard</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#custom-color</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#logo</span>
+            </div>
+        </div>
+    </main>
+
+    <footer style="background: var(--bg-footer); border-top: 1px solid var(--border-primary)">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <a href="../index.html" class="flex items-center gap-2.5"><div class="w-7 h-7 bg-teal-500 rounded-md flex items-center justify-center"><i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i></div><span class="text-sm font-semibold text-theme-primary">Tool<span class="text-teal-400">Box</span></span></a>
+                <p class="text-xs text-theme-muted">All tools run locally. No data uploaded.</p>
+                <p class="text-xs text-theme-muted">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // THEME
+    (function(){function g(){return window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}function a(){document.documentElement.setAttribute('data-theme',localStorage.getItem('toolbox-theme')||g())}window.matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>{if(!localStorage.getItem('toolbox-theme'))a()});window.addEventListener('storage',e=>{if(e.key==='toolbox-theme')a()});a()})();
+
+    let currentType = 'url';
+    let logoImg = null;
+    let lastSvgString = '';
+
+    // Color sync
+    document.getElementById('qrColor').addEventListener('input', function() { document.getElementById('qrColorText').value = this.value; });
+    document.getElementById('bgColor').addEventListener('input', function() { document.getElementById('bgColorText').value = this.value; });
+    document.getElementById('qrColorText').addEventListener('input', function() { try { document.getElementById('qrColor').value = this.value; } catch(e){} });
+    document.getElementById('bgColorText').addEventListener('input', function() { try { document.getElementById('bgColor').value = this.value; } catch(e){} });
+
+    // =============================================
+    //  TYPE SWITCHING
+    // =============================================
+    function setType(btn, type) {
+        currentType = type;
+        document.querySelectorAll('#typeButtons .type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('[id^="form-"]').forEach(f => { f.classList.remove('active-form'); f.classList.add('hidden-form'); });
+        const form = document.getElementById('form-' + type);
+        if (form) { form.classList.remove('hidden-form'); form.classList.add('active-form'); }
+    }
+
+    // =============================================
+    //  LOGO
+    // =============================================
+    function handleLogo(input) {
+        const file = input.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                logoImg = img;
+                document.getElementById('logoPreview').src = e.target.result;
+                document.getElementById('logoPreviewWrap').classList.remove('hidden');
+                document.getElementById('logoPreviewWrap').classList.add('flex');
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+    function removeLogo() {
+        logoImg = null;
+        document.getElementById('logoInput').value = '';
+        document.getElementById('logoPreviewWrap').classList.add('hidden');
+        document.getElementById('logoPreviewWrap').classList.remove('flex');
+    }
+
+    // =============================================
+    //  DATA FORMATTERS
+    // =============================================
+    function getData() {
+        const v = id => document.getElementById(id)?.value || '';
+        switch (currentType) {
+            case 'url': return v('input-url').trim();
+            case 'text': return v('input-text');
+            case 'long': return v('input-long');
+            case 'wifi': {
+                const ssid = v('input-wifi-ssid'), pass = v('input-wifi-pass');
+                const enc = v('input-wifi-enc'), hidden = document.getElementById('input-wifi-hidden').checked;
+                if (!ssid) return '';
+                return `WIFI:T:${enc};S:${ssid};P:${pass};H:${hidden};;`;
+            }
+            case 'email': {
+                const to = v('input-email-to'), sub = v('input-email-sub'), body = v('input-email-body');
+                return `mailto:${to}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
+            }
+            case 'phone': return `tel:${v('input-phone').trim()}`;
+            case 'sms': return `smsto:${v('input-sms-to').trim()}:${v('input-sms-body')}`;
+            case 'vcard': {
+                const fn=v('input-vc-fn'),ln=v('input-vc-ln'),ph=v('input-vc-phone'),em=v('input-vc-email'),org=v('input-vc-org'),url=v('input-vc-url');
+                return `BEGIN:VCARD\nVERSION:3.0\nN:${ln};${fn}\nFN:${fn} ${ln}\nTEL:${ph}\nEMAIL:${em}\nORG:${org}\nURL:${url}\nEND:VCARD`;
+            }
+            case 'json': return v('input-json');
+            case 'multiurl': return v('input-multiurl');
+            case 'app': return v('input-app').trim();
+            case 'pdf': return v('input-pdf').trim();
+            default: return '';
+        }
+    }
+
+    // =============================================
+    //  QR GENERATION — qrcode-generator library
+    //  Draws manually on Canvas for full color/logo control
+    // =============================================
+    function generateQR() {
+        const data = getData();
+        if (!data) { alert('Please fill in the required fields.'); return; }
+
+        const qrColorVal = document.getElementById('qrColor').value;
+        const bgColorVal = document.getElementById('bgColor').value;
+
+        try {
+            // Auto-detect type, high error correction for logo support
+            const qr = qrcode(0, 'H');
+            qr.addData(data);
+            qr.make();
+
+            const moduleCount = qr.getModuleCount();
+            const margin = 2;
+            const totalModules = moduleCount + margin * 2;
+            const canvasSize = 600; // High-res internal
+            const cellSize = canvasSize / totalModules;
+
+            const canvas = document.getElementById('qrPreviewCanvas');
+            canvas.width = canvasSize;
+            canvas.height = canvasSize;
+            canvas.style.width = '280px';
+            canvas.style.height = '280px';
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = bgColorVal;
+            ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+            // QR modules with slight rounding
+            ctx.fillStyle = qrColorVal;
+            for (let row = 0; row < moduleCount; row++) {
+                for (let col = 0; col < moduleCount; col++) {
+                    if (qr.isDark(row, col)) {
+                        const x = (col + margin) * cellSize;
+                        const y = (row + margin) * cellSize;
+                        const r = cellSize * 0.15; // Slight rounding
+                        ctx.beginPath();
+                        ctx.roundRect(x, y, cellSize + 0.5, cellSize + 0.5, r);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            // Logo overlay
+            if (logoImg) {
+                const logoSize = canvasSize * 0.2;
+                const lx = (canvasSize - logoSize) / 2;
+                const ly = (canvasSize - logoSize) / 2;
+                const pad = 8;
+                // White background with rounded corners
+                ctx.fillStyle = bgColorVal;
+                ctx.beginPath();
+                ctx.roundRect(lx - pad, ly - pad, logoSize + pad * 2, logoSize + pad * 2, 8);
+                ctx.fill();
+                // Draw logo
+                ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
+            }
+
+            // Generate SVG string for download
+            lastSvgString = buildSVG(qr, moduleCount, margin, qrColorVal, bgColorVal);
+
+            // Show result
+            document.getElementById('qrPlaceholder').classList.add('hidden');
+            document.getElementById('qrResultArea').classList.remove('hidden');
+
+        } catch (err) {
+            console.error(err);
+            alert('Error generating QR: ' + err.message);
+        }
+    }
+
+    // =============================================
+    //  SVG BUILDER — for vector download
+    // =============================================
+    function buildSVG(qr, moduleCount, margin, qrColor, bgColor) {
+        const totalModules = moduleCount + margin * 2;
+        const cellSize = 10; // SVG units per module
+        const size = totalModules * cellSize;
+        let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`;
+        svg += `<rect width="${size}" height="${size}" fill="${bgColor}"/>`;
+        for (let row = 0; row < moduleCount; row++) {
+            for (let col = 0; col < moduleCount; col++) {
+                if (qr.isDark(row, col)) {
+                    const x = (col + margin) * cellSize;
+                    const y = (row + margin) * cellSize;
+                    svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="1.5" fill="${qrColor}"/>`;
+                }
+            }
+        }
+        svg += '</svg>';
+        return svg;
+    }
+
+    // =============================================
+    //  DOWNLOAD
+    // =============================================
+    function downloadQR(format) {
+        if (format === 'png') {
+            const canvas = document.getElementById('qrPreviewCanvas');
+            const link = document.createElement('a');
+            link.download = 'qrcode.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } else if (format === 'svg') {
+            if (!lastSvgString) { alert('Generate QR first'); return; }
+            const blob = new Blob([lastSvgString], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'qrcode.svg';
+            link.href = url;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
+    }
+
+    lucide.createIcons();
+    </script>
+</body>
+</html>

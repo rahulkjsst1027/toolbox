@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Image - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: rgba(23,23,23,0.3); --bg-nav: rgba(5,5,5,0.8);
+            --bg-footer: #030303; --bg-input: #171717; --bg-dropzone-hover: rgba(255,255,255,0.02);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --border-primary: rgba(255,255,255,0.05);
+            --border-secondary: rgba(255,255,255,0.1); --scrollbar-track: #0a0a0a; --scrollbar-thumb: #333;
+            --accent-bg: rgba(236,72,153,0.1); --accent-border: rgba(236,72,153,0.2);
+            --accent-text: #f472b6; --accent-solid: #ec4899; --accent-glow: rgba(236,72,153,0.15);
+        }
+        [data-theme="light"] {
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-nav: rgba(245,245,245,0.85);
+            --bg-footer: #e5e5e5; --bg-input: #f9fafb; --bg-dropzone-hover: rgba(0,0,0,0.02);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --border-primary: #e5e7eb; --border-secondary: #d1d5db;
+            --scrollbar-track: #e5e5e5; --scrollbar-thumb: #c0c0c0;
+            --accent-bg: rgba(236,72,153,0.08); --accent-border: rgba(236,72,153,0.2);
+            --accent-text: #db2777; --accent-solid: #ec4899; --accent-glow: rgba(236,72,153,0.08);
+        }
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+        .workspace-card { background: var(--bg-card); border: 1px solid var(--border-primary); }
+        .border-b-theme { border-bottom: 1px solid var(--border-primary); }
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-tertiary { color: var(--text-tertiary); }
+        .text-theme-muted { color: var(--text-muted); }
+        .text-theme-accent { color: var(--accent-text); }
+        .drop-zone { border-color: var(--border-primary); cursor: pointer; transition: background 0.2s; }
+        .drop-zone:hover { background: var(--bg-dropzone-hover); }
+        select { background: var(--bg-input); border: 1px solid var(--border-secondary); color: var(--text-primary); transition: all 0.2s; }
+        select:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 2px var(--accent-bg); }
+        .scale-btn { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .scale-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .scale-btn.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); box-shadow: 0 0 20px var(--accent-glow); }
+        .btn-primary { background: var(--accent-solid); color: #ffffff; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-download { background: var(--text-primary); color: var(--bg-body); transition: opacity 0.2s; }
+        .btn-download:hover { opacity: 0.85; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .btn-secondary:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .tag { background: var(--bg-input); color: var(--text-muted); }
+        @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
+        .img-card { background: var(--bg-input); border: 1px solid var(--border-primary); transition: border-color 0.2s, transform 0.2s; }
+        .img-card:hover { border-color: var(--accent-border); transform: translateY(-2px); }
+        .format-badge { font-size: 9px; font-weight: 700; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
+        .badge-png { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .badge-jpg { background: rgba(251,146,60,0.15); color: #fb923c; }
+        .badge-webp { background: rgba(52,211,153,0.15); color: #34d399; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl" style="background: var(--bg-nav); border-bottom: 1px solid var(--border-primary);">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center"><i data-lucide="wrench" class="w-4 h-4 text-white"></i></div>
+                <span class="text-lg font-semibold tracking-tight text-theme-primary">Tool<span class="text-pink-400">Box</span></span>
+            </a>
+            <a href="../index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-theme-tertiary hover:text-theme-primary hover:bg-white/5 transition-all"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <div class="max-w-6xl mx-auto px-6 py-12">
+            <div class="animate-fade-up flex items-center gap-2 text-sm mb-8 text-theme-muted">
+                <a href="../index.html" class="hover:opacity-80 transition-opacity flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Home</a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span>PDF</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span class="text-theme-secondary">PDF to Image</span>
+            </div>
+
+            <div class="animate-fade-up flex flex-col md:flex-row md:items-center gap-6 mb-10">
+                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0" style="background: var(--accent-bg); border-color: var(--accent-border)">
+                    <i data-lucide="image" class="w-7 h-7 text-theme-accent"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">PDF to Image</h1>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Convert PDF pages to JPG, PNG, or WebP images. Preview all pages, download single or as ZIP.</p>
+                </div>
+            </div>
+
+            <div class="animate-fade-up workspace-card rounded-2xl overflow-hidden">
+                <div id="dropZone" class="drop-zone p-12 text-center border-b-theme" onclick="document.getElementById('fileInput').click()">
+                    <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mx-auto mb-4" style="border-color: var(--border-secondary)"><i data-lucide="upload-cloud" class="w-7 h-7 text-theme-muted"></i></div>
+                    <p class="font-medium mb-1 text-theme-secondary">Drop your PDF here or click to browse</p>
+                    <p class="text-sm text-theme-muted">Supports: PDF files</p>
+                    <input type="file" id="fileInput" accept=".pdf,application/pdf" class="hidden" onchange="handleFile(this)">
+                </div>
+
+                <div id="fileInfo" class="hidden p-6 border-b-theme">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--accent-bg)"><i data-lucide="file-text" class="w-5 h-5 text-theme-accent"></i></div>
+                            <div>
+                                <p id="fileName" class="text-sm font-medium text-theme-primary"></p>
+                                <div class="flex items-center gap-3 mt-0.5">
+                                    <span id="fileSize" class="text-xs text-theme-muted"></span>
+                                    <span id="filePages" class="text-xs text-theme-muted"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="removeFile()" class="p-2 rounded-lg hover:bg-white/5 transition-colors text-theme-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+
+                <div id="optionsPanel" class="hidden p-6 border-b-theme">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Format -->
+                        <div>
+                            <label class="text-sm font-medium mb-3 block text-theme-secondary">Output Format</label>
+                            <select id="outputFormat" class="rounded-lg px-4 py-2.5 text-sm w-full" onchange="updateFormatInfo()">
+                                <option value="png">PNG — Lossless, Transparent</option>
+                                <option value="jpeg">JPG — Smaller, White BG</option>
+                                <option value="webp">WebP — Best Compression</option>
+                            </select>
+                            <p id="formatHint" class="text-[10px] text-theme-muted mt-2">Lossless quality. Supports transparent backgrounds.</p>
+                        </div>
+                        <!-- Quality -->
+                        <div>
+                            <label class="text-sm font-medium mb-3 block text-theme-secondary">Quality (Lossy formats)</label>
+                            <select id="jpegQuality" class="rounded-lg px-4 py-2.5 text-sm w-full">
+                                <option value="0.95">Best (95%)</option>
+                                <option value="0.85">High (85%)</option>
+                                <option value="0.75" selected>Good (75%)</option>
+                                <option value="0.5">Low (50%)</option>
+                            </select>
+                            <p class="text-[10px] text-theme-muted mt-2">Only applies to JPG & WebP. PNG is always lossless.</p>
+                        </div>
+                        <!-- Scale -->
+                        <div>
+                            <label class="text-sm font-medium mb-3 block text-theme-secondary">Scale / Resolution</label>
+                            <div class="grid grid-cols-4 gap-2">
+                                <button onclick="selectScale(this,1)" class="scale-btn rounded-lg py-2 text-sm font-medium">1×</button>
+                                <button onclick="selectScale(this,1.5)" class="scale-btn active rounded-lg py-2 text-sm font-medium">1.5×</button>
+                                <button onclick="selectScale(this,2)" class="scale-btn rounded-lg py-2 text-sm font-medium">2×</button>
+                                <button onclick="selectScale(this,3)" class="scale-btn rounded-lg py-2 text-sm font-medium">3×</button>
+                            </div>
+                            <p id="scaleHint" class="text-[10px] text-theme-muted mt-2">Higher = more pixels but larger files</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="actionArea" class="hidden p-6">
+                    <button onclick="convertPDF()" id="processBtn" class="btn-primary w-full h-12 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                        <i data-lucide="image" class="w-4 h-4"></i><span id="processBtnText">Convert to Images</span>
+                    </button>
+                </div>
+
+                <div id="progressArea" class="hidden p-6 border-b-theme">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-theme-secondary flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full pulse-dot" style="background: var(--accent-solid)"></span>
+                            <span id="progressLabel">Converting...</span>
+                        </span>
+                        <span id="progressPercent" class="text-sm font-mono text-theme-accent">0%</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full overflow-hidden" style="background: var(--bg-input)">
+                        <div id="progressBar" class="h-full rounded-full transition-all duration-200" style="width:0%; background: var(--accent-solid)"></div>
+                    </div>
+                </div>
+
+                <!-- RESULT AREA -->
+                <div id="resultArea" class="hidden">
+                    <div class="p-6 border-b-theme flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: rgba(34,197,94,0.1)"><i data-lucide="check" class="w-4 h-4 text-green-400"></i></div>
+                            <div>
+                                <span class="text-sm font-medium text-green-400">Conversion complete!</span>
+                                <p id="resultInfo" class="text-xs text-theme-muted mt-0.5"></p>
+                            </div>
+                        </div>
+                        <button onclick="downloadAllZip()" class="btn-download h-10 px-5 rounded-lg text-sm font-medium flex items-center gap-2 shrink-0">
+                            <i data-lucide="archive" class="w-4 h-4"></i> Download All as ZIP
+                        </button>
+                    </div>
+                    <div class="p-6">
+                        <div id="imageGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex flex-wrap gap-2">
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#pdf-to-image</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#jpg</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#png</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#webp</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#extract</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#zip</span>
+            </div>
+        </div>
+    </main>
+
+    <footer style="background: var(--bg-footer); border-top: 1px solid var(--border-primary)">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <a href="../index.html" class="flex items-center gap-2.5"><div class="w-7 h-7 bg-pink-500 rounded-md flex items-center justify-center"><i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i></div><span class="text-sm font-semibold text-theme-primary">Tool<span class="text-pink-400">Box</span></span></a>
+                <p class="text-xs text-theme-muted">All tools run locally. No data uploaded.</p>
+                <p class="text-xs text-theme-muted">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // THEME
+    (function(){function g(){return window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}function a(){document.documentElement.setAttribute('data-theme',localStorage.getItem('toolbox-theme')||g())}window.matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>{if(!localStorage.getItem('toolbox-theme'))a()});window.addEventListener('storage',e=>{if(e.key==='toolbox-theme')a()});a()})();
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let originalFile = null, isProcessing = false, selectedScale = 1.5;
+    let imageBlobs = [];
+
+    // FORMAT INFO UPDATER
+    function updateFormatInfo() {
+        const fmt = document.getElementById('outputFormat').value;
+        const hint = document.getElementById('formatHint');
+        const hints = {
+            png: 'Lossless quality. Supports transparent backgrounds. Larger files.',
+            jpeg: 'Lossy compression. White background (no transparency). Smaller files.',
+            webp: 'Best compression ratio. 25-35% smaller than JPG at same quality. Modern format.'
+        };
+        hint.textContent = hints[fmt] || '';
+    }
+
+    // FILE HANDLING
+    function handleFile(input) {
+        const file = input.files[0];
+        if (!file || file.type !== 'application/pdf') return;
+        originalFile = file;
+        cleanupURLs();
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatSize(file.size);
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            try {
+                const pdf = await pdfjsLib.getDocument(new Uint8Array(e.target.result)).promise;
+                document.getElementById('filePages').textContent = `${pdf.numPages} pages`;
+            } catch(err) {}
+        };
+        reader.readAsArrayBuffer(file);
+        document.getElementById('fileInfo').classList.remove('hidden');
+        document.getElementById('optionsPanel').classList.remove('hidden');
+        document.getElementById('actionArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('progressArea').classList.add('hidden');
+    }
+
+    function removeFile() {
+        originalFile = null; cleanupURLs();
+        document.getElementById('fileInput').value = '';
+        ['fileInfo','optionsPanel','actionArea','resultArea','progressArea'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    }
+
+    function selectScale(el, scale) {
+        selectedScale = scale;
+        el.parentElement.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function cleanupURLs() {
+        imageBlobs.forEach(img => { if (img.url) URL.revokeObjectURL(img.url); });
+        imageBlobs = [];
+    }
+
+    // =============================================
+    //  CONVERT PDF → IMAGES (JPG / PNG / WebP)
+    // =============================================
+    async function convertPDF() {
+        if (!originalFile || isProcessing) return;
+        isProcessing = true;
+        document.getElementById('processBtn').disabled = true;
+        document.getElementById('processBtnText').textContent = 'Converting…';
+        document.getElementById('progressArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        cleanupURLs();
+
+        const format = document.getElementById('outputFormat').value;
+        const quality = parseFloat(document.getElementById('jpegQuality').value);
+        const mimeType = format === 'png' ? 'image/png' : format === 'jpeg' ? 'image/jpeg' : 'image/webp';
+        const ext = format === 'png' ? 'png' : format === 'jpeg' ? 'jpg' : 'webp';
+        const pdfName = originalFile.name.replace('.pdf', '');
+
+        // Check WebP support
+        if (format === 'webp') {
+            const testCanvas = document.createElement('canvas');
+            testCanvas.width = 1; testCanvas.height = 1;
+            const supported = testCanvas.toDataURL('image/webp').startsWith('data:image/webp');
+            if (!supported) {
+                alert('Your browser does not support WebP encoding. Please use Chrome, Edge, or Firefox.');
+                document.getElementById('processBtn').disabled = false;
+                document.getElementById('processBtnText').textContent = 'Convert to Images';
+                document.getElementById('progressArea').classList.add('hidden');
+                isProcessing = false;
+                return;
+            }
+        }
+
+        try {
+            const pdfDoc = await pdfjsLib.getDocument(new Uint8Array(await originalFile.arrayBuffer())).promise;
+            const numPages = pdfDoc.numPages;
+
+            for (let i = 1; i <= numPages; i++) {
+                setProgress(`Rendering page ${i}/${numPages}...`, (i / numPages) * 95);
+
+                const page = await pdfDoc.getPage(i);
+                const viewport = page.getViewport({ scale: selectedScale });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = viewport.width;
+                canvas.height = viewport.height;
+                const ctx = canvas.getContext('2d');
+
+                // JPG & WebP: fill white background (no transparency)
+                // PNG: keep transparent
+                if (format !== 'png') {
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+
+                await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, mimeType, quality));
+                const url = URL.createObjectURL(blob);
+
+                imageBlobs.push({
+                    blob: blob,
+                    url: url,
+                    name: `${pdfName}_page_${String(i).padStart(3, '0')}.${ext}`,
+                    format: format,
+                    size: blob.size
+                });
+
+                canvas.width = 0; canvas.height = 0; // Free memory
+            }
+
+            setProgress('Done!', 100);
+            setTimeout(() => showResults(numPages), 300);
+
+        } catch (err) {
+            console.error(err);
+            alert('Error converting PDF: ' + err.message);
+            document.getElementById('progressArea').classList.add('hidden');
+        }
+
+        document.getElementById('processBtn').disabled = false;
+        document.getElementById('processBtnText').textContent = 'Convert to Images';
+        isProcessing = false;
+    }
+
+    // =============================================
+    //  DISPLAY RESULTS
+    // =============================================
+    function showResults(numPages) {
+        document.getElementById('progressArea').classList.add('hidden');
+        document.getElementById('resultArea').classList.remove('hidden');
+
+        const fmt = document.getElementById('outputFormat').value;
+        const totalSize = imageBlobs.reduce((s, img) => s + img.size, 0);
+        document.getElementById('resultInfo').textContent = `${numPages} pages · ${fmt.toUpperCase()} · ${formatSize(totalSize)} total`;
+
+        const grid = document.getElementById('imageGrid');
+        grid.innerHTML = '';
+
+        const badgeClass = fmt === 'png' ? 'badge-png' : fmt === 'jpeg' ? 'badge-jpg' : 'badge-webp';
+
+        imageBlobs.forEach((img, index) => {
+            const card = document.createElement('div');
+            card.className = 'img-card rounded-xl overflow-hidden flex flex-col';
+            card.innerHTML = `
+                <div class="aspect-[3/4] flex items-center justify-center p-2 overflow-hidden relative" style="background: #0a0a0a;">
+                    <img src="${img.url}" class="w-full h-full object-contain" alt="Page ${index + 1}" loading="lazy"/>
+                    <span class="format-badge ${badgeClass} absolute top-3 right-3">${fmt}</span>
+                </div>
+                <div class="p-3 flex items-center justify-between border-t" style="border-color: var(--border-primary)">
+                    <div>
+                        <span class="text-xs font-medium text-theme-secondary">Page ${index + 1}</span>
+                        <span class="text-[10px] text-theme-muted ml-1.5">${formatSize(img.size)}</span>
+                    </div>
+                    <button onclick="downloadSingle(${index})" class="p-1.5 rounded-md hover:bg-white/5 transition-colors text-theme-accent" title="Download">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        lucide.createIcons();
+    }
+
+    // =============================================
+    //  DOWNLOAD FUNCTIONS
+    // =============================================
+    function downloadSingle(index) {
+        const img = imageBlobs[index];
+        if (!img) return;
+        const a = document.createElement('a');
+        a.href = img.url;
+        a.download = img.name;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+
+    async function downloadAllZip() {
+        if (imageBlobs.length === 0) return;
+
+        const btn = document.querySelector('#resultArea .btn-download');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Zipping...';
+        btn.disabled = true;
+
+        try {
+            const zip = new JSZip();
+            const pdfName = originalFile.name.replace('.pdf', '');
+            imageBlobs.forEach(img => { zip.file(img.name, img.blob); });
+
+            const content = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(content);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${pdfName}_images.zip`;
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
+        } catch (err) {
+            alert('Error creating ZIP: ' + err.message);
+        }
+
+        btn.innerHTML = originalHTML;
+        btn.disabled = false;
+        lucide.createIcons();
+    }
+
+    // HELPERS
+    function setProgress(label, pct) {
+        document.getElementById('progressLabel').textContent = label;
+        document.getElementById('progressBar').style.width = Math.min(pct, 98) + '%';
+        document.getElementById('progressPercent').textContent = Math.round(Math.min(pct, 98)) + '%';
+    }
+    function formatSize(b) { if(!b) return '0 B'; const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k)); return parseFloat((b/Math.pow(k,i)).toFixed(2))+' '+s[i]; }
+
+    // Drag & Drop
+    const dz = document.getElementById('dropZone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor='var(--accent-border)'; });
+    dz.addEventListener('dragleave', () => { dz.style.borderColor='var(--border-primary)'; });
+    dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor='var(--border-primary)'; const f=e.dataTransfer.files[0]; if(f&&f.type==='application/pdf'){const i=document.getElementById('fileInput'),dt=new DataTransfer();dt.items.add(f);i.files=dt.files;handleFile(i);} });
+
+    lucide.createIcons();
+    </script>
+</body>
+</html>
