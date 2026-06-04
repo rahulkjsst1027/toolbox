@@ -60,6 +60,9 @@
         .form-select { padding: 0.625rem 0.75rem; border-radius: 0.5rem; font-size: 0.875rem; }
         .hidden-form { display: none; }
         .active-form { display: block; }
+        .style-btn { background: transparent; border: 2px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; cursor: pointer; }
+        .style-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+        .style-btn.active { border-color: var(--accent-solid); background: var(--accent-bg); color: var(--accent-text); }
     </style>
 </head>
 <body class="min-h-screen">
@@ -88,7 +91,7 @@
                 </div>
                 <div>
                     <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">QR Code Generator</h1>
-                    <p class="font-light leading-relaxed text-theme-tertiary">Create QR codes for WiFi, URLs, Contacts, and more. Customize colors and add your logo.</p>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Create beautiful QR codes with custom styles, colors, and logos. 12 content types supported.</p>
                 </div>
             </div>
 
@@ -124,17 +127,13 @@
                         <div id="form-text" class="hidden-form space-y-4">
                             <div><label class="form-label">Plain Text</label><textarea id="input-text" class="form-input" rows="4" placeholder="Enter your text here"></textarea></div>
                         </div>
-                        <!-- WiFi (Special) -->
+                        <!-- WiFi -->
                         <div id="form-wifi" class="hidden-form space-y-4">
                             <p class="text-xs text-theme-muted mb-2 flex items-center gap-1.5"><i data-lucide="wifi" class="w-3.5 h-3.5"></i> Enter your WiFi network information</p>
                             <div><label class="form-label">SSID (Network Name)</label><input type="text" id="input-wifi-ssid" class="form-input" placeholder="MyNetwork"></div>
                             <div><label class="form-label">Password</label><input type="password" id="input-wifi-pass" class="form-input" placeholder="Password"></div>
                             <div><label class="form-label">Encryption</label>
-                                <select id="input-wifi-enc" class="form-select">
-                                    <option value="WPA">WPA/WPA2</option>
-                                    <option value="WEP">WEP</option>
-                                    <option value="nopass">None</option>
-                                </select>
+                                <select id="input-wifi-enc" class="form-select"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">None</option></select>
                             </div>
                             <div class="flex items-center gap-3 pt-1">
                                 <input type="checkbox" id="input-wifi-hidden" class="w-4 h-4 rounded accent-teal-500">
@@ -156,7 +155,7 @@
                             <div><label class="form-label">Phone Number</label><input type="tel" id="input-sms-to" class="form-input" placeholder="+91 98765 43210"></div>
                             <div><label class="form-label">Message</label><textarea id="input-sms-body" class="form-input" rows="3" placeholder="Your message"></textarea></div>
                         </div>
-                        <!-- Contact (vCard) -->
+                        <!-- Contact -->
                         <div id="form-vcard" class="hidden-form space-y-4">
                             <div class="grid grid-cols-2 gap-3">
                                 <div><label class="form-label">First Name</label><input type="text" id="input-vc-fn" class="form-input" placeholder="John"></div>
@@ -189,9 +188,36 @@
                             <p class="text-[10px] text-theme-muted">Very long text may make QR codes hard to scan.</p>
                         </div>
 
-                        <!-- Customization -->
+                        <!-- =========== DESIGN CUSTOMIZATION =========== -->
                         <div class="mt-8 pt-6 border-t" style="border-color: var(--border-primary)">
-                            <h3 class="text-sm font-medium mb-4 text-theme-secondary flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4"></i> Color Customization</h3>
+                            <h3 class="text-sm font-medium mb-4 text-theme-secondary flex items-center gap-2"><i data-lucide="palette" class="w-4 h-4"></i> QR Style</h3>
+                            <div class="grid grid-cols-4 gap-2 mb-5" id="styleButtons">
+                                <button onclick="setStyle(this,'classic')" class="style-btn active rounded-lg p-3 flex flex-col items-center gap-1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="6" height="6" fill="currentColor"/><rect x="10" y="2" width="2" height="2" fill="currentColor"/><rect x="16" y="2" width="6" height="6" fill="currentColor"/><rect x="2" y="10" width="2" height="2" fill="currentColor"/><rect x="10" y="10" width="4" height="4" fill="currentColor"/><rect x="20" y="10" width="2" height="2" fill="currentColor"/><rect x="2" y="16" width="6" height="6" fill="currentColor"/><rect x="14" y="16" width="2" height="2" fill="currentColor"/><rect x="20" y="20" width="2" height="2" fill="currentColor"/></svg>
+                                    <span class="text-[10px] font-medium">Classic</span>
+                                </button>
+                                <button onclick="setStyle(this,'rounded')" class="style-btn rounded-lg p-3 flex flex-col items-center gap-1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="10" y="2" width="2" height="2" rx="0.5" fill="currentColor"/><rect x="16" y="2" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="2" y="10" width="2" height="2" rx="0.5" fill="currentColor"/><rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor"/><rect x="20" y="10" width="2" height="2" rx="0.5" fill="currentColor"/><rect x="2" y="16" width="6" height="6" rx="1.5" fill="currentColor"/><rect x="14" y="16" width="2" height="2" rx="0.5" fill="currentColor"/><rect x="20" y="20" width="2" height="2" rx="0.5" fill="currentColor"/></svg>
+                                    <span class="text-[10px] font-medium">Rounded</span>
+                                </button>
+                                <button onclick="setStyle(this,'dots')" class="style-btn rounded-lg p-3 flex flex-col items-center gap-1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="5" cy="5" r="3.5" fill="currentColor"/><circle cx="11" cy="3" r="1.5" fill="currentColor"/><circle cx="19" cy="5" r="3.5" fill="currentColor"/><circle cx="3" cy="11" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="2.5" fill="currentColor"/><circle cx="21" cy="11" r="1.5" fill="currentColor"/><circle cx="5" cy="19" r="3.5" fill="currentColor"/><circle cx="15" cy="17" r="1.5" fill="currentColor"/><circle cx="21" cy="21" r="1.5" fill="currentColor"/></svg>
+                                    <span class="text-[10px] font-medium">Dots</span>
+                                </button>
+                                <button onclick="setStyle(this,'diamond')" class="style-btn rounded-lg p-3 flex flex-col items-center gap-1">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M5 1L9 5L5 9L1 5Z" fill="currentColor"/><path d="M11 1L13 3L11 5L9 3Z" fill="currentColor"/><path d="M19 1L23 5L19 9L15 5Z" fill="currentColor"/><path d="M3 9L5 11L3 13L1 11Z" fill="currentColor"/><path d="M12 8L16 12L12 16L8 12Z" fill="currentColor"/><path d="M21 9L23 11L21 13L19 11Z" fill="currentColor"/><path d="M5 15L9 19L5 23L1 19Z" fill="currentColor"/><path d="M15 15L17 17L15 19L13 17Z" fill="currentColor"/><path d="M21 19L23 21L21 23L19 21Z" fill="currentColor"/></svg>
+                                    <span class="text-[10px] font-medium">Diamond</span>
+                                </button>
+                            </div>
+
+                            <h3 class="text-sm font-medium mb-4 text-theme-secondary flex items-center gap-2"><i data-lucide="eye" class="w-4 h-4"></i> Eye Style</h3>
+                            <div class="grid grid-cols-3 gap-2 mb-6" id="eyeButtons">
+                                <button onclick="setEye(this,'default')" class="style-btn active rounded-lg p-2.5 text-xs font-medium text-center">Default</button>
+                                <button onclick="setEye(this,'rounded')" class="style-btn rounded-lg p-2.5 text-xs font-medium text-center">Rounded</button>
+                                <button onclick="setEye(this,'circle')" class="style-btn rounded-lg p-2.5 text-xs font-medium text-center">Circle</button>
+                            </div>
+
+                            <h3 class="text-sm font-medium mb-4 text-theme-secondary flex items-center gap-2"><i data-lucide="droplets" class="w-4 h-4"></i> Colors</h3>
                             <div class="grid grid-cols-2 gap-4 mb-6">
                                 <div>
                                     <label class="form-label">QR Color</label>
@@ -201,13 +227,14 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="form-label">Background Color</label>
+                                    <label class="form-label">Background</label>
                                     <div class="flex items-center gap-2">
                                         <input type="color" id="bgColor" value="#FFFFFF" class="w-10 h-10 rounded cursor-pointer border-0 p-0.5">
                                         <input type="text" id="bgColorText" value="#FFFFFF" class="form-input flex-1 font-mono text-xs">
                                     </div>
                                 </div>
                             </div>
+
                             <h3 class="text-sm font-medium mb-4 text-theme-secondary flex items-center gap-2"><i data-lucide="image" class="w-4 h-4"></i> Add Logo</h3>
                             <div class="flex items-center gap-4">
                                 <label class="btn-secondary px-4 py-2 rounded-lg text-xs font-medium cursor-pointer flex items-center gap-1.5">
@@ -226,7 +253,7 @@
                         </button>
                     </div>
 
-                    <!-- Right: Preview & Download -->
+                    <!-- Right: Preview -->
                     <div class="p-6 flex flex-col items-center justify-center min-h-[400px]">
                         <div id="qrPlaceholder" class="text-center py-12">
                             <i data-lucide="scan-line" class="w-16 h-16 mx-auto text-theme-muted mb-4 opacity-30"></i>
@@ -234,7 +261,7 @@
                         </div>
                         <div id="qrResultArea" class="hidden w-full flex flex-col items-center">
                             <div class="p-4 rounded-2xl" style="background: white;">
-                                <canvas id="qrPreviewCanvas" width="300" height="300"></canvas>
+                                <canvas id="qrPreviewCanvas" width="600" height="600" style="width:280px;height:280px;"></canvas>
                             </div>
                             <p class="text-xs text-theme-muted mt-4 mb-6 text-center">Scan to verify your QR code works correctly</p>
                             <div class="flex flex-wrap gap-3 w-full justify-center">
@@ -248,9 +275,9 @@
 
             <div class="mt-8 flex flex-wrap gap-2">
                 <span class="tag text-xs px-3 py-1.5 rounded-lg">#qr-code</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#custom-design</span>
                 <span class="tag text-xs px-3 py-1.5 rounded-lg">#wifi</span>
-                <span class="tag text-xs px-3 py-1.5 rounded-lg">#vcard</span>
-                <span class="tag text-xs px-3 py-1.5 rounded-lg">#custom-color</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#dots</span>
                 <span class="tag text-xs px-3 py-1.5 rounded-lg">#logo</span>
             </div>
         </div>
@@ -270,9 +297,8 @@
     // THEME
     (function(){function g(){return window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}function a(){document.documentElement.setAttribute('data-theme',localStorage.getItem('toolbox-theme')||g())}window.matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>{if(!localStorage.getItem('toolbox-theme'))a()});window.addEventListener('storage',e=>{if(e.key==='toolbox-theme')a()});a()})();
 
-    let currentType = 'url';
-    let logoImg = null;
-    let lastSvgString = '';
+    let currentType = 'url', currentStyle = 'classic', currentEye = 'default';
+    let logoImg = null, lastSvgString = '';
 
     // Color sync
     document.getElementById('qrColor').addEventListener('input', function() { document.getElementById('qrColorText').value = this.value; });
@@ -280,68 +306,26 @@
     document.getElementById('qrColorText').addEventListener('input', function() { try { document.getElementById('qrColor').value = this.value; } catch(e){} });
     document.getElementById('bgColorText').addEventListener('input', function() { try { document.getElementById('bgColor').value = this.value; } catch(e){} });
 
-    // =============================================
-    //  TYPE SWITCHING
-    // =============================================
-    function setType(btn, type) {
-        currentType = type;
-        document.querySelectorAll('#typeButtons .type-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.querySelectorAll('[id^="form-"]').forEach(f => { f.classList.remove('active-form'); f.classList.add('hidden-form'); });
-        const form = document.getElementById('form-' + type);
-        if (form) { form.classList.remove('hidden-form'); form.classList.add('active-form'); }
-    }
+    function setType(btn, type) { currentType = type; document.querySelectorAll('#typeButtons .type-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('[id^="form-"]').forEach(f => { f.classList.remove('active-form'); f.classList.add('hidden-form'); }); const f = document.getElementById('form-' + type); if (f) { f.classList.remove('hidden-form'); f.classList.add('active-form'); } }
+    function setStyle(btn, style) { currentStyle = style; document.querySelectorAll('#styleButtons .style-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+    function setEye(btn, eye) { currentEye = eye; document.querySelectorAll('#eyeButtons .style-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
 
-    // =============================================
-    //  LOGO
-    // =============================================
-    function handleLogo(input) {
-        const file = input.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const img = new Image();
-            img.onload = () => {
-                logoImg = img;
-                document.getElementById('logoPreview').src = e.target.result;
-                document.getElementById('logoPreviewWrap').classList.remove('hidden');
-                document.getElementById('logoPreviewWrap').classList.add('flex');
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-    function removeLogo() {
-        logoImg = null;
-        document.getElementById('logoInput').value = '';
-        document.getElementById('logoPreviewWrap').classList.add('hidden');
-        document.getElementById('logoPreviewWrap').classList.remove('flex');
-    }
+    // LOGO
+    function handleLogo(input) { const file = input.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (e) => { const img = new Image(); img.onload = () => { logoImg = img; document.getElementById('logoPreview').src = e.target.result; document.getElementById('logoPreviewWrap').classList.remove('hidden'); document.getElementById('logoPreviewWrap').classList.add('flex'); }; img.src = e.target.result; }; reader.readAsDataURL(file); }
+    function removeLogo() { logoImg = null; document.getElementById('logoInput').value = ''; document.getElementById('logoPreviewWrap').classList.add('hidden'); document.getElementById('logoPreviewWrap').classList.remove('flex'); }
 
-    // =============================================
-    //  DATA FORMATTERS
-    // =============================================
+    // DATA FORMATTERS
     function getData() {
         const v = id => document.getElementById(id)?.value || '';
         switch (currentType) {
             case 'url': return v('input-url').trim();
             case 'text': return v('input-text');
             case 'long': return v('input-long');
-            case 'wifi': {
-                const ssid = v('input-wifi-ssid'), pass = v('input-wifi-pass');
-                const enc = v('input-wifi-enc'), hidden = document.getElementById('input-wifi-hidden').checked;
-                if (!ssid) return '';
-                return `WIFI:T:${enc};S:${ssid};P:${pass};H:${hidden};;`;
-            }
-            case 'email': {
-                const to = v('input-email-to'), sub = v('input-email-sub'), body = v('input-email-body');
-                return `mailto:${to}?subject=${encodeURIComponent(sub)}&body=${encodeURIComponent(body)}`;
-            }
+            case 'wifi': { const ssid=v('input-wifi-ssid'),pass=v('input-wifi-pass'),enc=v('input-wifi-enc'),hidden=document.getElementById('input-wifi-hidden').checked; if(!ssid)return ''; return `WIFI:T:${enc};S:${ssid};P:${pass};H:${hidden};;`; }
+            case 'email': return `mailto:${v('input-email-to')}?subject=${encodeURIComponent(v('input-email-sub'))}&body=${encodeURIComponent(v('input-email-body'))}`;
             case 'phone': return `tel:${v('input-phone').trim()}`;
             case 'sms': return `smsto:${v('input-sms-to').trim()}:${v('input-sms-body')}`;
-            case 'vcard': {
-                const fn=v('input-vc-fn'),ln=v('input-vc-ln'),ph=v('input-vc-phone'),em=v('input-vc-email'),org=v('input-vc-org'),url=v('input-vc-url');
-                return `BEGIN:VCARD\nVERSION:3.0\nN:${ln};${fn}\nFN:${fn} ${ln}\nTEL:${ph}\nEMAIL:${em}\nORG:${org}\nURL:${url}\nEND:VCARD`;
-            }
+            case 'vcard': { const fn=v('input-vc-fn'),ln=v('input-vc-ln'); return `BEGIN:VCARD\nVERSION:3.0\nN:${ln};${fn}\nFN:${fn} ${ln}\nTEL:${v('input-vc-phone')}\nEMAIL:${v('input-vc-email')}\nORG:${v('input-vc-org')}\nURL:${v('input-vc-url')}\nEND:VCARD`; }
             case 'json': return v('input-json');
             case 'multiurl': return v('input-multiurl');
             case 'app': return v('input-app').trim();
@@ -351,18 +335,15 @@
     }
 
     // =============================================
-    //  QR GENERATION — qrcode-generator library
-    //  Draws manually on Canvas for full color/logo control
+    //  QR ENGINE — Custom Design Renderer
     // =============================================
     function generateQR() {
         const data = getData();
         if (!data) { alert('Please fill in the required fields.'); return; }
-
         const qrColorVal = document.getElementById('qrColor').value;
         const bgColorVal = document.getElementById('bgColor').value;
 
         try {
-            // Auto-detect type, high error correction for logo support
             const qr = qrcode(0, 'H');
             qr.addData(data);
             qr.make();
@@ -370,33 +351,38 @@
             const moduleCount = qr.getModuleCount();
             const margin = 2;
             const totalModules = moduleCount + margin * 2;
-            const canvasSize = 600; // High-res internal
+            const canvasSize = 600;
             const cellSize = canvasSize / totalModules;
 
             const canvas = document.getElementById('qrPreviewCanvas');
-            canvas.width = canvasSize;
-            canvas.height = canvasSize;
-            canvas.style.width = '280px';
-            canvas.style.height = '280px';
+            canvas.width = canvasSize; canvas.height = canvasSize;
             const ctx = canvas.getContext('2d');
 
             // Background
             ctx.fillStyle = bgColorVal;
             ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-            // QR modules with slight rounding
+            // Draw modules
             ctx.fillStyle = qrColorVal;
             for (let row = 0; row < moduleCount; row++) {
                 for (let col = 0; col < moduleCount; col++) {
                     if (qr.isDark(row, col)) {
                         const x = (col + margin) * cellSize;
                         const y = (row + margin) * cellSize;
-                        const r = cellSize * 0.15; // Slight rounding
-                        ctx.beginPath();
-                        ctx.roundRect(x, y, cellSize + 0.5, cellSize + 0.5, r);
-                        ctx.fill();
+                        const cx = x + cellSize / 2;
+                        const cy = y + cellSize / 2;
+
+                        // Skip finder pattern modules if custom eye
+                        if (currentEye !== 'default' && isFinderModule(row, col, moduleCount)) continue;
+
+                        drawModule(ctx, currentStyle, x, y, cellSize, cx, cy, qrColorVal);
                     }
                 }
+            }
+
+            // Draw custom eyes
+            if (currentEye !== 'default') {
+                drawCustomEyes(ctx, moduleCount, margin, cellSize, currentEye, qrColorVal, bgColorVal);
             }
 
             // Logo overlay
@@ -404,47 +390,161 @@
                 const logoSize = canvasSize * 0.2;
                 const lx = (canvasSize - logoSize) / 2;
                 const ly = (canvasSize - logoSize) / 2;
-                const pad = 8;
-                // White background with rounded corners
+                const pad = 10;
                 ctx.fillStyle = bgColorVal;
-                ctx.beginPath();
-                ctx.roundRect(lx - pad, ly - pad, logoSize + pad * 2, logoSize + pad * 2, 8);
-                ctx.fill();
-                // Draw logo
+                ctx.beginPath(); ctx.roundRect(lx - pad, ly - pad, logoSize + pad*2, logoSize + pad*2, 10); ctx.fill();
                 ctx.drawImage(logoImg, lx, ly, logoSize, logoSize);
             }
 
-            // Generate SVG string for download
+            // SVG
             lastSvgString = buildSVG(qr, moduleCount, margin, qrColorVal, bgColorVal);
 
-            // Show result
             document.getElementById('qrPlaceholder').classList.add('hidden');
             document.getElementById('qrResultArea').classList.remove('hidden');
 
-        } catch (err) {
-            console.error(err);
-            alert('Error generating QR: ' + err.message);
-        }
+        } catch (err) { console.error(err); alert('Error: ' + err.message); }
     }
 
     // =============================================
-    //  SVG BUILDER — for vector download
+    //  DRAWING FUNCTIONS
+    // =============================================
+    function drawModule(ctx, style, x, y, s, cx, cy, color) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        switch (style) {
+            case 'dots':
+                ctx.arc(cx, cy, s * 0.38, 0, Math.PI * 2);
+                break;
+            case 'diamond':
+                ctx.moveTo(cx, y + s * 0.1);
+                ctx.lineTo(x + s * 0.9, cy);
+                ctx.lineTo(cx, y + s * 0.9);
+                ctx.lineTo(x + s * 0.1, cy);
+                break;
+            case 'rounded':
+                ctx.roundRect(x + s * 0.05, y + s * 0.05, s * 0.9, s * 0.9, s * 0.3);
+                break;
+            default: // classic
+                ctx.rect(x, y, s, s);
+        }
+        ctx.fill();
+    }
+
+    // =============================================
+    //  FINDER PATTERN DETECTION
+    // =============================================
+    function isFinderModule(row, col, count) {
+        // Top-left
+        if (row < 7 && col < 7) return true;
+        // Top-right
+        if (row < 7 && col >= count - 7) return true;
+        // Bottom-left
+        if (row >= count - 7 && col < 7) return true;
+        return false;
+    }
+
+    // =============================================
+    //  CUSTOM EYE RENDERING
+    // =============================================
+    function drawCustomEyes(ctx, count, margin, cellSize, eyeStyle, qrColor, bgColor) {
+        const eyes = [
+            { r: margin, c: margin },                     // Top-left
+            { r: margin, c: margin + count - 7 },         // Top-right
+            { r: margin + count - 7, c: margin }          // Bottom-left
+        ];
+
+        eyes.forEach(({ r, c }) => {
+            const x = c * cellSize;
+            const y = r * cellSize;
+            const size = 7 * cellSize;
+
+            if (eyeStyle === 'rounded') {
+                // Outer
+                ctx.fillStyle = qrColor;
+                ctx.beginPath(); ctx.roundRect(x, y, size, size, cellSize * 0.8); ctx.fill();
+                // Middle (white)
+                ctx.fillStyle = bgColor;
+                ctx.beginPath(); ctx.roundRect(x + cellSize, y + cellSize, size - cellSize * 2, size - cellSize * 2, cellSize * 0.5); ctx.fill();
+                // Inner
+                ctx.fillStyle = qrColor;
+                ctx.beginPath(); ctx.roundRect(x + cellSize * 2, y + cellSize * 2, cellSize * 3, cellSize * 3, cellSize * 0.4); ctx.fill();
+            }
+            else if (eyeStyle === 'circle') {
+                const cx = x + size / 2, cy = y + size / 2;
+                // Outer
+                ctx.fillStyle = qrColor;
+                ctx.beginPath(); ctx.arc(cx, cy, size / 2, 0, Math.PI * 2); ctx.fill();
+                // Middle
+                ctx.fillStyle = bgColor;
+                ctx.beginPath(); ctx.arc(cx, cy, size / 2 - cellSize, 0, Math.PI * 2); ctx.fill();
+                // Inner
+                ctx.fillStyle = qrColor;
+                ctx.beginPath(); ctx.arc(cx, cy, size / 2 - cellSize * 2, 0, Math.PI * 2); ctx.fill();
+            }
+        });
+    }
+
+    // =============================================
+    //  SVG BUILDER
     // =============================================
     function buildSVG(qr, moduleCount, margin, qrColor, bgColor) {
         const totalModules = moduleCount + margin * 2;
-        const cellSize = 10; // SVG units per module
+        const cellSize = 10;
         const size = totalModules * cellSize;
         let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">`;
         svg += `<rect width="${size}" height="${size}" fill="${bgColor}"/>`;
+
         for (let row = 0; row < moduleCount; row++) {
             for (let col = 0; col < moduleCount; col++) {
                 if (qr.isDark(row, col)) {
                     const x = (col + margin) * cellSize;
                     const y = (row + margin) * cellSize;
-                    svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" rx="1.5" fill="${qrColor}"/>`;
+                    const cx = x + cellSize / 2;
+                    const cy = y + cellSize / 2;
+
+                    if (currentEye !== 'default' && isFinderModule(row, col, moduleCount)) continue;
+
+                    switch (currentStyle) {
+                        case 'dots':
+                            svg += `<circle cx="${cx}" cy="${cy}" r="${cellSize*0.38}" fill="${qrColor}"/>`;
+                            break;
+                        case 'diamond':
+                            const d = cellSize * 0.1;
+                            svg += `<polygon points="${cx},${y+d} ${x+cellSize-d},${cy} ${cx},${y+cellSize-d} ${x+d},${cy}" fill="${qrColor}"/>`;
+                            break;
+                        case 'rounded':
+                            svg += `<rect x="${x+cellSize*0.05}" y="${y+cellSize*0.05}" width="${cellSize*0.9}" height="${cellSize*0.9}" rx="${cellSize*0.3}" fill="${qrColor}"/>`;
+                            break;
+                        default:
+                            svg += `<rect x="${x}" y="${y}" width="${cellSize}" height="${cellSize}" fill="${qrColor}"/>`;
+                    }
                 }
             }
         }
+
+        // Custom eyes in SVG
+        if (currentEye !== 'default') {
+            const eyes = [
+                { r: margin, c: margin },
+                { r: margin, c: margin + moduleCount - 7 },
+                { r: margin + moduleCount - 7, c: margin }
+            ];
+            const s = 7 * cellSize;
+            eyes.forEach(({ r, c }) => {
+                const x = c * cellSize, y = r * cellSize;
+                if (currentEye === 'rounded') {
+                    svg += `<rect x="${x}" y="${y}" width="${s}" height="${s}" rx="${cellSize*0.8}" fill="${qrColor}"/>`;
+                    svg += `<rect x="${x+cellSize}" y="${y+cellSize}" width="${s-cellSize*2}" height="${s-cellSize*2}" rx="${cellSize*0.5}" fill="${bgColor}"/>`;
+                    svg += `<rect x="${x+cellSize*2}" y="${y+cellSize*2}" width="${cellSize*3}" height="${cellSize*3}" rx="${cellSize*0.4}" fill="${qrColor}"/>`;
+                } else if (currentEye === 'circle') {
+                    const cx = x + s/2, cy = y + s/2;
+                    svg += `<circle cx="${cx}" cy="${cy}" r="${s/2}" fill="${qrColor}"/>`;
+                    svg += `<circle cx="${cx}" cy="${cy}" r="${s/2-cellSize}" fill="${bgColor}"/>`;
+                    svg += `<circle cx="${cx}" cy="${cy}" r="${s/2-cellSize*2}" fill="${qrColor}"/>`;
+                }
+            });
+        }
+
         svg += '</svg>';
         return svg;
     }
