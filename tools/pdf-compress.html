@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Compress - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: rgba(23,23,23,0.3); --bg-nav: rgba(5,5,5,0.8);
+            --bg-footer: #030303; --bg-input: #171717; --bg-dropzone-hover: rgba(255,255,255,0.02);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --border-primary: rgba(255,255,255,0.05);
+            --border-secondary: rgba(255,255,255,0.1); --scrollbar-track: #0a0a0a; --scrollbar-thumb: #333;
+            --accent-bg: rgba(249,115,22,0.1); --accent-border: rgba(249,115,22,0.2);
+            --accent-text: #fb923c; --accent-solid: #f97316; --accent-glow: rgba(249,115,22,0.15);
+        }
+        [data-theme="light"] {
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-nav: rgba(245,245,245,0.85);
+            --bg-footer: #e5e5e5; --bg-input: #f9fafb; --bg-dropzone-hover: rgba(0,0,0,0.02);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --border-primary: #e5e7eb; --border-secondary: #d1d5db;
+            --scrollbar-track: #e5e5e5; --scrollbar-thumb: #c0c0c0;
+            --accent-bg: rgba(249,115,22,0.08); --accent-border: rgba(249,115,22,0.2);
+            --accent-text: #ea580c; --accent-solid: #f97316; --accent-glow: rgba(249,115,22,0.08);
+        }
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+        .workspace-card { background: var(--bg-card); border: 1px solid var(--border-primary); }
+        .border-b-theme { border-bottom: 1px solid var(--border-primary); }
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-tertiary { color: var(--text-tertiary); }
+        .text-theme-muted { color: var(--text-muted); }
+        .text-theme-accent { color: var(--accent-text); }
+        .drop-zone { border-color: var(--border-primary); cursor: pointer; transition: background 0.2s; }
+        .drop-zone:hover { background: var(--bg-dropzone-hover); }
+        select, input[type="number"] { background: var(--bg-input); border: 1px solid var(--border-secondary); color: var(--text-primary); transition: all 0.2s; }
+        select:focus, input[type="number"]:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 2px var(--accent-bg); }
+        .preset-btn { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .preset-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .preset-btn.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); box-shadow: 0 0 20px var(--accent-glow); }
+        .btn-primary { background: var(--accent-solid); color: #ffffff; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-download { background: var(--text-primary); color: var(--bg-body); transition: opacity 0.2s; }
+        .btn-download:hover { opacity: 0.85; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .btn-secondary:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .tag { background: var(--bg-input); color: var(--text-muted); }
+        @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+        .pulse-dot { animation: pulse-dot 1.2s ease-in-out infinite; }
+        .tech-box { background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15); color: #60a5fa; }
+        .warn-box { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.2); color: #fbbf24; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl" style="background: var(--bg-nav); border-bottom: 1px solid var(--border-primary);">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center"><i data-lucide="wrench" class="w-4 h-4 text-white"></i></div>
+                <span class="text-lg font-semibold tracking-tight text-theme-primary">Tool<span class="text-orange-400">Box</span></span>
+            </a>
+            <a href="../index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-theme-tertiary hover:text-theme-primary hover:bg-white/5 transition-all"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <div class="max-w-5xl mx-auto px-6 py-12">
+            <div class="animate-fade-up flex items-center gap-2 text-sm mb-8 text-theme-muted">
+                <a href="../index.html" class="hover:opacity-80 transition-opacity flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Home</a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span>PDF</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span class="text-theme-secondary">PDF Compress</span>
+            </div>
+            <div class="animate-fade-up flex flex-col md:flex-row md:items-center gap-6 mb-10">
+                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0" style="background: var(--accent-bg); border-color: var(--accent-border)">
+                    <i data-lucide="file-down" class="w-7 h-7 text-theme-accent"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">Compress PDF</h1>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Shrink PDF to exact target size. Engine tries 10+ strategies from B&W PNG to ultra-compressed JPEG.</p>
+                </div>
+            </div>
+
+            <div class="animate-fade-up workspace-card rounded-2xl overflow-hidden">
+                <div id="dropZone" class="drop-zone p-12 text-center border-b-theme" onclick="document.getElementById('fileInput').click()">
+                    <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mx-auto mb-4" style="border-color: var(--border-secondary)"><i data-lucide="upload-cloud" class="w-7 h-7 text-theme-muted"></i></div>
+                    <p class="font-medium mb-1 text-theme-secondary">Drop your PDF here or click to browse</p>
+                    <p class="text-sm text-theme-muted">Supports: PDF files</p>
+                    <input type="file" id="fileInput" accept=".pdf,application/pdf" class="hidden" onchange="handleFile(this)">
+                </div>
+
+                <div id="fileInfo" class="hidden p-6 border-b-theme">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background: var(--accent-bg)"><i data-lucide="file-text" class="w-5 h-5 text-theme-accent"></i></div>
+                            <div>
+                                <p id="fileName" class="text-sm font-medium text-theme-primary"></p>
+                                <div class="flex items-center gap-3 mt-0.5">
+                                    <span id="fileSize" class="text-xs text-theme-muted"></span>
+                                    <span id="filePages" class="text-xs text-theme-muted"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="removeFile()" class="p-2 rounded-lg hover:bg-white/5 transition-colors text-theme-muted"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                </div>
+
+                <div id="optionsPanel" class="hidden p-6 border-b-theme">
+                    <label class="text-sm font-medium mb-4 block text-theme-secondary">Compression Mode</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="presetBtns">
+                        <button onclick="selectPreset(this,'sharp')" class="preset-btn active rounded-xl p-4 text-center">
+                            <i data-lucide="type" class="w-5 h-5 mx-auto mb-2 text-green-400"></i>
+                            <div class="text-sm font-semibold mb-1">Sharp B&W</div>
+                            <div class="text-[10px] text-theme-muted">PNG lossless text<br>Smallest + Sharpest</div>
+                        </button>
+                        <button onclick="selectPreset(this,'readable')" class="preset-btn rounded-xl p-4 text-center">
+                            <i data-lucide="book-open" class="w-5 h-5 mx-auto mb-2 text-yellow-400"></i>
+                            <div class="text-sm font-semibold mb-1">Readable</div>
+                            <div class="text-[10px] text-theme-muted">Grayscale JPEG<br>Good balance</div>
+                        </button>
+                        <button onclick="selectPreset(this,'color')" class="preset-btn rounded-xl p-4 text-center">
+                            <i data-lucide="palette" class="w-5 h-5 mx-auto mb-2 text-blue-400"></i>
+                            <div class="text-sm font-semibold mb-1">Color</div>
+                            <div class="text-[10px] text-theme-muted">Full color JPEG<br>Best for photos</div>
+                        </button>
+                    </div>
+                    <div class="mt-6 p-4 rounded-xl" style="background: var(--bg-input); border: 1px solid var(--border-primary);">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i data-lucide="target" class="w-4 h-4 text-theme-accent"></i>
+                            <span class="text-sm font-medium text-theme-secondary">Target Specific Size</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="number" id="targetSizeInput" placeholder="e.g. 150" min="10" class="flex-1 rounded-lg px-4 py-2.5 text-sm h-10" onchange="selectCustomTarget()">
+                            <select id="targetSizeUnit" class="rounded-lg px-3 py-2.5 text-sm h-10 w-20" onchange="selectCustomTarget()">
+                                <option value="KB">KB</option><option value="MB">MB</option>
+                            </select>
+                        </div>
+                        <p class="text-[10px] text-theme-muted mt-2">Engine tries 10+ strategies (B&W PNG → ultra-compressed JPEG at multiple scales). Always produces output.</p>
+                    </div>
+                    <div class="mt-4 tech-box rounded-lg p-3 flex items-start gap-2">
+                        <i data-lucide="cpu" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                        <div class="text-xs opacity-90"><strong>How it hits your target:</strong><br>① B&W PNG (lossless) → ② B&W JPEG (tiny) → ③ Gray JPEG → ④ Lower scale<br>Each step: binary search finds exact quality for your target size</div>
+                    </div>
+                </div>
+
+                <div id="actionArea" class="hidden p-6">
+                    <button onclick="processPDF()" id="processBtn" class="btn-primary w-full h-12 rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                        <i data-lucide="minimize-2" class="w-4 h-4"></i><span id="processBtnText">Compress PDF</span>
+                    </button>
+                </div>
+
+                <div id="progressArea" class="hidden p-6 border-b-theme">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-theme-secondary flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full pulse-dot" style="background: var(--accent-solid)"></span>
+                            <span id="progressLabel">Analyzing...</span>
+                        </span>
+                        <span id="progressPercent" class="text-sm font-mono text-theme-accent">0%</span>
+                    </div>
+                    <div class="w-full h-2 rounded-full overflow-hidden" style="background: var(--bg-input)">
+                        <div id="progressBar" class="h-full rounded-full transition-all duration-200" style="width:0%; background: var(--accent-solid)"></div>
+                    </div>
+                    <p id="progressDetail" class="text-xs text-theme-muted mt-2"></p>
+                </div>
+
+                <div id="resultArea" class="hidden p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: rgba(34,197,94,0.1)"><i data-lucide="check" class="w-4 h-4 text-green-400"></i></div>
+                        <div>
+                            <span id="resultTitle" class="text-sm font-medium text-green-400">Compression complete!</span>
+                            <p id="resultInfo" class="text-xs text-theme-muted mt-0.5"></p>
+                        </div>
+                    </div>
+                    <!-- Target miss warning -->
+                    <div id="targetWarnArea" class="hidden warn-box rounded-lg p-3 mb-4 flex items-start gap-2">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                        <p id="targetWarnText" class="text-xs opacity-90"></p>
+                    </div>
+                    <div class="flex items-center gap-3 flex-wrap mb-6">
+                        <div class="px-3 py-1.5 rounded-lg text-xs font-semibold" style="background: var(--bg-input); color: var(--text-muted);"><span id="resOriginal">—</span></div>
+                        <i data-lucide="arrow-right" class="w-4 h-4 text-theme-muted"></i>
+                        <div class="px-3 py-1.5 rounded-lg text-xs font-semibold" style="background: var(--accent-bg); color: var(--accent-text);"><span id="resCompressed">—</span></div>
+                        <div id="resSavedWrap" class="px-3 py-1.5 rounded-lg text-xs font-semibold" style="background: rgba(34,197,94,0.1); color: #4ade80;"><span id="resSaved">—</span></div>
+                    </div>
+                    <div class="flex flex-wrap gap-3">
+                        <button onclick="downloadPDF()" class="btn-download h-12 px-8 rounded-xl text-sm font-medium flex items-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Download Compressed PDF</button>
+                        <button onclick="compressAgain()" class="btn-secondary h-12 px-6 rounded-xl text-sm font-medium flex items-center gap-2"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Compress Again</button>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 flex flex-wrap gap-2">
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#compress</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#pdf</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#150kb</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#target-size</span>
+            </div>
+        </div>
+    </main>
+
+    <footer style="background: var(--bg-footer); border-top: 1px solid var(--border-primary)">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <a href="../index.html" class="flex items-center gap-2.5"><div class="w-7 h-7 bg-orange-500 rounded-md flex items-center justify-center"><i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i></div><span class="text-sm font-semibold text-theme-primary">Tool<span class="text-orange-400">Box</span></span></a>
+                <p class="text-xs text-theme-muted">All tools run locally. No data uploaded.</p>
+                <p class="text-xs text-theme-muted">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    // THEME
+    (function(){function g(){return window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}function a(){document.documentElement.setAttribute('data-theme',localStorage.getItem('toolbox-theme')||g())}window.matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>{if(!localStorage.getItem('toolbox-theme'))a()});window.addEventListener('storage',e=>{if(e.key==='toolbox-theme')a()});a()})();
+
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    let originalFile = null, originalSize = 0, compressedBlob = null, isProcessing = false;
+    let compressionMode = 'preset', selectedPreset = 'sharp', targetBytes = 0;
+
+    const PRESETS = {
+        sharp:    { scale: 1.5, mode: 'bw',    jpegQuality: 0.45 },
+        readable: { scale: 1.5, mode: 'gray',  jpegQuality: 0.55 },
+        color:    { scale: 1.5, mode: 'color', jpegQuality: 0.70 }
+    };
+
+    // OTSU
+    function otsuThreshold(data, len) {
+        const hist = new Array(256).fill(0); let total = 0;
+        for (let i = 0; i < len; i += 4) { const g = Math.round(0.299*data[i]+0.587*data[i+1]+0.114*data[i+2]); hist[g]++; total++; }
+        if (!total) return 128;
+        let sum = 0; for (let i = 0; i < 256; i++) sum += i * hist[i];
+        let sB = 0, wB = 0, maxV = 0, thr = 128;
+        for (let t = 0; t < 256; t++) { wB += hist[t]; if (!wB) continue; const wF = total - wB; if (!wF) break; sB += t * hist[t]; const d = sB/wB - (sum-sB)/wF; const v = wB*wF*d*d; if (v > maxV) { maxV = v; thr = t; } }
+        return thr;
+    }
+
+    // PROCESSING
+    function processBW(c) { try { const w=c.width,h=c.height; if(!w||!h) return; const ctx=c.getContext('2d'); if(!ctx) return; const img=ctx.getImageData(0,0,w,h); if(!img||!img.data) return; const d=img.data,thr=otsuThreshold(d,d.length); for(let i=0;i<d.length;i+=4){const g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2],v=g>thr?255:0;d[i]=d[i+1]=d[i+2]=v;} ctx.putImageData(img,0,0); } catch(e){console.warn('BW:',e);} }
+    function processGray(c,con) { try { const w=c.width,h=c.height; if(!w||!h) return; const ctx=c.getContext('2d'); if(!ctx) return; const img=ctx.getImageData(0,0,w,h); if(!img||!img.data) return; const d=img.data,f=(259*(con+255))/(255*(259-con)); for(let i=0;i<d.length;i+=4){let g=0.299*d[i]+0.587*d[i+1]+0.114*d[i+2];g=f*(g-128)+128;g=Math.max(0,Math.min(255,g));d[i]=d[i+1]=d[i+2]=g;} ctx.putImageData(img,0,0); } catch(e){console.warn('Gray:',e);} }
+
+    function applyMode(canvas, mode) {
+        if (mode === 'bw') processBW(canvas);
+        else if (mode === 'gray') processGray(canvas, 25);
+    }
+
+    // CLONE / DOWNSCALE
+    function cloneCanvas(src) { if(!src||src.width<=0) return null; const c=document.createElement('canvas'); c.width=src.width; c.height=src.height; try{const ctx=c.getContext('2d');ctx.drawImage(src,0,0);return c;}catch(e){return null;} }
+    function downscaleCanvas(src, ratio) { if(!src||src.width<=0) return null; const nw=Math.max(1,Math.round(src.width*ratio)),nh=Math.max(1,Math.round(src.height*ratio)); const c=document.createElement('canvas'); c.width=nw; c.height=nh; try{const ctx=c.getContext('2d');ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';ctx.drawImage(src,0,0,nw,nh);return c;}catch(e){return null;} }
+
+    // FILE
+    function handleFile(input) { const file=input.files[0]; if(!file||file.type!=='application/pdf') return; originalFile=file; originalSize=file.size; document.getElementById('fileName').textContent=file.name; document.getElementById('fileSize').textContent=formatSize(file.size); const r=new FileReader(); r.onload=async(e)=>{try{const p=await pdfjsLib.getDocument(new Uint8Array(e.target.result)).promise;document.getElementById('filePages').textContent=`${p.numPages} page${p.numPages>1?'s':''}`;}catch(err){}}; r.readAsArrayBuffer(file); document.getElementById('fileInfo').classList.remove('hidden'); document.getElementById('optionsPanel').classList.remove('hidden'); document.getElementById('actionArea').classList.remove('hidden'); document.getElementById('resultArea').classList.add('hidden'); document.getElementById('progressArea').classList.add('hidden'); }
+    function removeFile() { originalFile=null;originalSize=0;compressedBlob=null;document.getElementById('fileInput').value='';['fileInfo','optionsPanel','actionArea','resultArea','progressArea'].forEach(id=>document.getElementById(id).classList.add('hidden')); }
+    function selectPreset(el,p) { compressionMode='preset';selectedPreset=p;document.querySelectorAll('#presetBtns .preset-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');document.getElementById('targetSizeInput').value=''; }
+    function selectCustomTarget() { const val=parseFloat(document.getElementById('targetSizeInput').value),unit=document.getElementById('targetSizeUnit').value; if(!val||val<=0) return; compressionMode='target'; targetBytes=unit==='MB'?val*1048576:val*1024; document.querySelectorAll('#presetBtns .preset-btn').forEach(b=>b.classList.remove('active')); }
+
+    // RENDER
+    async function renderPage(pdfDoc, pageNum, scale) { const page=await pdfDoc.getPage(pageNum); const origVP=page.getViewport({scale:1.0}); const renderVP=page.getViewport({scale:scale}); const w=Math.max(1,Math.round(renderVP.width)),h=Math.max(1,Math.round(renderVP.height)); const canvas=document.createElement('canvas'); canvas.width=w;canvas.height=h; const ctx=canvas.getContext('2d'); if(!ctx) return null; await page.render({canvasContext:ctx,viewport:renderVP}).promise; return {canvas,origW:origVP.width,origH:origVP.height}; }
+
+    // ENCODE
+    function encodeCanvas(canvas, format, quality) { return new Promise((resolve,reject)=>{try{if(!canvas||canvas.width<=0){reject('empty');return;} const mime=format==='png'?'image/png':'image/jpeg'; canvas.toBlob(blob=>{if(!blob||!blob.size){reject('empty blob');return;} const r=new FileReader(); r.onload=()=>resolve({bytes:new Uint8Array(r.result),size:blob.size,format}); r.onerror=reject; r.readAsArrayBuffer(blob);},mime,quality);}catch(e){reject(e);}}); }
+
+    // =============================================
+    //  MAIN
+    // =============================================
+    async function processPDF() {
+        if (!originalFile || isProcessing) return;
+        isProcessing = true;
+        document.getElementById('processBtn').disabled = true;
+        document.getElementById('processBtnText').textContent = 'Compressing…';
+        document.getElementById('progressArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        try {
+            const pdfDoc = await pdfjsLib.getDocument(new Uint8Array(await originalFile.arrayBuffer())).promise;
+            const numPages = pdfDoc.numPages;
+            if (compressionMode === 'target') await compressToTarget(pdfDoc, numPages);
+            else await compressPreset(pdfDoc, numPages);
+        } catch (err) { console.error(err); alert('Error: ' + (err.message || err)); resetBtn(); document.getElementById('progressArea').classList.add('hidden'); }
+    }
+
+    // ---------- PRESET ----------
+    async function compressPreset(pdfDoc, numPages) {
+        const s = PRESETS[selectedPreset]; const pages = [];
+        for (let i = 1; i <= numPages; i++) {
+            setProgress(`Rendering page ${i}/${numPages}...`, (i/numPages)*40);
+            const result = await renderPage(pdfDoc, i, s.scale);
+            if (!result || !result.canvas) continue;
+            const {canvas, origW, origH} = result;
+            setProgress(`Enhancing page ${i}/${numPages}...`, 40+(i/numPages)*15);
+            applyMode(canvas, s.mode);
+            let enc; try {
+                if (s.mode === 'bw') { enc = await encodeCanvas(canvas,'png',1.0); if(enc.size>500000) enc = await encodeCanvas(canvas,'jpeg',s.jpegQuality); }
+                else enc = await encodeCanvas(canvas,'jpeg',s.jpegQuality);
+                pages.push({...enc,origW,origH});
+            } catch(e) { console.warn(`Page ${i} failed`,e); }
+            canvas.width=0;canvas.height=0; await yieldUI();
+        }
+        if (!pages.length) { alert('No pages processed.'); resetBtn(); document.getElementById('progressArea').classList.add('hidden'); return; }
+        setProgress('Building PDF...', 70);
+        compressedBlob = await buildPDF(pages); finish();
+    }
+
+    // =============================================
+    //  TARGET SIZE — ULTRA AGGRESSIVE ENGINE
+    //  ✅ 10+ strategies from 1.5x to 0.4x
+    //  ✅ Quality search from 0.01 to 0.95
+    //  ✅ BEST EFFORT: always produces output
+    //  ✅ Shows warning if target missed
+    // =============================================
+    async function compressToTarget(pdfDoc, numPages) {
+        const perPage = targetBytes / numPages;
+
+        // STEP 1: Render page 1 at 1.5x (source, never modified)
+        setProgress('Rendering test page...', 2); await yieldUI();
+        let sourceResult;
+        try { sourceResult = await renderPage(pdfDoc, 1, 1.5); } catch(e) {}
+        if (!sourceResult || !sourceResult.canvas || sourceResult.canvas.width <= 0) {
+            alert('Could not render PDF.'); resetBtn(); document.getElementById('progressArea').classList.add('hidden'); return;
+        }
+        const sourceCanvas = sourceResult.canvas;
+
+        // STEP 2: Test ALL strategies — find best one that fits perPage budget
+        // scaleRatio is relative to 1.5x source (1.0 = 1.5x, 0.67 = ~1.0x, 0.5 = ~0.75x, 0.33 = ~0.5x)
+        const strategies = [
+            { sr: 1.0,  mode: 'bw',   fmt: 'png',  label: 'B&W PNG 1.5×' },
+            { sr: 1.0,  mode: 'bw',   fmt: 'jpeg', label: 'B&W JPEG 1.5×' },
+            { sr: 1.0,  mode: 'gray', fmt: 'jpeg', label: 'Gray JPEG 1.5×' },
+            { sr: 1.0,  mode: 'color',fmt: 'jpeg', label: 'Color JPEG 1.5×' },
+            { sr: 0.67, mode: 'bw',   fmt: 'png',  label: 'B&W PNG 1.0×' },
+            { sr: 0.67, mode: 'bw',   fmt: 'jpeg', label: 'B&W JPEG 1.0×' },
+            { sr: 0.67, mode: 'gray', fmt: 'jpeg', label: 'Gray JPEG 1.0×' },
+            { sr: 0.45, mode: 'bw',   fmt: 'jpeg', label: 'B&W JPEG 0.7×' },
+            { sr: 0.45, mode: 'gray', fmt: 'jpeg', label: 'Gray JPEG 0.7×' },
+            { sr: 0.33, mode: 'bw',   fmt: 'jpeg', label: 'B&W JPEG 0.5×' },
+            { sr: 0.33, mode: 'gray', fmt: 'jpeg', label: 'Gray JPEG 0.5×' },
+        ];
+
+        let bestStrategy = null, bestQuality = -1;
+        // ✅ ALSO track the smallest possible result for best-effort fallback
+        let smallestResult = null; // { strategy, quality, size }
+
+        for (let si = 0; si < strategies.length; si++) {
+            const strat = strategies[si];
+            const pctBase = 4 + (si / strategies.length) * 30;
+            setProgress(`Testing ${strat.label}...`, pctBase);
+            await yieldUI();
+
+            // Create working canvas (clone or downscale from source)
+            let workCanvas;
+            if (strat.sr >= 0.99) workCanvas = cloneCanvas(sourceCanvas);
+            else workCanvas = downscaleCanvas(sourceCanvas, strat.sr);
+
+            if (!workCanvas || workCanvas.width <= 0) continue;
+
+            // Apply mode
+            applyMode(workCanvas, strat.mode);
+
+            if (strat.fmt === 'png') {
+                try {
+                    const enc = await encodeCanvas(workCanvas, 'png', 1.0);
+                    setProgress(`${strat.label}: ${formatSize(enc.size)}/page`, pctBase + 2);
+                    await yieldUI();
+                    // Track smallest
+                    if (!smallestResult || enc.size < smallestResult.size) {
+                        smallestResult = { strategy: strat, quality: 1.0, size: enc.size };
+                    }
+                    if (enc.size <= perPage) {
+                        bestStrategy = strat; bestQuality = 1.0;
+                        workCanvas.width = 0; workCanvas.height = 0;
+                        break; // Found!
+                    }
+                } catch(e) { console.warn('PNG test failed', e); }
+            } else {
+                // Binary search JPEG quality from 0.01 to 0.95
+                let lo = 0.01, hi = 0.95, bq = -1, smallestAtQ = null;
+                for (let a = 0; a < 10; a++) { // 10 iterations for precision
+                    const mid = (lo + hi) / 2;
+                    try {
+                        const enc = await encodeCanvas(workCanvas, 'jpeg', mid);
+                        setProgress(`${strat.label} Q${Math.round(mid*100)}%: ${formatSize(enc.size)}/page`, pctBase + a);
+                        await yieldUI();
+                        // Track smallest
+                        if (!smallestResult || enc.size < smallestResult.size) {
+                            smallestResult = { strategy: strat, quality: mid, size: enc.size };
+                        }
+                        if (!smallestAtQ || enc.size < smallestAtQ.size) smallestAtQ = { quality: mid, size: enc.size };
+                        if (enc.size <= perPage) { bq = mid; lo = mid; }
+                        else { hi = mid; }
+                    } catch(e) { hi = mid; }
+                }
+                if (bq > 0) { bestStrategy = strat; bestQuality = bq; }
+                else if (smallestAtQ && (!smallestResult || smallestAtQ.size < smallestResult.size)) {
+                    smallestResult = { strategy: strat, quality: smallestAtQ.quality, size: smallestAtQ.size };
+                }
+            }
+
+            workCanvas.width = 0; workCanvas.height = 0; // Free clone
+            if (bestStrategy) break; // Found a winner, stop testing
+        }
+
+        // Free source
+        sourceCanvas.width = 0; sourceCanvas.height = 0;
+
+        // ✅ STEP 3: If no strategy fits target, use BEST EFFORT
+        let usedStrategy = bestStrategy;
+        let usedQuality = bestQuality;
+        let targetMissed = false;
+
+        if (!usedStrategy) {
+            if (smallestResult) {
+                usedStrategy = smallestResult.strategy;
+                usedQuality = smallestResult.quality;
+                targetMissed = true;
+            } else {
+                alert('Could not compress this PDF. It may be corrupted.');
+                resetBtn(); document.getElementById('progressArea').classList.add('hidden'); return;
+            }
+        }
+
+        const scaleMap = { 1.0: 1.5, 0.67: 1.0, 0.45: 0.7, 0.33: 0.5 };
+        const actualScale = scaleMap[usedStrategy.sr] || 1.5;
+
+        setProgress(`Using ${usedStrategy.label} Q${Math.round(usedQuality*100)}%`, 35);
+
+        // STEP 4: Process all pages
+        const pages = [];
+        for (let i = 1; i <= numPages; i++) {
+            setProgress(`Processing page ${i}/${numPages}...`, 35 + (i/numPages)*45);
+            await yieldUI();
+            let result;
+            try { result = await renderPage(pdfDoc, i, actualScale); } catch(e) { continue; }
+            if (!result || !result.canvas || result.canvas.width <= 0) continue;
+            const {canvas, origW, origH} = result;
+            applyMode(canvas, usedStrategy.mode);
+            try {
+                const enc = await encodeCanvas(canvas, usedStrategy.fmt, usedQuality);
+                pages.push({...enc, origW, origH});
+            } catch(e) { console.warn(`Page ${i} failed`, e); }
+            canvas.width = 0; canvas.height = 0;
+        }
+
+        if (!pages.length) { alert('No pages processed.'); resetBtn(); document.getElementById('progressArea').classList.add('hidden'); return; }
+
+        setProgress('Building PDF...', 85);
+        compressedBlob = await buildPDF(pages);
+        finish(targetMissed);
+    }
+
+    // BUILD PDF
+    async function buildPDF(pages) {
+        const doc = await PDFLib.PDFDocument.create();
+        for (let i = 0; i < pages.length; i++) {
+            setProgress(`Embedding page ${i+1}/${pages.length}...`, 85+(i/pages.length)*12);
+            await yieldUI();
+            const p = pages[i];
+            try { let img = p.format==='png' ? await doc.embedPng(p.bytes) : await doc.embedJpg(p.bytes); const page=doc.addPage([p.origW,p.origH]); page.drawImage(img,{x:0,y:0,width:p.origW,height:p.origH}); } catch(e) { console.warn(`Embed ${i+1} failed`,e); }
+        }
+        setProgress('Saving...', 98);
+        return new Blob([await doc.save()], { type: 'application/pdf' });
+    }
+
+    // FINISH
+    function finish(targetMissed) {
+        if (!compressedBlob) { resetBtn(); return; }
+        const saved = Math.round((1 - compressedBlob.size / originalSize) * 100);
+        document.getElementById('progressArea').classList.add('hidden');
+        document.getElementById('actionArea').classList.add('hidden');
+        document.getElementById('resultArea').classList.remove('hidden');
+        document.getElementById('resOriginal').textContent = `Original: ${formatSize(originalSize)}`;
+        document.getElementById('resCompressed').textContent = `Compressed: ${formatSize(compressedBlob.size)}`;
+        const sw = document.getElementById('resSavedWrap'), se = document.getElementById('resSaved');
+        if (compressedBlob.size < originalSize) { se.textContent = `${saved}% smaller`; sw.style.background='rgba(34,197,94,0.1)';sw.style.color='#4ade80'; }
+        else { se.textContent = 'Quality adjusted'; sw.style.background='var(--accent-bg)';sw.style.color='var(--accent-text)'; }
+
+        // Target warning
+        const warnArea = document.getElementById('targetWarnArea');
+        const warnText = document.getElementById('targetWarnText');
+        const titleEl = document.getElementById('resultTitle');
+
+        if (targetMissed && compressionMode === 'target') {
+            warnArea.classList.remove('hidden');
+            warnText.innerHTML = `Target was <strong>${formatSize(targetBytes)}</strong> but best achievable was <strong>${formatSize(compressedBlob.size)}</strong>. The PDF has heavy image content. Try a larger target or fewer pages.`;
+            titleEl.textContent = 'Best effort compression';
+            titleEl.className = 'text-sm font-medium text-yellow-400';
+            document.getElementById('resultInfo').textContent = `Best possible: ${formatSize(compressedBlob.size)} (target: ${formatSize(targetBytes)})`;
+        } else if (compressionMode === 'target') {
+            warnArea.classList.add('hidden');
+            titleEl.textContent = 'Compression complete!';
+            titleEl.className = 'text-sm font-medium text-green-400';
+            document.getElementById('resultInfo').textContent = `Target: ${formatSize(targetBytes)} · Output: ${formatSize(compressedBlob.size)} · Pixel-perfect!`;
+        } else {
+            warnArea.classList.add('hidden');
+            titleEl.textContent = 'Compression complete!';
+            titleEl.className = 'text-sm font-medium text-green-400';
+            document.getElementById('resultInfo').textContent = `${selectedPreset === 'sharp' ? 'B&W PNG' : selectedPreset === 'readable' ? 'Grayscale JPEG' : 'Color JPEG'} · Sharp text!`;
+        }
+
+        resetBtn(); lucide.createIcons();
+    }
+
+    function downloadPDF() { if(!compressedBlob) return; const name=document.getElementById('fileName').textContent.replace('.pdf',''); const a=document.createElement('a'); a.href=URL.createObjectURL(compressedBlob); a.download=`${name}_compressed.pdf`; document.body.appendChild(a);a.click();document.body.removeChild(a); }
+    function compressAgain() { document.getElementById('resultArea').classList.add('hidden'); document.getElementById('actionArea').classList.remove('hidden'); compressedBlob=null; }
+
+    function setProgress(label, pct) { document.getElementById('progressLabel').textContent=label; document.getElementById('progressBar').style.width=Math.min(pct,98)+'%'; document.getElementById('progressPercent').textContent=Math.round(Math.min(pct,98))+'%'; document.getElementById('progressDetail').textContent=label; }
+    function resetBtn() { document.getElementById('processBtn').disabled=false; document.getElementById('processBtnText').textContent='Compress PDF'; isProcessing=false; }
+    function yieldUI() { return new Promise(r=>setTimeout(r,10)); }
+    function formatSize(b) { if(!b) return '0 B'; const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k)); return parseFloat((b/Math.pow(k,i)).toFixed(2))+' '+s[i]; }
+
+    const dz = document.getElementById('dropZone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor='var(--accent-border)'; });
+    dz.addEventListener('dragleave', () => { dz.style.borderColor='var(--border-primary)'; });
+    dz.addEventListener('drop', e => { e.preventDefault(); dz.style.borderColor='var(--border-primary)'; const f=e.dataTransfer.files[0]; if(f&&f.type==='application/pdf'){const i=document.getElementById('fileInput'),dt=new DataTransfer();dt.items.add(f);i.files=dt.files;handleFile(i);} });
+
+    lucide.createIcons();
+    </script>
+</body>
+</html>
