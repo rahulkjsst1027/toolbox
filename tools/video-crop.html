@@ -16,58 +16,44 @@
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
 
-        /* Crop Overlay Styles */
         .crop-overlay {
             position: absolute;
             border: 2px dashed rgba(6, 182, 212, 0.8);
             background: transparent;
             z-index: 10;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            pointer-events: none;
+            cursor: grab;
             box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.65);
         }
-        .crop-overlay::before,
-        .crop-overlay::after {
-            content: '';
+        .crop-overlay:active { cursor: grabbing; }
+        
+        .crop-shape-border {
+            position: absolute;
+            inset: -2px; 
+            border: 2px dashed rgba(6, 182, 212, 0.8);
+            pointer-events: none;
+            transition: border-radius 0.3s, clip-path 0.3s;
+        }
+
+        .corner-tr, .corner-bl, .corner-tl, .corner-br {
             position: absolute;
             width: 12px;
             height: 12px;
             border-color: #06b6d4;
+            z-index: 5;
         }
-        .crop-overlay::before {
-            top: -2px; left: -2px;
-            border-top: 2px solid;
-            border-left: 2px solid;
-        }
-        .crop-overlay::after {
-            bottom: -2px; right: -2px;
-            border-bottom: 2px solid;
-            border-right: 2px solid;
-        }
-        .corner-tr, .corner-bl {
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            border-color: #06b6d4;
-        }
-        .corner-tr {
-            top: -2px; right: -2px;
-            border-top: 2px solid;
-            border-right: 2px solid;
-        }
-        .corner-bl {
-            bottom: -2px; left: -2px;
-            border-bottom: 2px solid;
-            border-left: 2px solid;
-        }
-        .grid-line {
-            position: absolute;
-            background: rgba(6, 182, 212, 0.2);
-        }
+        .corner-tl { top: -2px; left: -2px; border-top: 2px solid; border-left: 2px solid; }
+        .corner-tr { top: -2px; right: -2px; border-top: 2px solid; border-right: 2px solid; }
+        .corner-bl { bottom: -2px; left: -2px; border-bottom: 2px solid; border-left: 2px solid; }
+        .corner-br { bottom: -2px; right: -2px; border-bottom: 2px solid; border-right: 2px solid; }
+        
+        .grid-line { position: absolute; background: rgba(6, 182, 212, 0.2); pointer-events: none; }
         .grid-h1 { top: 33.33%; left: 0; right: 0; height: 1px; }
         .grid-h2 { top: 66.66%; left: 0; right: 0; height: 1px; }
         .grid-v1 { left: 33.33%; top: 0; bottom: 0; width: 1px; }
         .grid-v2 { left: 66.66%; top: 0; bottom: 0; width: 1px; }
+
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
     </style>
 </head>
 <body class="text-white min-h-screen">
@@ -92,9 +78,7 @@
 
             <!-- Breadcrumb -->
             <div class="animate-fade-up flex items-center gap-2 text-sm text-neutral-500 mb-8">
-                <a href="../index.html" class="hover:text-white transition-colors flex items-center gap-1.5">
-                    <i data-lucide="home" class="w-3.5 h-3.5"></i> Home
-                </a>
+                <a href="../index.html" class="hover:text-white transition-colors flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Home</a>
                 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                 <span class="text-neutral-600">Video</span>
                 <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
@@ -103,13 +87,12 @@
 
             <!-- Tool Header -->
             <div class="animate-fade-up flex flex-col md:flex-row md:items-center gap-6 mb-10">
-                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0"
-                     style="background:rgba(6,182,212,0.1); border-color:rgba(6,182,212,0.2)">
+                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0" style="background:rgba(6,182,212,0.1); border-color:rgba(6,182,212,0.2)">
                     <i data-lucide="crop" class="w-7 h-7 text-cyan-400"></i>
                 </div>
                 <div>
                     <h1 class="text-3xl md:text-4xl font-medium tracking-tight text-white mb-2">Video Crop</h1>
-                    <p class="text-neutral-400 font-light leading-relaxed">Crop video to any aspect ratio. Live preview with interactive overlay.</p>
+                    <p class="text-neutral-400 font-light leading-relaxed">Crop video to any shape & aspect ratio. Drag the frame manually to adjust.</p>
                 </div>
             </div>
 
@@ -120,9 +103,8 @@
                 <div class="flex-1 min-w-0">
                     <div class="rounded-2xl border border-white/5 bg-neutral-900/30 overflow-hidden">
                         
-                        <!-- Upload Zone (visible initially) -->
-                        <div id="dropZone" class="p-12 text-center cursor-pointer hover:bg-white/[0.02] transition-colors"
-                             onclick="document.getElementById('fileInput').click()">
+                        <!-- Upload Zone -->
+                        <div id="dropZone" class="p-12 text-center cursor-pointer hover:bg-white/[0.02] transition-colors" onclick="document.getElementById('fileInput').click()">
                             <div class="w-16 h-16 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center mx-auto mb-4">
                                 <i data-lucide="upload-cloud" class="w-7 h-7 text-neutral-500"></i>
                             </div>
@@ -131,36 +113,28 @@
                             <input type="file" id="fileInput" accept="video/*" class="hidden" onchange="handleFile(this)">
                         </div>
 
-                        <!-- Video Preview (hidden initially) -->
+                        <!-- Video Preview -->
                         <div id="previewContainer" class="hidden relative bg-black flex items-center justify-center p-4 md:p-8">
-                            
-                            <!-- Tight Wrapper for Video + Overlay (Limits the max size) -->
                             <div id="videoWrapper" class="relative inline-block max-w-full">
                                 <video id="videoPreview" class="block max-h-[70vh] max-w-full rounded-lg" muted loop playsinline></video>
                                 
-                                <!-- THE CROP OVERLAY -->
+                                <!-- CROP OVERLAY -->
                                 <div id="cropOverlay" class="crop-overlay">
-                                    <div class="corner-tr"></div>
-                                    <div class="corner-bl"></div>
-                                    <div class="grid-line grid-h1"></div>
-                                    <div class="grid-line grid-h2"></div>
-                                    <div class="grid-line grid-v1"></div>
-                                    <div class="grid-line grid-v2"></div>
+                                    <div id="cropShapeBorder" class="crop-shape-border"></div>
+                                    <div class="corner-tl"></div><div class="corner-tr"></div>
+                                    <div class="corner-bl"></div><div class="corner-br"></div>
+                                    <div class="grid-line grid-h1"></div><div class="grid-line grid-h2"></div>
+                                    <div class="grid-line grid-v1"></div><div class="grid-line grid-v2"></div>
                                 </div>
 
-                                <!-- Play/Pause Button -->
                                 <button id="playBtn" onclick="togglePlay()" class="absolute bottom-3 left-3 z-20 w-10 h-10 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black/70 transition-colors">
                                     <i data-lucide="play" class="w-4 h-4 text-white" id="playIcon"></i>
                                 </button>
-
-                                <!-- Remove Video Button -->
                                 <button onclick="removeFile()" class="absolute top-3 right-3 z-20 w-8 h-8 bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-red-500/50 transition-colors">
                                     <i data-lucide="x" class="w-4 h-4 text-white"></i>
                                 </button>
                             </div>
-
                         </div>
-
                     </div>
                 </div>
 
@@ -180,6 +154,23 @@
                         </div>
                     </div>
 
+                    <!-- Crop Shape -->
+                    <div class="rounded-2xl border border-white/5 bg-neutral-900/30 p-5">
+                        <label class="text-sm text-neutral-300 font-medium mb-3 block">Crop Shape</label>
+                        <div class="grid grid-cols-3 gap-2" id="shapeBtns">
+                            <button onclick="selectShape(this, 'rect')" class="s-btn px-3 py-2 rounded-lg border border-cyan-500/40 text-xs text-cyan-400 bg-cyan-500/10 transition-all">Rectangle</button>
+                            <button onclick="selectShape(this, 'circle')" class="s-btn px-3 py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">Circle</button>
+                            <button onclick="selectShape(this, 'oval')" class="s-btn px-3 py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">Oval</button>
+                            <button onclick="selectShape(this, 'rounded')" class="s-btn px-3 py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">Rounded</button>
+                            <button onclick="selectShape(this, 'star')" class="s-btn px-3 py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">Star</button>
+                            <button onclick="selectShape(this, 'hexagon')" class="s-btn px-3 py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">Hexagon</button>
+                        </div>
+                        <div id="roundedOptions" class="hidden mt-3">
+                            <label class="text-xs text-neutral-400 block mb-1">Corner Radius: <span id="radiusVal">15%</span></label>
+                            <input type="range" min="5" max="50" value="15" class="w-full h-1 accent-cyan-500" oninput="document.getElementById('radiusVal').textContent=this.value+'%'; applyShapeCSS();">
+                        </div>
+                    </div>
+
                     <!-- Aspect Ratio -->
                     <div class="rounded-2xl border border-white/5 bg-neutral-900/30 p-5">
                         <label class="text-sm text-neutral-300 font-medium mb-3 block">Aspect Ratio</label>
@@ -193,35 +184,20 @@
                         </div>
                     </div>
 
-                    <!-- Crop Position / Gravity -->
-                    <div class="rounded-2xl border border-white/5 bg-neutral-900/30 p-5">
-                        <label class="text-sm text-neutral-300 font-medium mb-3 block">Crop Position</label>
-                        <div class="grid grid-cols-3 gap-2" id="gravityBtns">
-                            <button onclick="selectGravity(this, 'top-left')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">↖ Top-L</button>
-                            <button onclick="selectGravity(this, 'top')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">↑ Top</button>
-                            <button onclick="selectGravity(this, 'top-right')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">↗ Top-R</button>
-                            <button onclick="selectGravity(this, 'left')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">← Left</button>
-                            <button onclick="selectGravity(this, 'center')" class="g-btn py-2 rounded-lg border border-cyan-500/40 text-xs text-cyan-400 bg-cyan-500/10 transition-all">● Center</button>
-                            <button onclick="selectGravity(this, 'right')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">→ Right</button>
-                            <button onclick="selectGravity(this, 'bottom-left')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">↙ Bot-L</button>
-                            <button onclick="selectGravity(this, 'bottom')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">↓ Bottom</button>
-                            <button onclick="selectGravity(this, 'bottom-right')" class="g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all">↘ Bot-R</button>
-                        </div>
-                    </div>
-
                     <!-- Custom Dimensions -->
                     <div class="rounded-2xl border border-white/5 bg-neutral-900/30 p-5">
                         <label class="text-sm text-neutral-300 font-medium mb-3 block">Custom Size (px)</label>
                         <div class="flex items-center gap-2">
-                            <input type="number" id="cropWidth" placeholder="Width" class="flex-1 bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/30">
-                            <i data-lucide="x" class="w-3 h-3 text-neutral-600"></i>
-                            <input type="number" id="cropHeight" placeholder="Height" class="flex-1 bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/30">
+                            <input type="number" id="cropWidth" placeholder="Width" oninput="onSizeInput('w')" class="flex-1 bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/30 text-center">
+                            <button onclick="toggleSizeLock()" id="lockBtn" class="p-2 rounded-lg border border-white/10 hover:bg-white/5 text-cyan-400 transition-all" title="Lock Aspect Ratio">
+                                <i data-lucide="lock" class="w-4 h-4" id="lockIcon"></i>
+                            </button>
+                            <input type="number" id="cropHeight" placeholder="Height" oninput="onSizeInput('h')" class="flex-1 bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-cyan-500/30 text-center">
                         </div>
                     </div>
 
                     <!-- Action Button -->
-                    <button onclick="processVideo()" id="processBtn"
-                            class="w-full h-12 rounded-xl text-sm font-medium bg-cyan-500 text-black hover:bg-cyan-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button onclick="processVideo()" id="processBtn" class="w-full h-12 rounded-xl text-sm font-medium bg-cyan-500 text-black hover:bg-cyan-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                         <i data-lucide="crop" class="w-4 h-4"></i>
                         <span id="processBtnText">Crop Video</span>
                     </button>
@@ -229,7 +205,7 @@
                     <!-- Progress -->
                     <div id="progressArea" class="hidden rounded-2xl border border-white/5 bg-neutral-900/30 p-5">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-sm text-neutral-300">Cropping...</span>
+                            <span class="text-sm text-neutral-300">Processing...</span>
                             <span id="progressPercent" class="text-sm font-mono text-cyan-400">0%</span>
                         </div>
                         <div class="w-full h-2 bg-neutral-800 rounded-full overflow-hidden">
@@ -245,21 +221,18 @@
                             </div>
                             <span class="text-sm font-medium text-green-400">Video cropped!</span>
                         </div>
-                        <button onclick="alert('Demo: Download would start here')"
-                                class="w-full h-10 bg-white text-black rounded-lg text-sm font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2">
+                        <button onclick="downloadResult()" class="w-full h-10 bg-white text-black rounded-lg text-sm font-medium hover:bg-neutral-200 transition-colors flex items-center justify-center gap-2">
                             <i data-lucide="download" class="w-4 h-4"></i> Download
                         </button>
                     </div>
-
                 </div>
             </div>
 
             <!-- Tags -->
             <div class="mt-8 flex flex-wrap gap-2">
                 <span class="text-xs text-neutral-600 bg-neutral-900 px-3 py-1.5 rounded-lg">#crop</span>
+                <span class="text-xs text-neutral-600 bg-neutral-900 px-3 py-1.5 rounded-lg">#shapes</span>
                 <span class="text-xs text-neutral-600 bg-neutral-900 px-3 py-1.5 rounded-lg">#aspect-ratio</span>
-                <span class="text-xs text-neutral-600 bg-neutral-900 px-3 py-1.5 rounded-lg">#reels</span>
-                <span class="text-xs text-neutral-600 bg-neutral-900 px-3 py-1.5 rounded-lg">#shorts</span>
             </div>
         </div>
     </main>
@@ -268,9 +241,7 @@
         <div class="max-w-7xl mx-auto px-6 py-12">
             <div class="flex flex-col md:flex-row justify-between items-center gap-6">
                 <a href="../index.html" class="flex items-center gap-2.5">
-                    <div class="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center">
-                        <i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i>
-                    </div>
+                    <div class="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center"><i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i></div>
                     <span class="text-sm font-semibold">Tool<span class="text-blue-400">Box</span></span>
                 </a>
                 <p class="text-neutral-600 text-xs">All tools run locally. No data uploaded.</p>
@@ -281,9 +252,46 @@
 
     <script>
     let selectedRatio = 'free';
-    let selectedGravity = 'center';
+    let selectedShape = 'rect';
+    let isSizeLocked = true; 
     let videoObjectUrl = null;
+    let resultBlobUrl = null;
 
+    let isDragging = false;
+    let dragStartX = 0, dragStartY = 0;
+    let initialLeft = 0, initialTop = 0;
+
+    const overlay = document.getElementById('cropOverlay');
+    const wrapper = document.getElementById('videoWrapper');
+
+    // =============================================
+    //  CANVAS SHAPE PATH HELPER FUNCTIONS
+    // =============================================
+    function drawStarPath(ctx, cx, cy, pts, rx, ry) {
+        const inner = 0.45;
+        for(let i=0; i<pts*2; i++) {
+            const a = Math.PI/2*3 + i*Math.PI/pts;
+            const r = i%2===0 ? 1 : inner;
+            const px = cx + Math.cos(a)*rx*r;
+            const py = cy + Math.sin(a)*ry*r;
+            i===0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+    }
+
+    function drawPolyPath(ctx, cx, cy, sides, rx, ry) {
+        for(let i=0; i<sides; i++) {
+            const a = Math.PI/2*3 + i*2*Math.PI/sides;
+            const px = cx + Math.cos(a)*rx;
+            const py = cy + Math.sin(a)*ry;
+            i===0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+    }
+
+    // =============================================
+    //  FILE & VIDEO HANDLERS
+    // =============================================
     function handleFile(input) {
         const file = input.files[0]; 
         if (!file) return;
@@ -307,72 +315,83 @@
             
             vid.play();
             updatePlayIcon();
-            // Small delay to let max-h CSS calculate properly
-            setTimeout(() => updateCropOverlay(), 100);
+            setTimeout(() => updateCropOverlay(true), 100);
         };
     }
 
     function removeFile() {
         const vid = document.getElementById('videoPreview');
-        vid.pause();
-        vid.src = '';
+        vid.pause(); vid.src = '';
         if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+        if (resultBlobUrl) URL.revokeObjectURL(resultBlobUrl);
         
         document.getElementById('fileInput').value = '';
         document.getElementById('dropZone').classList.remove('hidden');
         document.getElementById('previewContainer').classList.add('hidden');
         document.getElementById('fileInfo').classList.add('hidden');
         document.getElementById('resultArea').classList.add('hidden');
-        document.getElementById('progressArea').classList.add('hidden');
-        document.getElementById('processBtn').disabled = false;
-        document.getElementById('processBtnText').textContent = 'Crop Video';
     }
 
     function togglePlay() {
         const vid = document.getElementById('videoPreview');
-        if (vid.paused) { vid.play(); } else { vid.pause(); }
+        if (vid.paused) vid.play(); else vid.pause();
         updatePlayIcon();
     }
 
     function updatePlayIcon() {
         const vid = document.getElementById('videoPreview');
         const icon = document.getElementById('playIcon');
-        if (vid.paused) {
-            icon.setAttribute('data-lucide', 'play');
-        } else {
-            icon.setAttribute('data-lucide', 'pause');
-        }
+        icon.setAttribute('data-lucide', vid.paused ? 'play' : 'pause');
         lucide.createIcons();
     }
 
+    // =============================================
+    //  CONTROLS (Ratio, Shape, Lock)
+    // =============================================
     function selectRatio(el, val) {
         selectedRatio = val;
-        document.querySelectorAll('.r-btn').forEach(b => {
-            b.className = 'r-btn px-3 py-2.5 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all';
-        });
+        document.querySelectorAll('.r-btn').forEach(b => b.className = 'r-btn px-3 py-2.5 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all');
         el.className = 'r-btn px-3 py-2.5 rounded-lg border border-cyan-500/40 text-xs text-cyan-400 bg-cyan-500/10 transition-all';
-        updateCropOverlay();
+        updateCropOverlay(true);
     }
 
-    function selectGravity(el, val) {
-        selectedGravity = val;
-        document.querySelectorAll('.g-btn').forEach(b => {
-            b.className = 'g-btn py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all';
-        });
-        el.className = 'g-btn py-2 rounded-lg border border-cyan-500/40 text-xs text-cyan-400 bg-cyan-500/10 transition-all';
-        updateCropOverlay();
+    function selectShape(el, val) {
+        selectedShape = val;
+        document.querySelectorAll('.s-btn').forEach(b => b.className = 's-btn px-3 py-2 rounded-lg border border-white/10 text-xs text-neutral-400 hover:text-white hover:border-white/20 transition-all');
+        el.className = 's-btn px-3 py-2 rounded-lg border border-cyan-500/40 text-xs text-cyan-400 bg-cyan-500/10 transition-all';
+        
+        document.getElementById('roundedOptions').classList.toggle('hidden', val !== 'rounded');
+        if (val === 'circle') selectRatio(document.querySelector('.r-btn:nth-child(4)'), '1:1'); 
+        applyShapeCSS();
     }
 
-    function updateCropOverlay() {
-        // Now we use the tight wrapper to calculate sizes, not the whole container
-        const container = document.getElementById('videoWrapper');
-        const overlay = document.getElementById('cropOverlay');
-        const vid = document.getElementById('videoPreview');
+    function applyShapeCSS() {
+        const borderEl = document.getElementById('cropShapeBorder');
+        borderEl.style.borderRadius = '0';
+        borderEl.style.clipPath = 'none';
 
-        if (!vid.videoWidth || !container.clientWidth) return;
+        if (selectedShape === 'circle' || selectedShape === 'oval') borderEl.style.borderRadius = '50%';
+        else if (selectedShape === 'rounded') {
+            const radius = document.querySelector('#roundedOptions input')?.value || 15;
+            borderEl.style.borderRadius = radius + '%';
+        } else if (selectedShape === 'star') borderEl.style.clipPath = 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)';
+        else if (selectedShape === 'hexagon') borderEl.style.clipPath = 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)';
+    }
 
-        const cW = container.clientWidth;
-        const cH = container.clientHeight;
+    function toggleSizeLock() {
+        isSizeLocked = !isSizeLocked;
+        const icon = document.getElementById('lockIcon');
+        icon.setAttribute('data-lucide', isSizeLocked ? 'lock' : 'unlock');
+        lucide.createIcons();
+    }
+
+    // =============================================
+    //  OVERLAY POSITION & SIZE LOGIC
+    // =============================================
+    function updateCropOverlay(shouldCenter = false) {
+        const cW = wrapper.clientWidth;
+        const cH = wrapper.clientHeight;
+        if (!cW || !cH) return;
 
         let oW, oH;
 
@@ -382,57 +401,225 @@
         } else {
             const [rW, rH] = selectedRatio.split(':').map(Number);
             const ratioVal = rW / rH;
-
-            if ((cW / cH) > ratioVal) {
-                oH = cH * 0.9;
-                oW = oH * ratioVal;
-            } else {
-                oW = cW * 0.9;
-                oH = oW / ratioVal;
-            }
+            if ((cW / cH) > ratioVal) { oH = cH * 0.9; oW = oH * ratioVal; } 
+            else { oW = cW * 0.9; oH = oW / ratioVal; }
         }
 
         let top, left;
-        const vSpace = cH - oH;
-        const hSpace = cW - oW;
-
-        // Gravity Calculations
-        if (selectedGravity.includes('top')) { top = vSpace * 0.05; }
-        else if (selectedGravity.includes('bottom')) { top = vSpace * 0.95; }
-        else { top = vSpace / 2; }
-
-        if (selectedGravity.includes('left')) { left = hSpace * 0.05; }
-        else if (selectedGravity.includes('right')) { left = hSpace * 0.95; }
-        else { left = hSpace / 2; }
+        if (shouldCenter) {
+            top = (cH - oH) / 2;
+            left = (cW - oW) / 2;
+        } else {
+            left = parseFloat(overlay.style.left) || 0;
+            top = parseFloat(overlay.style.top) || 0;
+            left = Math.max(0, Math.min(left, cW - oW));
+            top = Math.max(0, Math.min(top, cH - oH));
+        }
 
         overlay.style.width = oW + 'px';
         overlay.style.height = oH + 'px';
-        overlay.style.top = top + 'px';
         overlay.style.left = left + 'px';
+        overlay.style.top = top + 'px';
+        
+        applyShapeCSS();
+        updateSizeInputs();
     }
 
-    function processVideo() {
+    function updateSizeInputs() {
+        const vid = document.getElementById('videoPreview');
+        if(!vid.videoWidth) return;
+        const scaleFactor = vid.videoWidth / vid.clientWidth;
+        const w = Math.round(overlay.clientWidth * scaleFactor);
+        const h = Math.round(overlay.clientHeight * scaleFactor);
+        document.getElementById('cropWidth').value = w;
+        document.getElementById('cropHeight').value = h;
+    }
+
+    function onSizeInput(dim) {
+        const vid = document.getElementById('videoPreview');
+        const scaleFactor = vid.clientWidth / vid.videoWidth;
+        let w = parseInt(document.getElementById('cropWidth').value) || 1;
+        let h = parseInt(document.getElementById('cropHeight').value) || 1;
+
+        if (isSizeLocked) {
+            const currentAspect = overlay.clientWidth / overlay.clientHeight;
+            if (dim === 'w') h = Math.round(w / currentAspect);
+            else w = Math.round(h * currentAspect);
+        }
+
+        overlay.style.width = (w * scaleFactor) + 'px';
+        overlay.style.height = (h * scaleFactor) + 'px';
+        
+        const maxLeft = wrapper.clientWidth - overlay.clientWidth;
+        const maxTop = wrapper.clientHeight - overlay.clientHeight;
+        overlay.style.left = Math.min(parseFloat(overlay.style.left), maxLeft) + 'px';
+        overlay.style.top = Math.min(parseFloat(overlay.style.top), maxTop) + 'px';
+
+        updateSizeInputs(); 
+    }
+
+    // =============================================
+    //  DRAG LOGIC
+    // =============================================
+    function startDrag(e) {
+        e.preventDefault();
+        isDragging = true;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        dragStartX = clientX; dragStartY = clientY;
+        initialLeft = overlay.offsetLeft; initialTop = overlay.offsetTop;
+    }
+
+    function dragOverlay(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - dragStartX;
+        const dy = clientY - dragStartY;
+
+        let newLeft = initialLeft + dx;
+        let newTop = initialTop + dy;
+        const maxLeft = wrapper.clientWidth - overlay.clientWidth;
+        const maxTop = wrapper.clientHeight - overlay.clientHeight;
+
+        newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+        newTop = Math.max(0, Math.min(newTop, maxTop));
+
+        overlay.style.left = newLeft + 'px';
+        overlay.style.top = newTop + 'px';
+    }
+
+    function endDrag() { isDragging = false; }
+
+    overlay.addEventListener('mousedown', startDrag);
+    overlay.addEventListener('touchstart', startDrag, { passive: false });
+    window.addEventListener('mousemove', dragOverlay);
+    window.addEventListener('touchmove', dragOverlay, { passive: false });
+    window.addEventListener('mouseup', endDrag);
+    window.addEventListener('touchend', endDrag);
+
+    // =============================================
+    //  REAL VIDEO PROCESSING & DOWNLOAD (FIXED)
+    // =============================================
+    async function processVideo() {
         const btn = document.getElementById('processBtn');
         const btnText = document.getElementById('processBtnText');
         btn.disabled = true; 
-        btnText.textContent = 'Cropping...';
+        btnText.textContent = 'Processing...';
         document.getElementById('progressArea').classList.remove('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+
+        const vid = document.getElementById('videoPreview');
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const scaleFactor = vid.videoWidth / vid.clientWidth;
+        const cw = Math.round(overlay.clientWidth * scaleFactor);
+        const ch = Math.round(overlay.clientHeight * scaleFactor);
+        canvas.width = cw;
+        canvas.height = ch;
+
+        const stream = canvas.captureStream(30);
         
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += Math.random() * 12 + 4;
-            if (progress >= 100) { 
-                progress = 100; clearInterval(interval);
-                setTimeout(() => {
-                    document.getElementById('progressArea').classList.add('hidden');
-                    document.getElementById('resultArea').classList.remove('hidden');
-                    btnText.textContent = 'Crop Video';
-                    btn.disabled = false;
-                }, 500);
+        // Try adding audio track
+        try {
+            const vidStream = vid.captureStream();
+            vidStream.getAudioTracks().forEach(track => stream.addTrack(track));
+        } catch(e) { console.log("Audio capture not supported"); }
+
+        // Try to use VP9 for transparent WebM support, fallback to normal WebM
+        let mimeType = 'video/webm;codecs=vp9';
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm';
+        }
+
+        const recorder = new MediaRecorder(stream, { mimeType: mimeType });
+        const chunks = [];
+        recorder.ondataavailable = e => { if(e.data.size > 0) chunks.push(e.data); };
+        
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            if(resultBlobUrl) URL.revokeObjectURL(resultBlobUrl);
+            resultBlobUrl = URL.createObjectURL(blob);
+            
+            document.getElementById('progressBar').style.width = '100%';
+            document.getElementById('progressPercent').textContent = '100%';
+            
+            setTimeout(() => {
+                document.getElementById('progressArea').classList.add('hidden');
+                document.getElementById('resultArea').classList.remove('hidden');
+                btnText.textContent = 'Crop Video';
+                btn.disabled = false;
+                vid.loop = true; // Restore loop
+            }, 500);
+        };
+
+        recorder.start();
+        vid.currentTime = 0;
+        await new Promise(res => { vid.onseeked = res; });
+        
+        vid.loop = false; // Disable loop temporarily for recorder to catch 'ended' event
+        vid.muted = true; 
+        vid.play();
+
+        function drawFrame() {
+            if (vid.ended || vid.paused) {
+                return; // Stop drawing frames
             }
+            
+            ctx.clearRect(0, 0, cw, ch); // Clear canvas for transparent background
+            
+            // Apply Crop Shape Clipping on Canvas
+            ctx.save();
+            ctx.beginPath();
+            
+            if (selectedShape === 'circle' || selectedShape === 'oval') {
+                ctx.ellipse(cw/2, ch/2, cw/2, ch/2, 0, 0, Math.PI*2);
+            } else if (selectedShape === 'rounded') {
+                const radius = document.querySelector('#roundedOptions input')?.value || 15;
+                const r = Math.min(cw, ch) * (radius / 100);
+                ctx.roundRect(0, 0, cw, ch, r);
+            } else if (selectedShape === 'star') {
+                drawStarPath(ctx, cw/2, ch/2, 5, cw/2, ch/2);
+            } else if (selectedShape === 'hexagon') {
+                drawPolyPath(ctx, cw/2, ch/2, 6, cw/2, ch/2);
+            } else {
+                ctx.rect(0, 0, cw, ch); // Rectangle default
+            }
+            
+            ctx.clip();
+
+            // Draw the video portion
+            const ox = overlay.offsetLeft * scaleFactor;
+            const oy = overlay.offsetTop * scaleFactor;
+            ctx.drawImage(vid, ox, oy, cw, ch, 0, 0, cw, ch);
+            ctx.restore();
+
+            // Update Progress Bar
+            const progress = (vid.currentTime / vid.duration) * 100;
             document.getElementById('progressBar').style.width = progress + '%';
             document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
-        }, 200);
+
+            requestAnimationFrame(drawFrame);
+        }
+        
+        // Trigger recorder stop only when video ends naturally
+        vid.onended = () => {
+            recorder.stop();
+        };
+
+        drawFrame();
+    }
+
+    function downloadResult() {
+        if(!resultBlobUrl) return;
+        const a = document.createElement('a');
+        a.href = resultBlobUrl;
+        a.download = 'cropped_video.webm';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 
     function formatSize(b) { 
@@ -441,7 +628,7 @@
         return parseFloat((b/Math.pow(k,i)).toFixed(2))+' '+s[i]; 
     }
 
-    // Drag & Drop
+    // Drag & Drop File
     const dz = document.getElementById('dropZone');
     dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'rgba(6,182,212,0.4)'; });
     dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
@@ -451,8 +638,7 @@
         if(f){ const i=document.getElementById('fileInput'), d=new DataTransfer(); d.items.add(f); i.files=d.files; handleFile(i); } 
     });
 
-    window.addEventListener('resize', updateCropOverlay);
-
+    window.addEventListener('resize', () => updateCropOverlay(false));
     lucide.createIcons();
     </script>
 

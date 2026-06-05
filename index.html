@@ -9,293 +9,111 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * {
-            font-family: 'Inter', sans-serif;
-        }
+        * { font-family: 'Inter', sans-serif; }
 
         /* =========================================
-           THEME VARIABLES — Light & Dark
+           THEME VARIABLES
         ========================================= */
-        :root,
-        [data-theme="dark"] {
-            --bg-body: #050505;
-            --bg-card: #171717;
-            --bg-card-hover: rgba(23, 23, 23, 0.6);
-            --bg-nav: rgba(5, 5, 5, 0.8);
-            --bg-footer: #030303;
-            --bg-input: #171717;
-            --bg-badge: rgba(59, 130, 246, 0.1);
-            --bg-category: rgba(23, 23, 23, 0.5);
-            --bg-hero-glow-1: rgba(59, 130, 246, 0.07);
-            --bg-hero-glow-2: rgba(168, 85, 247, 0.07);
-            --text-primary: #ffffff;
-            --text-secondary: #a3a3a3;
-            --text-tertiary: #737373;
-            --text-muted: #525252;
-            --text-dim: #404040;
-            --border-primary: rgba(255, 255, 255, 0.05);
-            --border-secondary: rgba(255, 255, 255, 0.1);
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: #171717; --bg-card-hover: rgba(23, 23, 23, 0.6);
+            --bg-nav: rgba(5, 5, 5, 0.8); --bg-footer: #030303; --bg-input: #171717;
+            --bg-badge: rgba(59, 130, 246, 0.1); --bg-category: rgba(23, 23, 23, 0.5);
+            --bg-hero-glow-1: rgba(59, 130, 246, 0.07); --bg-hero-glow-2: rgba(168, 85, 247, 0.07);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --text-dim: #404040;
+            --border-primary: rgba(255, 255, 255, 0.05); --border-secondary: rgba(255, 255, 255, 0.1);
             --border-active: rgba(59, 130, 246, 0.4);
-            --accent: #3b82f6;
-            --accent-text: #60a5fa;
-            --accent-bg: rgba(59, 130, 246, 0.15);
-            --scrollbar-track: #0a0a0a;
-            --scrollbar-thumb: #333;
-            --shadow-card: none;
-            --overlay-search: rgba(5, 5, 5, 0.9);
+            --accent: #3b82f6; --accent-text: #60a5fa; --accent-bg: rgba(59, 130, 246, 0.15);
+            --scrollbar-track: #0a0a0a; --scrollbar-thumb: #333; --shadow-card: none;
+            --overlay-search: rgba(5, 5, 5, 0.9); --new-badge-bg: rgba(34, 197, 94, 0.15); --new-badge-text: #4ade80; --new-badge-border: rgba(34, 197, 94, 0.3);
         }
 
         [data-theme="light"] {
-            --bg-body: #f5f5f5;
-            --bg-card: #ffffff;
-            --bg-card-hover: rgba(255, 255, 255, 0.9);
-            --bg-nav: rgba(245, 245, 245, 0.85);
-            --bg-footer: #e5e5e5;
-            --bg-input: #ffffff;
-            --bg-badge: rgba(59, 130, 246, 0.08);
-            --bg-category: rgba(0, 0, 0, 0.03);
-            --bg-hero-glow-1: rgba(59, 130, 246, 0.06);
-            --bg-hero-glow-2: rgba(168, 85, 247, 0.05);
-            --text-primary: #111111;
-            --text-secondary: #555555;
-            --text-tertiary: #777777;
-            --text-muted: #999999;
-            --text-dim: #bbbbbb;
-            --border-primary: rgba(0, 0, 0, 0.08);
-            --border-secondary: rgba(0, 0, 0, 0.12);
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-card-hover: rgba(255, 255, 255, 0.9);
+            --bg-nav: rgba(245, 245, 245, 0.85); --bg-footer: #e5e5e5; --bg-input: #ffffff;
+            --bg-badge: rgba(59, 130, 246, 0.08); --bg-category: rgba(0, 0, 0, 0.03);
+            --bg-hero-glow-1: rgba(59, 130, 246, 0.06); --bg-hero-glow-2: rgba(168, 85, 247, 0.05);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --text-dim: #bbbbbb;
+            --border-primary: rgba(0, 0, 0, 0.08); --border-secondary: rgba(0, 0, 0, 0.12);
             --border-active: rgba(59, 130, 246, 0.4);
-            --accent: #2563eb;
-            --accent-text: #2563eb;
-            --accent-bg: rgba(59, 130, 246, 0.08);
-            --scrollbar-track: #e5e5e5;
-            --scrollbar-thumb: #c0c0c0;
+            --accent: #2563eb; --accent-text: #2563eb; --accent-bg: rgba(59, 130, 246, 0.08);
+            --scrollbar-track: #e5e5e5; --scrollbar-thumb: #c0c0c0;
             --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
-            --overlay-search: rgba(245, 245, 245, 0.9);
+            --overlay-search: rgba(245, 245, 245, 0.9); --new-badge-bg: rgba(34, 197, 94, 0.1); --new-badge-text: #16a34a; --new-badge-border: rgba(34, 197, 94, 0.2);
         }
 
-        body {
-            background: var(--bg-body);
-            color: var(--text-primary);
-            transition: background 0.35s ease, color 0.35s ease;
-        }
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
 
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-up {
-            opacity: 0;
-            animation: fadeUp 0.6s ease-out forwards;
-        }
-
-        .delay-1 {
-            animation-delay: 0.08s;
-        }
-
-        .delay-2 {
-            animation-delay: 0.16s;
-        }
-
-        .delay-3 {
-            animation-delay: 0.24s;
-        }
-
-        .delay-4 {
-            animation-delay: 0.32s;
-        }
-
-        .delay-5 {
-            animation-delay: 0.40s;
-        }
-
-        .delay-6 {
-            animation-delay: 0.48s;
-        }
-
-        .delay-7 {
-            animation-delay: 0.56s;
-        }
-
-        .delay-8 {
-            animation-delay: 0.64s;
-        }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { opacity: 0; animation: fadeUp 0.6s ease-out forwards; }
+        .delay-1 { animation-delay: 0.08s; } .delay-2 { animation-delay: 0.16s; } .delay-3 { animation-delay: 0.24s; }
+        .delay-4 { animation-delay: 0.32s; } .delay-5 { animation-delay: 0.40s; } .delay-6 { animation-delay: 0.48s; }
+        .delay-7 { animation-delay: 0.56s; } .delay-8 { animation-delay: 0.64s; }
 
         /* Tool Card */
-        .tool-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-primary);
-            box-shadow: var(--shadow-card);
-            transition: all 0.3s ease;
-        }
-
-        .tool-card:hover {
-            background: var(--bg-card-hover);
-            border-color: var(--border-secondary);
-            box-shadow: var(--shadow-card);
-        }
-
-        .tool-card:hover .tool-icon-wrap {
-            background: var(--accent-bg) !important;
-            border-color: var(--border-active) !important;
-        }
-
-        .tool-card:hover .tool-arrow {
-            transform: translateX(4px);
-            opacity: 1;
-        }
+        .tool-card { background: var(--bg-card); border: 1px solid var(--border-primary); box-shadow: var(--shadow-card); transition: all 0.3s ease; }
+        .tool-card:hover { background: var(--bg-card-hover); border-color: var(--border-secondary); box-shadow: var(--shadow-card); }
+        .tool-card:hover .tool-icon-wrap { background: var(--accent-bg) !important; border-color: var(--border-active) !important; }
+        .tool-card:hover .tool-arrow { transform: translateX(4px); opacity: 1; }
+        .tool-card:hover .new-badge { background: var(--new-badge-bg); } /* Pop on hover */
 
         /* Category Button */
-        .category-btn {
-            background: var(--bg-category);
-            border: 1px solid var(--border-primary);
-            color: var(--text-tertiary);
-            transition: all 0.2s;
-        }
+        .category-btn { background: var(--bg-category); border: 1px solid var(--border-primary); color: var(--text-tertiary); transition: all 0.2s; white-space: nowrap; }
+        .category-btn:hover { color: var(--text-primary); border-color: var(--border-secondary); }
+        .category-btn.active { background: var(--accent-bg); border-color: var(--border-active); color: var(--accent-text); }
 
-        .category-btn:hover {
-            color: var(--text-primary);
-            border-color: var(--border-secondary);
-        }
+        /* Quick Filter Button (New/Popular) */
+        .quick-filter-btn { background: transparent; border: 1px solid var(--border-primary); color: var(--text-muted); transition: all 0.2s; }
+        .quick-filter-btn:hover { color: var(--text-primary); border-color: var(--border-secondary); }
+        .quick-filter-btn.active { background: var(--new-badge-bg); border-color: var(--new-badge-border); color: var(--new-badge-text); }
 
-        .category-btn.active {
-            background: var(--accent-bg);
-            border-color: var(--border-active);
-            color: var(--accent-text);
-        }
-
-        /* Search */
-        .search-glow:focus {
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3);
-        }
+        /* Search Glow */
+        .search-glow:focus { box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
 
         /* Hero Glow */
-        .hero-glow {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            filter: blur(120px);
-            pointer-events: none;
-        }
+        .hero-glow { position: absolute; width: 500px; height: 500px; border-radius: 50%; filter: blur(120px); pointer-events: none; }
 
         /* Navbar */
-        .navbar {
-            background: var(--bg-nav);
-            border-bottom: 1px solid var(--border-primary);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            transition: background 0.35s, border-color 0.35s;
-        }
+        .navbar { background: var(--bg-nav); border-bottom: 1px solid var(--border-primary); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: background 0.35s, border-color 0.35s; }
+
+        /* Sticky Filter Bar */
+        .filter-bar { position: sticky; top: 64px; z-index: 40; background: var(--bg-body); border-bottom: 1px solid var(--border-primary); transition: background 0.35s, border-color 0.35s; }
+
+        /* Hide Scrollbar for Category Row */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Footer */
-        .footer {
-            background: var(--bg-footer);
-            border-top: 1px solid var(--border-primary);
-            transition: background 0.35s, border-color 0.35s;
-        }
+        .footer { background: var(--bg-footer); border-top: 1px solid var(--border-primary); transition: background 0.35s, border-color 0.35s; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--scrollbar-track);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--scrollbar-thumb);
-            border-radius: 3px;
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
 
         /* Theme Toggle */
-        .theme-toggle {
-            width: 44px;
-            height: 24px;
-            border-radius: 12px;
-            background: var(--text-dim);
-            position: relative;
-            cursor: pointer;
-            transition: background 0.3s;
-            border: 1px solid var(--border-primary);
-        }
+        .theme-toggle { width: 44px; height: 24px; border-radius: 12px; background: var(--text-dim); position: relative; cursor: pointer; transition: background 0.3s; border: 1px solid var(--border-primary); }
+        .theme-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: white; transition: transform 0.3s ease, background 0.3s; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); }
+        [data-theme="light"] .theme-toggle { background: var(--accent); }
+        [data-theme="light"] .theme-toggle::after { transform: translateX(20px); background: white; }
 
-        .theme-toggle::after {
-            content: '';
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: white;
-            transition: transform 0.3s ease, background 0.3s;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        }
-
-        [data-theme="light"] .theme-toggle {
-            background: var(--accent);
-        }
-
-        [data-theme="light"] .theme-toggle::after {
-            transform: translateX(20px);
-            background: white;
-        }
-
-        /* CTA Button for Light */
-        .cta-primary {
-            background: var(--text-primary);
-            color: var(--bg-body);
-            transition: background 0.2s, color 0.2s;
-        }
-
-        .cta-primary:hover {
-            opacity: 0.85;
-        }
-
-        /* Secondary CTA */
-        .cta-secondary {
-            background: var(--bg-card);
-            border: 1px solid var(--border-secondary);
-            color: var(--text-secondary);
-            transition: all 0.2s;
-        }
-
-        .cta-secondary:hover {
-            color: var(--text-primary);
-            border-color: var(--border-secondary);
-        }
+        /* CTA Buttons */
+        .cta-primary { background: var(--text-primary); color: var(--bg-body); transition: opacity 0.2s; }
+        .cta-primary:hover { opacity: 0.85; }
+        .cta-secondary { background: var(--bg-card); border: 1px solid var(--border-secondary); color: var(--text-secondary); transition: all 0.2s; }
+        .cta-secondary:hover { color: var(--text-primary); border-color: var(--border-secondary); }
 
         /* Pill Badge */
-        .pill-badge {
-            background: var(--accent-bg);
-            border: 1px solid var(--border-active);
-            color: var(--accent-text);
-        }
+        .pill-badge { background: var(--accent-bg); border: 1px solid var(--border-active); color: var(--accent-text); }
 
         /* Search Input */
-        .search-input {
-            background: var(--bg-input);
-            border: 1px solid var(--border-primary);
-            color: var(--text-primary);
-            transition: all 0.3s;
-        }
+        .search-input { background: var(--bg-input); border: 1px solid var(--border-primary); color: var(--text-primary); transition: all 0.3s; }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus { border-color: var(--border-active); outline: none; }
 
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .search-input:focus {
-            border-color: var(--border-active);
-        }
+        /* New Badge for Cards */
+        .new-badge { background: var(--new-badge-bg); color: var(--new-badge-text); border: 1px solid var(--new-badge-border); }
     </style>
 </head>
 
@@ -308,34 +126,19 @@
                 <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
                     <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
                 </div>
-                <span class="text-lg font-semibold tracking-tight" style="color: var(--text-primary)">Tool<span
-                        class="text-blue-400">Box</span></span>
+                <span class="text-lg font-semibold tracking-tight" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
             </a>
 
             <div class="hidden md:flex items-center gap-1">
-                <a href="index.html" class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
-                    style="background: var(--accent-bg); color: var(--accent-text);">
+                <a href="index.html" class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2" style="background: var(--accent-bg); color: var(--accent-text);">
                     <i data-lucide="home" class="w-4 h-4"></i> Home
                 </a>
-                <a href="#toolsGrid"
-                    class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all"
-                    style="color: var(--text-tertiary);"
-                    onmouseover="this.style.color='var(--text-primary)'; this.style.background='var(--accent-bg)'"
-                    onmouseout="this.style.color='var(--text-tertiary)'; this.style.background='transparent'">
+                <a href="#toolsGrid" class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all" style="color: var(--text-tertiary);" onmouseover="this.style.color='var(--text-primary)'; this.style.background='var(--accent-bg)'" onmouseout="this.style.color='var(--text-tertiary)'; this.style.background='transparent'">
                     <i data-lucide="grid-3x3" class="w-4 h-4"></i> All Tools
                 </a>
             </div>
 
             <div class="flex items-center gap-3">
-                <!-- Search -->
-                <div class="relative hidden sm:block">
-                    <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2"
-                        style="color: var(--text-muted)"></i>
-                    <input id="searchInput" type="text" placeholder="Search tools..." oninput="handleSearch(this.value)"
-                        class="search-glow search-input rounded-lg pl-9 pr-4 py-2 text-sm focus:outline-none w-48 focus:w-64">
-                </div>
-
-                <!-- Theme Toggle -->
                 <div class="flex items-center gap-2">
                     <i data-lucide="sun" class="w-4 h-4" style="color: var(--text-muted)"></i>
                     <div class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Toggle theme"></div>
@@ -349,46 +152,33 @@
 
         <!-- HERO -->
         <section class="relative overflow-hidden py-24 md:py-32">
-            <div class="hero-glow top-0 left-1/2 -translate-x-1/2 -translate-y-1/3"
-                style="background: var(--bg-hero-glow-1)"></div>
+            <div class="hero-glow top-0 left-1/2 -translate-x-1/2 -translate-y-1/3" style="background: var(--bg-hero-glow-1)"></div>
             <div class="hero-glow bottom-0 right-0 translate-x-1/3" style="background: var(--bg-hero-glow-2)"></div>
 
             <div class="max-w-7xl mx-auto px-6 text-center relative z-10">
                 <div class="animate-fade-up">
-                    <div
-                        class="pill-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8">
-                        <i data-lucide="zap" class="w-3 h-3"></i>
-                        Free Online Tools — No Signup Required
+                    <div class="pill-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-8">
+                        <i data-lucide="zap" class="w-3 h-3"></i> Free Online Tools — No Signup Required
                     </div>
                 </div>
-                <h1 class="animate-fade-up delay-1 text-4xl md:text-7xl font-medium tracking-tight leading-[1.1] mb-6"
-                    style="color: var(--text-primary)">
-                    All Your <span
-                        class="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Essential
-                        Tools</span><br>
-                    In One Place
+                <h1 class="animate-fade-up delay-1 text-4xl md:text-7xl font-medium tracking-tight leading-[1.1] mb-6" style="color: var(--text-primary)">
+                    All Your <span class="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Essential Tools</span><br> In One Place
                 </h1>
-                <p class="animate-fade-up delay-2 text-lg md:text-xl font-light max-w-2xl mx-auto mb-10 leading-relaxed"
-                    style="color: var(--text-tertiary)">
-                    Compress videos, remove backgrounds, convert files and more — right in your browser. Fast, free, and
-                    privacy-first.
+                <p class="animate-fade-up delay-2 text-lg md:text-xl font-light max-w-2xl mx-auto mb-10 leading-relaxed" style="color: var(--text-tertiary)">
+                    Compress videos, remove backgrounds, convert files and more — right in your browser. Fast, free, and privacy-first.
                 </p>
                 <div class="animate-fade-up delay-3 flex flex-col sm:flex-row gap-4 justify-center">
-                    <a href="#toolsGrid"
-                        class="cta-primary h-12 px-8 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+                    <a href="#toolsGrid" class="cta-primary h-12 px-8 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
                         Explore Tools <i data-lucide="arrow-down" class="w-4 h-4"></i>
                     </a>
-                    <button onclick="filterCategory('video')"
-                        class="cta-secondary h-12 px-8 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
-                        <i data-lucide="play-circle" class="w-4 h-4"></i> Video Tools
+                    <button onclick="filterCategory('video'); filterQuick('popular')" class="cta-secondary h-12 px-8 rounded-lg text-sm font-medium flex items-center justify-center gap-2">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i> Popular Video Tools
                     </button>
                 </div>
 
                 <div class="animate-fade-up delay-4 mt-16 flex justify-center gap-12 md:gap-20">
                     <div class="text-center">
-                        <div id="toolCount" class="text-2xl md:text-3xl font-semibold"
-                            style="color: var(--text-primary)">0
-                        </div>
+                        <div id="toolCount" class="text-2xl md:text-3xl font-semibold" style="color: var(--text-primary)">0</div>
                         <div class="text-xs mt-1" style="color: var(--text-muted)">Tools</div>
                     </div>
                     <div class="text-center">
@@ -403,18 +193,39 @@
             </div>
         </section>
 
-        <!-- CATEGORY FILTER -->
-        <section class="max-w-7xl mx-auto px-6 mb-8">
-            <div id="categoryBar" class="flex flex-wrap gap-2"></div>
-        </section>
+        <!-- STICKY FILTER BAR -->
+        <div class="filter-bar">
+            <div class="max-w-7xl mx-auto px-6 py-4">
+                
+                <!-- Search & Quick Filters -->
+                <div class="flex flex-col sm:flex-row items-center gap-3 mb-4">
+                    <div class="relative w-full sm:w-auto sm:flex-1">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style="color: var(--text-muted)"></i>
+                        <input id="searchInput" type="text" placeholder="Search tools, formats, or features..." oninput="handleSearch(this.value)" class="search-glow search-input rounded-lg pl-9 pr-4 py-2.5 text-sm w-full">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="filterQuick('new')" id="btn-new" class="quick-filter-btn px-4 py-2.5 rounded-lg text-xs font-medium flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> New
+                        </button>
+                        <button onclick="filterQuick('popular')" id="btn-popular" class="quick-filter-btn px-4 py-2.5 rounded-lg text-xs font-medium flex items-center gap-2">
+                            <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Popular
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Bar -->
+                <div id="categoryBar" class="flex gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+                
+            </div>
+        </div>
 
         <!-- TOOLS GRID -->
-        <section class="max-w-7xl mx-auto px-6 pb-24">
+        <section class="max-w-7xl mx-auto px-6 py-8 pb-24">
             <div id="toolsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             <div id="noResults" class="hidden text-center py-20">
                 <i data-lucide="search-x" class="w-12 h-12 mx-auto mb-4" style="color: var(--text-dim)"></i>
                 <p class="text-lg" style="color: var(--text-tertiary)">No tools found</p>
-                <p class="text-sm mt-1" style="color: var(--text-muted)">Try a different search term</p>
+                <p class="text-sm mt-1" style="color: var(--text-muted)">Try a different search term or filter</p>
             </div>
         </section>
     </main>
@@ -427,11 +238,9 @@
                     <div class="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center">
                         <i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i>
                     </div>
-                    <span class="text-sm font-semibold" style="color: var(--text-primary)">Tool<span
-                            class="text-blue-400">Box</span></span>
+                    <span class="text-sm font-semibold" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
                 </div>
-                <p class="text-xs" style="color: var(--text-muted)">All tools run locally in your browser. No data is
-                    uploaded.</p>
+                <p class="text-xs" style="color: var(--text-muted)">All tools run locally in your browser. No data is uploaded.</p>
                 <p class="text-xs" style="color: var(--text-muted)">© 2025 ToolBox</p>
             </div>
         </div>
@@ -441,199 +250,47 @@
         // =============================================
         //  🎨 THEME SYSTEM
         // =============================================
-        function getSystemTheme() {
-            return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-        }
-
-        function initTheme() {
-            const saved = localStorage.getItem('toolbox-theme');
-            const theme = saved || getSystemTheme();
-            document.documentElement.setAttribute('data-theme', theme);
-        }
-
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('toolbox-theme', next);
-        }
-
-        // Listen for system preference changes
-        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
-            if (!localStorage.getItem('toolbox-theme')) {
-                document.documentElement.setAttribute('data-theme', e.matches ? 'light' : 'dark');
-            }
-        });
-
-        // Init theme immediately (before DOM loads to prevent flash)
+        function getSystemTheme() { return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }
+        function initTheme() { const saved = localStorage.getItem('toolbox-theme'); const theme = saved || getSystemTheme(); document.documentElement.setAttribute('data-theme', theme); }
+        function toggleTheme() { const current = document.documentElement.getAttribute('data-theme'); const next = current === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', next); localStorage.setItem('toolbox-theme', next); }
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => { if (!localStorage.getItem('toolbox-theme')) { document.documentElement.setAttribute('data-theme', e.matches ? 'light' : 'dark'); } });
         initTheme();
 
         // =============================================
-        //  🔧 TOOLS LIST
+        //  🔧 TOOLS LIST (Managed by Categories)
         // =============================================
         const tools = [
-            {
-                name: 'Video Compress',
-                description: 'Reduce video file size without losing quality. Supports MP4, WebM, MOV.',
-                category: 'video',
-                icon: 'file-video',
-                color: 'blue',
-                file: 'tools/video-compress.html',
-                tags: ['compress', 'reduce', 'size', 'mp4']
-            },
-            {
-                name: 'Video Transparent',
-                description: 'Make video backgrounds transparent. Remove green screen or solid colors.',
-                category: 'video',
-                icon: 'layers',
-                color: 'purple',
-                file: 'tools/video-transparent.html',
-                tags: ['transparent', 'alpha', 'green screen', 'chroma']
-            },
-            {
-                name: 'Video Trim',
-                description: 'Cut and trim video clips to the exact length you need.',
-                category: 'video',
-                icon: 'scissors',
-                color: 'green',
-                file: 'tools/video-trim.html',
-                tags: ['trim', 'cut', 'clip', 'split']
-            },
-            {
-                name: 'Video Crop',
-                description: 'Crop video to any aspect ratio or custom dimensions. Perfect for social media.',
-                category: 'video',
-                icon: 'crop',
-                color: 'cyan',
-                file: 'tools/video-crop.html',
-                tags: ['crop', 'aspect ratio', 'resize', 'social media', 'reels', 'shorts']
-            },
-            {
-                name: 'Image Compress',
-                description: 'Optimize images for the web. Compress PNG, JPG, WebP up to 80%.',
-                category: 'image',
-                icon: 'image',
-                color: 'cyan',
-                file: 'tools/image-compress.html',
-                tags: ['compress', 'optimize', 'png', 'jpg']
-            },
-            {
-                name: 'Background Remover',
-                description: 'Remove backgrounds from images instantly with AI edge detection.',
-                category: 'image',
-                icon: 'eraser',
-                color: 'violet',
-                file: 'tools/background-remover.html',
-                tags: ['background', 'remove', 'cutout', 'transparent']
-            },
-            {
-                name: 'Audio Converter',
-                description: 'Convert audio between MP3, WAV, OGG, AAC and more formats.',
-                category: 'audio',
-                icon: 'music',
-                color: 'amber',
-                file: 'tools/audio-converter.html',
-                tags: ['convert', 'audio', 'mp3', 'wav']
-            },
-            {
-                name: 'PDF Merge',
-                description: 'Merge multiple PDF files into one. Reorder pages before combining.',
-                category: 'document',
-                icon: 'file-text',
-                color: 'red',
-                file: 'tools/pdf-merge.html',
-                tags: ['pdf', 'merge', 'combine', 'document']
-            },
-            {
-                name: 'PDF Compress',
-                description: 'Reduce PDF file size by compressing images and optimizing content. Maintain quality while shrinking file size.',
-                category: 'document',
-                icon: 'file-zip',
-                color: 'orange',
-                file: 'tools/pdf-compress.html',
-                tags: ['pdf', 'compress', 'reduce', 'shrink', 'optimize', 'size', 'document']
-            },
-            {
-                name: 'PDF to Image',
-                description: 'Convert PDF pages to high-quality images. Support JPG, PNG, and WebP formats. Extract all pages or specific ranges.',
-                category: 'document',
-                icon: 'image',
-                color: 'purple',
-                file: 'tools/pdf-to-image.html',
-                tags: ['pdf', 'image', 'convert', 'jpg', 'png', 'webp', 'extract', 'pages']
-            },
-            {
-                name: 'Image to PDF',
-                description: 'Convert multiple images to a single PDF file. Support JPG, PNG, GIF, and WebP. Arrange image order before conversion.',
-                category: 'document',
-                icon: 'file-pdf',
-                color: 'red',
-                file: 'tools/image-to-pdf.html',
-                tags: ['image', 'pdf', 'convert', 'jpg', 'png', 'gif', 'webp', 'merge']
-            },
-            {
-                name: 'QR Code Generator',
-                description: 'Generate QR codes for URLs, text, WiFi. Download as SVG or PNG.',
-                category: 'utility',
-                icon: 'qr-code',
-                color: 'emerald',
-                file: 'tools/qr-generator.html',
-                tags: ['qr', 'code', 'generate', 'scan']
-            },
-            {
-                name: 'Color Picker',
-                description: 'Pick colors from images or palette. Get HEX, RGB, HSL values.',
-                category: 'utility',
-                icon: 'palette',
-                color: 'rose',
-                file: 'tools/color-picker.html',
-                tags: ['color', 'picker', 'hex', 'rgb']
-            },
-            {
-                name: 'JSON Formatter',
-                description: 'Format, validate and beautify JSON data with live syntax highlighting.',
-                category: 'developer',
-                icon: 'braces',
-                color: 'yellow',
-                file: 'tools/json-formatter.html',
-                tags: ['json', 'format', 'validate', 'beautify']
-            },
-            {
-                name: 'Image Resize',
-                description: 'Resize images to any dimension. Maintain aspect ratio or crop.',
-                category: 'image',
-                icon: 'maximize',
-                color: 'pink',
-                file: 'tools/image-resize.html',
-                tags: ['resize', 'scale', 'dimension', 'crop']
-            },
-            {
-                name: 'Image Upscale & Resize',
-                description: 'Upscale images to higher resolution with quality enhancement. Resize to any dimension, maintain aspect ratio, or crop.',
-                category: 'image',
-                icon: 'maximize',
-                color: 'pink',
-                file: 'tools/image-upscale.html',
-                tags: ['upscale', 'resize', 'scale', 'dimension', 'crop', 'enhance', 'enlarge']
-            },
-            {
-                name: 'Video Merge',
-                description: 'Combine multiple video clips into one seamless video.',
-                category: 'video',
-                icon: 'combine',
-                color: 'orange',
-                file: 'tools/video-merge.html',
-                tags: ['merge', 'join', 'combine', 'concatenate']
-            },
-            {
-                name: 'WebM to Lottie',
-                description: 'Convert transparent WebM videos to Lottie JSON animation files.',
-                category: 'developer',
-                icon: 'file-json',
-                color: 'orange',
-                file: 'tools/webm-to-lottie.html',
-                tags: ['lottie', 'webm', 'json', 'animation', 'convert']
-            }
+            
+            // ===== VIDEO TOOLS =====
+            { name: 'Video Compress', description: 'Reduce video file size without losing quality. Supports MP4, WebM, MOV.', category: 'video', icon: 'file-video', color: 'blue', file: 'tools/video-compress.html', tags: ['compress', 'reduce', 'size', 'mp4'], isNew: false, isPopular: true },
+            { name: 'Video Transparent', description: 'Make video backgrounds transparent. Remove green screen or solid colors.', category: 'video', icon: 'layers', color: 'purple', file: 'tools/video-transparent.html', tags: ['transparent', 'alpha', 'green screen', 'chroma'], isNew: false, isPopular: false },
+            { name: 'Video Trim', description: 'Cut and trim video clips to the exact length you need.', category: 'video', icon: 'scissors', color: 'green', file: 'tools/video-trim.html', tags: ['trim', 'cut', 'clip', 'split'], isNew: false, isPopular: true },
+            { name: 'Video Crop', description: 'Crop video to any aspect ratio or custom dimensions. Perfect for social media.', category: 'video', icon: 'crop', color: 'cyan', file: 'tools/video-crop.html', tags: ['crop', 'aspect ratio', 'resize', 'social media', 'reels', 'shorts'], isNew: false, isPopular: true },
+            { name: 'Video Merge', description: 'Combine multiple video clips into one seamless video.', category: 'video', icon: 'combine', color: 'orange', file: 'tools/video-merge.html', tags: ['merge', 'join', 'combine', 'concatenate'], isNew: true, isPopular: false },
+
+            // ===== IMAGE TOOLS =====
+            { name: 'Image Compress', description: 'Optimize images for the web. Compress PNG, JPG, WebP up to 80%.', category: 'image', icon: 'image', color: 'cyan', file: 'tools/image-compress.html', tags: ['compress', 'optimize', 'png', 'jpg'], isNew: false, isPopular: true },
+            { name: 'Background Remover', description: 'Remove backgrounds from images instantly with AI edge detection.', category: 'image', icon: 'eraser', color: 'violet', file: 'tools/background-remover.html', tags: ['background', 'remove', 'cutout', 'transparent'], isNew: false, isPopular: true },
+            { name: 'Smart Image Crop & Resize', description: 'Advanced image cropping with custom dimensions, preset aspect ratios (16:9, 9:16, 1:1, 4:3, 3:4, 9:19), social media frames, shapes, and smart resize.', category: 'image', icon: 'crop', color: 'pink', file: 'tools/image-resize.html', tags: ['crop', 'resize', 'aspect ratio', 'social media', 'facebook', 'instagram', 'youtube', 'tiktok', 'snapchat', 'linkedin', 'logo', 'banner', 'custom crop', 'shapes', '16:9', '9:16', '1:1', '4:3', '3:4', '9:19', 'frame', 'template'], isNew: true, isPopular: true },
+            { name: 'Image Upscale & Resize', description: 'Upscale images to higher resolution with quality enhancement. Resize to any dimension.', category: 'image', icon: 'maximize', color: 'pink', file: 'tools/image-upscale.html', tags: ['upscale', 'resize', 'scale', 'dimension', 'crop', 'enhance', 'enlarge'], isNew: true, isPopular: false },
+
+            // ===== AUDIO TOOLS =====
+            { name: 'Audio Converter', description: 'Convert audio between MP3, WAV, OGG, AAC and more formats.', category: 'audio', icon: 'music', color: 'amber', file: 'tools/audio-converter.html', tags: ['convert', 'audio', 'mp3', 'wav'], isNew: false, isPopular: false },
+            { name:'MP3 DJ Mixer',description:'Professional DJ mixing tool for MP3 and other audio files. Mix multiple tracks, add crossfade, beat matching, BPM detection, volume control, and create seamless mixtapes. Export mixed audio.',category:'audio',icon:'headphones',color:'purple',file:'tools/mp3-dj-mixer.html',tags:['dj','mixer','mp3','audio','mix','crossfade','beat','bpm','mixtape','remix','track','transition']},
+           
+            // ===== DOCUMENT TOOLS =====
+            { name: 'PDF Merge', description: 'Merge multiple PDF files into one. Reorder pages before combining.', category: 'document', icon: 'file-text', color: 'red', file: 'tools/pdf-merge.html', tags: ['pdf', 'merge', 'combine', 'document'], isNew: false, isPopular: true },
+            { name: 'PDF Compress', description: 'Reduce PDF file size by compressing images and optimizing content.', category: 'document', icon: 'file-zip', color: 'orange', file: 'tools/pdf-compress.html', tags: ['pdf', 'compress', 'reduce', 'shrink', 'optimize', 'size', 'document'], isNew: false, isPopular: false },
+            { name: 'PDF to Image', description: 'Convert PDF pages to high-quality images. Support JPG, PNG, and WebP formats.', category: 'document', icon: 'image', color: 'purple', file: 'tools/pdf-to-image.html', tags: ['pdf', 'image', 'convert', 'jpg', 'png', 'webp', 'extract', 'pages'], isNew: false, isPopular: false },
+            { name: 'Image to PDF', description: 'Convert multiple images to a single PDF file. Support JPG, PNG, GIF, and WebP.', category: 'document', icon: 'file-pdf', color: 'red', file: 'tools/image-to-pdf.html', tags: ['image', 'pdf', 'convert', 'jpg', 'png', 'gif', 'webp', 'merge'], isNew: false, isPopular: false },
+
+            // ===== UTILITY TOOLS =====
+            { name: 'QR Code Generator', description: 'Generate QR codes for URLs, text, WiFi. Download as SVG or PNG.', category: 'utility', icon: 'qr-code', color: 'emerald', file: 'tools/qr-generator.html', tags: ['qr', 'code', 'generate', 'scan'], isNew: false, isPopular: true },
+            { name: 'Color Picker', description: 'Pick colors from images or palette. Get HEX, RGB, HSL values.', category: 'utility', icon: 'palette', color: 'rose', file: 'tools/color-picker.html', tags: ['color', 'picker', 'hex', 'rgb'], isNew: false, isPopular: false },
+
+            // ===== DEVELOPER TOOLS =====
+            { name: 'JSON Formatter', description: 'Format, validate and beautify JSON data with live syntax highlighting.', category: 'developer', icon: 'braces', color: 'yellow', file: 'tools/json-formatter.html', tags: ['json', 'format', 'validate', 'beautify'], isNew: false, isPopular: false },
+            { name: 'WebM to Lottie', description: 'Convert transparent WebM videos to Lottie JSON animation files.', category: 'developer', icon: 'file-json', color: 'orange', file: 'tools/webm-to-lottie.html', tags: ['lottie', 'webm', 'json', 'animation', 'convert'], isNew: true, isPopular: false }
         ];
 
         const categories = [
@@ -663,15 +320,14 @@
 
         let currentCategory = 'all';
         let currentSearch = '';
+        let currentQuickFilter = 'all'; // 'all', 'new', 'popular'
 
         function renderCategories() {
             const bar = document.getElementById('categoryBar');
             bar.innerHTML = categories.map(cat => `
                 <button onclick="filterCategory('${cat.id}')"
-                        class="category-btn px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2
-                               ${currentCategory === cat.id ? 'active' : ''}">
-                    <i data-lucide="${cat.icon}" class="w-3.5 h-3.5"></i>
-                    ${cat.label}
+                        class="category-btn px-4 py-2 rounded-lg text-xs font-medium flex items-center gap-2 ${currentCategory === cat.id ? 'active' : ''}">
+                    <i data-lucide="${cat.icon}" class="w-3.5 h-3.5"></i> ${cat.label}
                 </button>
             `).join('');
             lucide.createIcons();
@@ -684,7 +340,10 @@
                     tool.name.toLowerCase().includes(currentSearch.toLowerCase()) ||
                     tool.description.toLowerCase().includes(currentSearch.toLowerCase()) ||
                     tool.tags.some(t => t.toLowerCase().includes(currentSearch.toLowerCase()));
-                return matchCat && matchSearch;
+                const matchQuick = currentQuickFilter === 'all' || 
+                    (currentQuickFilter === 'new' && tool.isNew) || 
+                    (currentQuickFilter === 'popular' && tool.isPopular);
+                return matchCat && matchSearch && matchQuick;
             });
         }
 
@@ -703,6 +362,10 @@
             grid.innerHTML = filtered.map((tool, i) => {
                 const c = colorMap[tool.color] || colorMap.blue;
                 const d = `delay-${(i % 8) + 1}`;
+                
+                // Generate New Badge if applicable
+                const newBadge = tool.isNew ? `<span class="new-badge text-[9px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md">New</span>` : '';
+                
                 return `
                     <a href="${tool.file}" class="animate-fade-up ${d} tool-card group block rounded-2xl p-6">
                         <div class="flex items-start justify-between mb-4">
@@ -710,7 +373,10 @@
                                  style="background:${c.bg}; border-color:${c.border}">
                                 <i data-lucide="${tool.icon}" class="w-5 h-5" style="color:${c.text}"></i>
                             </div>
-                            <i data-lucide="arrow-right" class="tool-arrow w-5 h-5 opacity-0 transition-all duration-300 mt-1" style="color: var(--text-muted)"></i>
+                            <div class="flex items-center gap-2">
+                                ${newBadge}
+                                <i data-lucide="arrow-right" class="tool-arrow w-5 h-5 opacity-0 transition-all duration-300 mt-1" style="color: var(--text-muted)"></i>
+                            </div>
                         </div>
                         <h3 class="text-base font-medium mb-2 tracking-tight" style="color: var(--text-primary)">${tool.name}</h3>
                         <p class="text-sm font-light leading-relaxed line-clamp-2" style="color: var(--text-tertiary)">${tool.description}</p>
@@ -734,6 +400,20 @@
             renderTools();
             const el = document.getElementById('toolsGrid');
             if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function filterQuick(type) {
+            if (currentQuickFilter === type) {
+                currentQuickFilter = 'all'; // Toggle off if clicking same filter
+            } else {
+                currentQuickFilter = type;
+            }
+            
+            // Update UI for quick filters
+            document.getElementById('btn-new').classList.toggle('active', currentQuickFilter === 'new');
+            document.getElementById('btn-popular').classList.toggle('active', currentQuickFilter === 'popular');
+            
+            renderTools();
         }
 
         function handleSearch(value) {

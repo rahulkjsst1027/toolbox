@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Resize & Crop - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: rgba(23,23,23,0.3); --bg-nav: rgba(5,5,5,0.8);
+            --bg-footer: #030303; --bg-input: #171717; --bg-dropzone-hover: rgba(255,255,255,0.02);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --border-primary: rgba(255,255,255,0.05);
+            --border-secondary: rgba(255,255,255,0.1); --scrollbar-track: #0a0a0a; --scrollbar-thumb: #333;
+            --accent-bg: rgba(236,72,153,0.1); --accent-border: rgba(236,72,153,0.2);
+            --accent-text: #f472b6; --accent-solid: #ec4899; --accent-glow: rgba(236,72,153,0.15);
+        }
+        [data-theme="light"] {
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-nav: rgba(245,245,245,0.85);
+            --bg-footer: #e5e5e5; --bg-input: #f9fafb; --bg-dropzone-hover: rgba(0,0,0,0.02);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --border-primary: #e5e7eb; --border-secondary: #d1d5db;
+            --scrollbar-track: #e5e5e5; --scrollbar-thumb: #c0c0c0;
+            --accent-bg: rgba(236,72,153,0.08); --accent-border: rgba(236,72,153,0.2);
+            --accent-text: #db2777; --accent-solid: #ec4899; --accent-glow: rgba(236,72,153,0.08);
+        }
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { animation: fadeUp 0.5s ease-out forwards; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+        .workspace-card { background: var(--bg-card); border: 1px solid var(--border-primary); }
+        .border-b-theme { border-bottom: 1px solid var(--border-primary); }
+        .text-theme-primary { color: var(--text-primary); }
+        .text-theme-secondary { color: var(--text-secondary); }
+        .text-theme-tertiary { color: var(--text-tertiary); }
+        .text-theme-muted { color: var(--text-muted); }
+        .text-theme-accent { color: var(--accent-text); }
+        input[type="number"], select { background: var(--bg-input); border: 1px solid var(--border-secondary); color: var(--text-primary); transition: all 0.2s; }
+        input[type="number"]:focus, select:focus { outline: none; border-color: var(--accent-border); box-shadow: 0 0 0 2px var(--accent-bg); }
+        .btn-primary { background: var(--accent-solid); color: #ffffff; transition: opacity 0.2s; }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-download { background: var(--text-primary); color: var(--bg-body); transition: opacity 0.2s; }
+        .btn-download:hover { opacity: 0.85; }
+        .btn-secondary { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.2s; }
+        .btn-secondary:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .tag { background: var(--bg-input); color: var(--text-muted); }
+        .preset-btn { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-tertiary); transition: all 0.15s; cursor: pointer; }
+        .preset-btn:hover { color: var(--text-primary); border-color: var(--text-muted); }
+        .preset-btn.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); }
+        .social-btn { background: var(--bg-input); border: 1px solid var(--border-primary); color: var(--text-secondary); transition: all 0.15s; cursor: pointer; }
+        .social-btn:hover { border-color: var(--accent-border); color: var(--text-primary); }
+        .social-btn.active { border-color: var(--accent-solid); color: var(--accent-text); background: var(--accent-bg); }
+        .drop-zone { border-color: var(--border-primary); cursor: pointer; transition: background 0.2s; }
+        .drop-zone:hover { background: var(--bg-dropzone-hover); }
+        #cropCanvas { cursor: crosshair; touch-action: none; }
+        input[type="range"] { accent-color: var(--accent-solid); }
+        .lock-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <nav class="fixed top-0 left-0 right-0 z-50 h-16 backdrop-blur-xl" style="background: var(--bg-nav); border-bottom: 1px solid var(--border-primary);">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-pink-500 rounded-lg flex items-center justify-center"><i data-lucide="wrench" class="w-4 h-4 text-white"></i></div>
+                <span class="text-lg font-semibold tracking-tight text-theme-primary">Tool<span class="text-pink-400">Box</span></span>
+            </a>
+            <a href="../index.html" class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-theme-tertiary hover:text-theme-primary hover:bg-white/5 transition-all"><i data-lucide="home" class="w-4 h-4"></i> Home</a>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            <div class="animate-fade-up flex items-center gap-2 text-sm mb-8 text-theme-muted">
+                <a href="../index.html" class="hover:opacity-80 transition-opacity flex items-center gap-1.5"><i data-lucide="home" class="w-3.5 h-3.5"></i> Home</a>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span>Image</span>
+                <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i><span class="text-theme-secondary">Resize & Crop</span>
+            </div>
+            <div class="animate-fade-up flex flex-col md:flex-row md:items-center gap-6 mb-10">
+                <div class="w-16 h-16 rounded-2xl border flex items-center justify-center shrink-0" style="background: var(--accent-bg); border-color: var(--accent-border)">
+                    <i data-lucide="crop" class="w-7 h-7 text-theme-accent"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">Image Resize & Crop</h1>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Crop with social media presets, shapes (circle, oval, star, rounded), and resize to exact dimensions.</p>
+                </div>
+            </div>
+
+            <div id="dropZone" class="animate-fade-up drop-zone p-12 text-center rounded-2xl border mb-8" onclick="document.getElementById('fileInput').click()">
+                <div class="w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center mx-auto mb-4" style="border-color: var(--border-secondary)"><i data-lucide="image-plus" class="w-7 h-7 text-theme-muted"></i></div>
+                <p class="font-medium mb-1 text-theme-secondary">Drop your image here or click to browse</p>
+                <p class="text-sm text-theme-muted">Supports: JPG, PNG, WebP</p>
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFile(this)">
+            </div>
+
+            <div id="workspaceArea" class="hidden animate-fade-up workspace-card rounded-2xl overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3">
+                    <!-- Left Sidebar -->
+                    <div class="p-5 lg:border-r border-b-theme lg:border-b-0 overflow-y-auto max-h-[85vh]" style="border-color: var(--border-primary); scrollbar-width: thin;">
+
+                        <div class="flex items-center justify-between mb-4">
+                            <span id="srcInfoDims" class="text-[11px] text-theme-muted"></span>
+                            <div class="flex items-center gap-3">
+                                <button onclick="resetCrop()" class="text-[10px] text-theme-accent hover:underline flex items-center gap-1"><i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset</button>
+                                <button onclick="loadNewImage()" class="text-[10px] text-theme-tertiary hover:text-theme-primary flex items-center gap-1 transition-colors"><i data-lucide="image-plus" class="w-3 h-3"></i> New Image</button>
+                            </div>
+                        </div>
+
+                        <!-- Aspect Ratio -->
+                        <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="maximize-2" class="w-3.5 h-3.5"></i> Aspect Ratio</h3>
+                        <div class="grid grid-cols-3 gap-1.5 mb-5" id="ratioButtons">
+                            <button onclick="setRatio(this,null)" class="preset-btn active rounded-md py-1.5 text-[11px] font-medium">Free</button>
+                            <button onclick="setRatio(this,1)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">1:1</button>
+                            <button onclick="setRatio(this,16/9)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">16:9</button>
+                            <button onclick="setRatio(this,9/16)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">9:16</button>
+                            <button onclick="setRatio(this,4/3)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">4:3</button>
+                            <button onclick="setRatio(this,3/4)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">3:4</button>
+                            <button onclick="setRatio(this,9/19)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">9:19</button>
+                            <button onclick="setRatio(this,19/9)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">19:9</button>
+                            <button onclick="setRatio(this,2/3)" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">2:3</button>
+                        </div>
+
+                        <!-- Crop Shape -->
+                        <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="shapes" class="w-3.5 h-3.5"></i> Crop Shape</h3>
+                        <div class="grid grid-cols-3 gap-1.5 mb-2" id="shapeButtons">
+                            <button onclick="setShape(this,'rect')" class="preset-btn active rounded-md py-1.5 text-[11px] font-medium">Rectangle</button>
+                            <button onclick="setShape(this,'circle')" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">Circle</button>
+                            <button onclick="setShape(this,'oval')" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">Oval</button>
+                            <button onclick="setShape(this,'rounded')" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">Rounded</button>
+                            <button onclick="setShape(this,'star')" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">Star</button>
+                            <button onclick="setShape(this,'hexagon')" class="preset-btn rounded-md py-1.5 text-[11px] font-medium">Hexagon</button>
+                        </div>
+                        <div id="radiusControl" class="hidden mb-5 mt-2">
+                            <div class="flex items-center justify-between mb-1"><label class="text-[10px] text-theme-muted">Corner Radius</label><span id="radiusValue" class="text-[10px] font-mono text-theme-accent">20%</span></div>
+                            <input type="range" id="customRadius" min="2" max="50" value="20" class="w-full h-1" oninput="document.getElementById('radiusValue').textContent=this.value+'%';drawPreview();">
+                        </div>
+                        <div id="starControl" class="hidden mb-5 mt-2">
+                            <div class="flex items-center justify-between mb-1"><label class="text-[10px] text-theme-muted">Star Points</label><span id="starPointsValue" class="text-[10px] font-mono text-theme-accent">5</span></div>
+                            <input type="range" id="starPoints" min="3" max="12" value="5" class="w-full h-1" oninput="document.getElementById('starPointsValue').textContent=this.value;drawPreview();">
+                        </div>
+
+                        <!-- Social Media -->
+                        <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Social Media</h3>
+                        <div class="space-y-2 mb-5 max-h-48 overflow-y-auto pr-1" id="socialPresets" style="scrollbar-width:thin;"></div>
+
+                        <!-- Output Size -->
+                        <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="move" class="w-3.5 h-3.5"></i> Output Size</h3>
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="flex-1"><label class="text-[10px] text-theme-muted block mb-1">Width</label><input type="number" id="outW" class="w-full px-2.5 py-1.5 rounded-lg text-xs" min="1" value="1080" oninput="onSizeInput('w')"></div>
+                            <button id="lockBtn" onclick="toggleLock()" class="mt-3 p-1.5 rounded-lg text-theme-accent hover:bg-white/5 transition-colors">
+                                <span class="lock-icon" id="lockIcon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+                            </button>
+                            <div class="flex-1"><label class="text-[10px] text-theme-muted block mb-1">Height</label><input type="number" id="outH" class="w-full px-2.5 py-1.5 rounded-lg text-xs" min="1" value="1080" oninput="onSizeInput('h')"></div>
+                        </div>
+
+                        <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="file-image" class="w-3.5 h-3.5"></i> Format</h3>
+                        <select id="outputFormat" class="w-full px-2.5 py-1.5 rounded-lg text-xs mb-5">
+                            <option value="png">PNG (Transparent for shapes)</option>
+                            <option value="jpeg">JPG (White background)</option>
+                            <option value="webp">WebP (Best compression)</option>
+                        </select>
+
+                        <button onclick="applyCropResize()" class="btn-primary w-full h-10 rounded-xl text-sm font-medium flex items-center justify-center gap-2"><i data-lucide="check" class="w-4 h-4"></i> Apply & Resize</button>
+                    </div>
+
+                    <!-- Center: Canvas -->
+                    <div class="lg:col-span-2 p-5 flex flex-col items-center justify-center min-h-[400px] relative" style="background:rgba(0,0,0,0.2);">
+                        <p class="text-[10px] text-white/40 mb-2 absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 px-3 py-1 rounded-full z-10">↔ Drag corners to resize frame. Drag inside to move.</p>
+                        <canvas id="cropCanvas" class="max-w-full max-h-[72vh] rounded-lg shadow-2xl"></canvas>
+                        <div class="flex items-center gap-4 mt-3 text-[11px] text-theme-muted">
+                            <span>Crop: <span id="cropDimLabel" class="text-theme-secondary font-mono">—</span></span>
+                            <span>Output: <span id="outDimLabel" class="text-theme-accent font-mono">—</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="resultArea" class="hidden border-t-theme p-5" style="border-color:var(--border-primary)">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded-full flex items-center justify-center" style="background:rgba(34,197,94,0.1)"><i data-lucide="check" class="w-3.5 h-3.5 text-green-400"></i></div>
+                            <div><span class="text-sm font-medium text-green-400">Done!</span><p id="resultInfo" class="text-xs text-theme-muted"></p></div>
+                        </div>
+                        <button onclick="downloadResult()" class="btn-download h-9 px-5 rounded-lg text-sm font-medium flex items-center gap-2 shrink-0"><i data-lucide="download" class="w-4 h-4"></i> Download</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8 flex flex-wrap gap-2">
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#resize</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#crop</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#social-media</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#shapes</span>
+            </div>
+        </div>
+    </main>
+
+    <footer style="background:var(--bg-footer);border-top:1px solid var(--border-primary)">
+        <div class="max-w-7xl mx-auto px-6 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <a href="../index.html" class="flex items-center gap-2"><div class="w-6 h-6 bg-pink-500 rounded flex items-center justify-center"><i data-lucide="wrench" class="w-3 h-3 text-white"></i></div><span class="text-xs font-semibold text-theme-primary">Tool<span class="text-pink-400">Box</span></span></a>
+                <p class="text-[11px] text-theme-muted">All tools run locally.</p>
+                <p class="text-[11px] text-theme-muted">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    (function(){function g(){return window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}function a(){document.documentElement.setAttribute('data-theme',localStorage.getItem('toolbox-theme')||g())}window.matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>{if(!localStorage.getItem('toolbox-theme'))a()});window.addEventListener('storage',e=>{if(e.key==='toolbox-theme')a()});a()})();
+
+    let sourceImg=null,originalFile=null,resultBlob=null;
+    let targetRatio=null,cropShape='rect',isLocked=true;
+    let canvasScale=1;
+    
+    // New State Variables for Drag & Resize
+    let cropRect = { x: 0, y: 0, w: 0, h: 0 };
+    let isDragging = false, isResizing = false;
+    let resizeHandle = null;
+    let initialCropRect = null;
+    let resizeStartAspect = 1;
+    let dragStartX=0, dragStartY=0;
+
+    const SOCIAL=[
+        {g:'Instagram',i:[{n:'Post 1:1',w:1080,h:1080},{n:'Story 9:16',w:1080,h:1920},{n:'Reel 9:16',w:1080,h:1920},{n:'Portrait 4:5',w:1080,h:1350}]},
+        {g:'YouTube',i:[{n:'Thumbnail 16:9',w:1280,h:720},{n:'Channel Art',w:2560,h:1440},{n:'Banner',w:1546,h:423}]},
+        {g:'Facebook',i:[{n:'Post 4:3',w:1200,h:900},{n:'Cover 2.6:1',w:820,h:312},{n:'Story 9:16',w:1080,h:1920},{n:'Ad 1:1',w:1080,h:1080}]},
+        {g:'TikTok',i:[{n:'Video 9:16',w:1080,h:1920},{n:'Profile',w:400,h:400}]},
+        {g:'ShareChat',i:[{n:'Post 1:1',w:1080,h:1080},{n:'Story 9:16',w:1080,h:1920}]},
+        {g:'Twitter / X',i:[{n:'Post 16:9',w:1600,h:900},{n:'Header 3:1',w:1500,h:500}]},
+        {g:'LinkedIn',i:[{n:'Banner 4:1',w:1584,h:396},{n:'Post 1.91:1',w:1200,h:627}]},
+        {g:'Pinterest',i:[{n:'Pin 2:3',w:1000,h:1500},{n:'Square 1:1',w:1000,h:1000}]},
+        {g:'General',i:[{n:'Logo 1:1',w:500,h:500},{n:'HD 16:9',w:1920,h:1080},{n:'4K 16:9',w:3840,h:2160}]}
+    ];
+
+    (function(){const c=document.getElementById('socialPresets');let h='';SOCIAL.forEach(g=>{h+=`<p class="text-[9px] font-bold text-theme-muted uppercase tracking-wider mt-1 mb-0.5">${g.g}</p><div class="grid grid-cols-2 gap-1">`;g.i.forEach(p=>{h+=`<button onclick="applySocial(${p.w},${p.h},this)" class="social-btn rounded px-2 py-1 text-left"><span class="text-[10px] block font-medium truncate">${p.n}</span><span class="text-[9px] block text-theme-muted font-mono">${p.w}×${p.h}</span></button>`;});h+='</div>';});c.innerHTML=h;})();
+
+    // =============================================
+    //  FILE
+    // =============================================
+    function handleFile(input){
+        const file=input.files[0];if(!file||!file.type.startsWith('image/'))return;
+        originalFile=file;
+        const reader=new FileReader();
+        reader.onload=(e)=>{
+            const img=new Image();
+            img.onload=()=>{
+                sourceImg=img;
+                document.getElementById('dropZone').classList.add('hidden');
+                document.getElementById('workspaceArea').classList.remove('hidden');
+                document.getElementById('resultArea').classList.add('hidden');
+                document.getElementById('srcInfoDims').textContent=`${img.naturalWidth} × ${img.naturalHeight} px`;
+                
+                // Initialize Crop Rect to 85% centered
+                cropRect.w = img.naturalWidth * 0.85;
+                cropRect.h = img.naturalHeight * 0.85;
+                cropRect.x = (img.naturalWidth - cropRect.w) / 2;
+                cropRect.y = (img.naturalHeight - cropRect.h) / 2;
+                
+                document.getElementById('outW').value = Math.round(cropRect.w);
+                document.getElementById('outH').value = Math.round(cropRect.h);
+                
+                resetControls();
+                drawPreview();
+            };
+            img.src=e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function loadNewImage(){
+        sourceImg=null;originalFile=null;resultBlob=null;
+        document.getElementById('fileInput').value='';
+        document.getElementById('workspaceArea').classList.add('hidden');
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('dropZone').classList.remove('hidden');
+    }
+
+    const dz=document.getElementById('dropZone');
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.style.borderColor='var(--accent-border)';});
+    dz.addEventListener('dragleave',()=>{dz.style.borderColor='var(--border-primary)';});
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='var(--border-primary)';const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const i=document.getElementById('fileInput');const dt=new DataTransfer();dt.items.add(f);i.files=dt.files;handleFile(i);}});
+
+    // =============================================
+    //  CONTROLS
+    // =============================================
+    function setRatio(btn, ratio){
+        targetRatio = ratio;
+        document.querySelectorAll('#ratioButtons .preset-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('#socialPresets .social-btn').forEach(b=>b.classList.remove('active'));
+        
+        if(sourceImg){
+            const srcW = sourceImg.naturalWidth, srcH = sourceImg.naturalHeight;
+            const srcRatio = srcW / srcH;
+            
+            if(ratio !== null){
+                let cW, cH;
+                if(ratio >= srcRatio){ cW = srcW; cH = srcW / ratio; }
+                else { cH = srcH; cW = srcH * ratio; }
+                
+                cropRect.w = cW; cropRect.h = cH;
+                cropRect.x = (srcW - cW) / 2;
+                cropRect.y = (srcH - cH) / 2;
+            }
+            
+            document.getElementById('outW').value = Math.round(cropRect.w);
+            document.getElementById('outH').value = Math.round(cropRect.h);
+        }
+        drawPreview();
+    }
+
+    function setShape(btn,shape){
+        cropShape=shape;
+        document.querySelectorAll('#shapeButtons .preset-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('radiusControl').classList.toggle('hidden',shape!=='rounded');
+        document.getElementById('starControl').classList.toggle('hidden',shape!=='star');
+        drawPreview();
+    }
+
+    function applySocial(w,h,btn){
+        document.querySelectorAll('#socialPresets .social-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('#ratioButtons .preset-btn').forEach(b=>b.classList.remove('active'));
+        
+        targetRatio = w/h; 
+        isLocked = true; 
+        updateLockIcon();
+        
+        if(sourceImg){
+            const srcW = sourceImg.naturalWidth, srcH = sourceImg.naturalHeight;
+            const srcRatio = srcW / srcH;
+            let cW, cH;
+            
+            if(targetRatio >= srcRatio){ cW = srcW; cH = srcW / targetRatio; }
+            else { cH = srcH; cW = srcH * targetRatio; }
+            
+            cropRect.w = cW; cropRect.h = cH;
+            cropRect.x = (srcW - cW) / 2;
+            cropRect.y = (srcH - cH) / 2;
+        }
+
+        document.getElementById('outW').value = w; 
+        document.getElementById('outH').value = h;
+        drawPreview(); updateLabels();
+    }
+
+    function toggleLock(){ isLocked=!isLocked; updateLockIcon(); }
+
+    function updateLockIcon(){
+        const el=document.getElementById('lockIcon');if(!el)return;
+        el.innerHTML=isLocked
+            ?'<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+            :'<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 5-5c1.95 0 3.67 1.13 4.5 2.78"/></svg>';
+    }
+
+    function onSizeInput(dim){
+        if(!sourceImg) return;
+        let w = parseInt(document.getElementById('outW').value)||1;
+        let h = parseInt(document.getElementById('outH').value)||1;
+
+        if(isLocked){
+            const currentAspect = cropRect.w / cropRect.h || 1;
+            if(dim==='w') h = Math.round(w / currentAspect);
+            else w = Math.round(h * currentAspect);
+        }
+
+        const cx = cropRect.x + cropRect.w / 2;
+        const cy = cropRect.y + cropRect.h / 2;
+        
+        cropRect.w = w; cropRect.h = h;
+        cropRect.x = cx - w/2;
+        cropRect.y = cy - h/2;
+
+        // Clamp
+        cropRect.x = Math.max(0, Math.min(cropRect.x, sourceImg.naturalWidth - cropRect.w));
+        cropRect.y = Math.max(0, Math.min(cropRect.y, sourceImg.naturalHeight - cropRect.h));
+
+        document.getElementById('outW').value = w;
+        document.getElementById('outH').value = h;
+
+        targetRatio = null;
+        document.querySelectorAll('#ratioButtons .preset-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelectorAll('#socialPresets .social-btn').forEach(b=>b.classList.remove('active'));
+        
+        drawPreview(); updateLabels();
+    }
+
+    function resetControls(){
+        targetRatio=null; isLocked=true; updateLockIcon();
+        document.querySelectorAll('#ratioButtons .preset-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelector('#ratioButtons .preset-btn').classList.add('active');
+        document.querySelectorAll('#socialPresets .social-btn').forEach(b=>b.classList.remove('active'));
+    }
+
+    function resetCrop(){
+        if(!sourceImg) return;
+        cropRect.w = sourceImg.naturalWidth;
+        cropRect.h = sourceImg.naturalHeight;
+        cropRect.x = 0; cropRect.y = 0;
+        
+        document.getElementById('outW').value = Math.round(cropRect.w);
+        document.getElementById('outH').value = Math.round(cropRect.h);
+        
+        resetControls(); drawPreview(); updateLabels();
+    }
+
+    function updateLabels(){ document.getElementById('outDimLabel').textContent=`${document.getElementById('outW').value}×${document.getElementById('outH').value}`; }
+
+    // =============================================
+    //  CANVAS DRAWING
+    // =============================================
+    function drawPreview(){
+        if(!sourceImg)return;
+        const canvas=document.getElementById('cropCanvas'),ctx=canvas.getContext('2d');
+        const containerW=canvas.parentElement.clientWidth-40,maxH=window.innerHeight*0.7;
+        canvasScale=Math.min(containerW/sourceImg.naturalWidth,maxH/sourceImg.naturalHeight,1);
+        canvas.width=sourceImg.naturalWidth*canvasScale;canvas.height=sourceImg.naturalHeight*canvasScale;
+        const s=canvasScale;
+        
+        ctx.drawImage(sourceImg,0,0,canvas.width,canvas.height);
+        ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,canvas.width,canvas.height);
+        
+        const cx=cropRect.x*s, cy=cropRect.y*s, cw=cropRect.w*s, ch=cropRect.h*s;
+        
+        ctx.save();ctx.beginPath();drawShapePath(ctx,cx,cy,cw,ch);ctx.clip();
+        ctx.drawImage(sourceImg,0,0,canvas.width,canvas.height);ctx.restore();
+        
+        ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=2;ctx.beginPath();drawShapePath(ctx,cx,cy,cw,ch);ctx.stroke();
+        
+        // Draw Grid
+        ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
+        for(let i=1;i<3;i++){ctx.beginPath();ctx.moveTo(cx+cw*i/3,cy);ctx.lineTo(cx+cw*i/3,cy+ch);ctx.stroke();ctx.beginPath();ctx.moveTo(cx,cy+ch*i/3);ctx.lineTo(cx+cw,cy+ch*i/3);ctx.stroke();}
+        
+        // Draw Resize Handles
+        drawHandles(ctx, cx, cy, cw, ch);
+        
+        document.getElementById('cropDimLabel').textContent=`${Math.round(cropRect.w)}×${Math.round(cropRect.h)}`;
+        updateLabels();
+    }
+
+    function drawHandles(ctx, cx, cy, cw, ch) {
+        const hs = 6; // handle size in screen pixels
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = 'var(--accent-solid)';
+        ctx.lineWidth = 2;
+        const pts = [
+            [cx, cy], [cx + cw, cy], [cx, cy + ch], [cx + cw, cy + ch] // nw, ne, sw, se
+        ];
+        pts.forEach(([px, py]) => {
+            ctx.fillRect(px - hs/2, py - hs/2, hs, hs);
+            ctx.strokeRect(px - hs/2, py - hs/2, hs, hs);
+        });
+    }
+
+    function drawShapePath(ctx,x,y,w,h){
+        const rPct=parseInt(document.getElementById('customRadius')?.value||20)/100;
+        const pts=parseInt(document.getElementById('starPoints')?.value||5);
+        switch(cropShape){
+            case 'circle':ctx.ellipse(x+w/2,y+h/2,w/2,h/2,0,0,Math.PI*2);break;
+            case 'oval':ctx.ellipse(x+w/2,y+h/2,w/2,h/2,0,0,Math.PI*2);break;
+            case 'rounded':{const r=Math.min(w,h)*rPct;ctx.roundRect(x,y,w,h,r);break;}
+            case 'star':drawStarPath(ctx,x+w/2,y+h/2,pts,w/2,h/2);break;
+            case 'hexagon':drawPolyPath(ctx,x+w/2,y+h/2,6,w/2,h/2);break;
+            default:ctx.rect(x,y,w,h);
+        }
+    }
+
+    function drawStarPath(ctx,cx,cy,pts,rx,ry){
+        const inner=0.45;
+        for(let i=0;i<pts*2;i++){const a=Math.PI/2*3+i*Math.PI/pts;const r=i%2===0?1:inner;const px=cx+Math.cos(a)*rx*r,py=cy+Math.sin(a)*ry*r;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+        ctx.closePath();
+    }
+
+    function drawPolyPath(ctx,cx,cy,sides,rx,ry){
+        for(let i=0;i<sides;i++){const a=Math.PI/2*3+i*2*Math.PI/sides;const px=cx+Math.cos(a)*rx,py=cy+Math.sin(a)*ry;i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);}
+        ctx.closePath();
+    }
+
+    // =============================================
+    //  DRAG & RESIZE LOGIC
+    // =============================================
+    const cropCanvas=document.getElementById('cropCanvas');
+    const handles = ['nw', 'ne', 'sw', 'se'];
+    const HANDLE_HIT_SIZE = 12; // screen px for touch/click target
+
+    function getPos(e){const r=cropCanvas.getBoundingClientRect();const cX=e.touches?e.touches[0].clientX:e.clientX;const cY=e.touches?e.touches[0].clientY:e.clientY;return{x:cX-r.left,y:cY-r.top};}
+    
+    function isInsideRect(px, py, rect) {
+        return px >= rect.x && px <= rect.x + rect.w && py >= rect.y && py <= rect.y + rect.h;
+    }
+
+    function getHandlePositions() {
+        const s = canvasScale;
+        const hs = HANDLE_HIT_SIZE / s; // convert hit size to image space
+        return {
+            nw: { x: cropRect.x - hs/2, y: cropRect.y - hs/2, w: hs, h: hs },
+            ne: { x: cropRect.x + cropRect.w - hs/2, y: cropRect.y - hs/2, w: hs, h: hs },
+            sw: { x: cropRect.x - hs/2, y: cropRect.y + cropRect.h - hs/2, w: hs, h: hs },
+            se: { x: cropRect.x + cropRect.w - hs/2, y: cropRect.y + cropRect.h - hs/2, w: hs, h: hs }
+        };
+    }
+
+    function checkHandles(posImg) {
+        const hdlPos = getHandlePositions();
+        for (let h of handles) {
+            if (isInsideRect(posImg.x, posImg.y, hdlPos[h])) return h;
+        }
+        return null;
+    }
+
+    // Mouse/Touch Down
+    function onPointerDown(e) {
+        if(!sourceImg) return;
+        e.preventDefault();
+        const posCanvas = getPos(e);
+        const posImg = { x: posCanvas.x / canvasScale, y: posCanvas.y / canvasScale };
+        
+        const h = checkHandles(posImg);
+        
+        if (h) {
+            isResizing = true;
+            resizeHandle = h;
+            initialCropRect = { ...cropRect };
+            resizeStartAspect = initialCropRect.w / initialCropRect.h;
+        } else if (isInsideRect(posImg.x, posImg.y, cropRect)) {
+            isDragging = true;
+            initialCropRect = { ...cropRect };
+        }
+
+        dragStartX = posCanvas.x;
+        dragStartY = posCanvas.y;
+    }
+
+    // Mouse/Touch Move
+    function onPointerMove(e) {
+        if(!sourceImg) return;
+        const posCanvas = getPos(e);
+        
+        // Handle Cursor style
+        if (!isDragging && !isResizing) {
+            const posImg = { x: posCanvas.x / canvasScale, y: posCanvas.y / canvasScale };
+            const h = checkHandles(posImg);
+            if (h === 'nw' || h === 'se') cropCanvas.style.cursor = 'nwse-resize';
+            else if (h === 'ne' || h === 'sw') cropCanvas.style.cursor = 'nesw-resize';
+            else if (isInsideRect(posImg.x, posImg.y, cropRect)) cropCanvas.style.cursor = 'grab';
+            else cropCanvas.style.cursor = 'crosshair';
+        }
+
+        if (!isDragging && !isResizing) return;
+        e.preventDefault();
+        
+        if (isDragging) cropCanvas.style.cursor = 'grabbing';
+
+        const dx = (posCanvas.x - dragStartX) / canvasScale;
+        const dy = (posCanvas.y - dragStartY) / canvasScale;
+
+        if (isDragging) {
+            cropRect.x = initialCropRect.x + dx;
+            cropRect.y = initialCropRect.y + dy;
+        } 
+        else if (isResizing) {
+            let newX = initialCropRect.x;
+            let newY = initialCropRect.y;
+            let newW = initialCropRect.w;
+            let newH = initialCropRect.h;
+
+            // Calculate base new dimensions
+            if (resizeHandle.includes('e')) newW = initialCropRect.w + dx;
+            if (resizeHandle.includes('w')) { newX = initialCropRect.x + dx; newW = initialCropRect.w - dx; }
+            if (resizeHandle.includes('s')) newH = initialCropRect.h + dy;
+            if (resizeHandle.includes('n')) { newY = initialCropRect.y + dy; newH = initialCropRect.h - dy; }
+
+            // Enforce Aspect Ratio if Locked
+            if (isLocked) {
+                if (resizeHandle === 'nw' || resizeHandle === 'ne' || resizeHandle === 'sw' || resizeHandle === 'se') {
+                    newH = newW / resizeStartAspect;
+                    if (resizeHandle.includes('n')) { newY = initialCropRect.y + initialCropRect.h - newH; }
+                }
+            }
+
+            // Minimum size constraints
+            if (newW < 20) { newW = 20; if(resizeHandle.includes('w')) newX = initialCropRect.x + initialCropRect.w - 20; }
+            if (newH < 20) { newH = 20; if(resizeHandle.includes('n')) newY = initialCropRect.y + initialCropRect.h - 20; }
+
+            // Clamp to image bounds
+            if (newX < 0) { newX = 0; newW = initialCropRect.x + initialCropRect.w; if(isLocked) newH = newW / resizeStartAspect; }
+            if (newY < 0) { newY = 0; newH = initialCropRect.y + initialCropRect.h; if(isLocked) newW = newH * resizeStartAspect; }
+            if (newX + newW > sourceImg.naturalWidth) { newW = sourceImg.naturalWidth - newX; if(isLocked) newH = newW / resizeStartAspect; }
+            if (newY + newH > sourceImg.naturalHeight) { newH = sourceImg.naturalHeight - newY; if(isLocked) newW = newH * resizeStartAspect; }
+
+            cropRect = { x: newX, y: newY, w: newW, h: newH };
+            
+            // Update Input Fields
+            document.getElementById('outW').value = Math.round(cropRect.w);
+            document.getElementById('outH').value = Math.round(cropRect.h);
+        }
+
+        // Clamp Dragging Bounds
+        if (isDragging) {
+            cropRect.x = Math.max(0, Math.min(cropRect.x, sourceImg.naturalWidth - cropRect.w));
+            cropRect.y = Math.max(0, Math.min(cropRect.y, sourceImg.naturalHeight - cropRect.h));
+        }
+
+        drawPreview();
+    }
+
+    // Mouse/Touch Up
+    function onPointerUp() { isDragging = false; isResizing = false; }
+
+    cropCanvas.addEventListener('mousedown', onPointerDown);
+    cropCanvas.addEventListener('touchstart', (e) => onPointerDown(e), {passive: false});
+    
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('touchmove', (e) => onPointerMove(e), {passive: false});
+    
+    window.addEventListener('mouseup', onPointerUp);
+    window.addEventListener('touchend', onPointerUp);
+    
+    window.addEventListener('resize',()=>{if(sourceImg)drawPreview();});
+
+    // =============================================
+    //  PROCESS
+    // =============================================
+    function applyCropResize(){
+        if(!sourceImg)return;
+        const outW=parseInt(document.getElementById('outW').value)||Math.round(cropRect.w);
+        const outH=parseInt(document.getElementById('outH').value)||Math.round(cropRect.h);
+        const format=document.getElementById('outputFormat').value;
+        const tc=document.createElement('canvas');tc.width=outW;tc.height=outH;const ctx=tc.getContext('2d');
+        if(format==='jpeg'){ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,outW,outH);}
+        ctx.save();ctx.beginPath();
+        const rPct=parseInt(document.getElementById('customRadius')?.value||20)/100;
+        const pts=parseInt(document.getElementById('starPoints')?.value||5);
+        switch(cropShape){
+            case 'circle':ctx.ellipse(outW/2,outH/2,outW/2,outH/2,0,0,Math.PI*2);break;
+            case 'oval':ctx.ellipse(outW/2,outH/2,outW/2,outH/2,0,0,Math.PI*2);break;
+            case 'rounded':{const r=Math.min(outW,outH)*rPct;ctx.roundRect(0,0,outW,outH,r);break;}
+            case 'star':drawStarPath(ctx,outW/2,outH/2,pts,outW/2,outH/2);break;
+            case 'hexagon':drawPolyPath(ctx,outW/2,outH/2,6,outW/2,outH/2);break;
+            default:ctx.rect(0,0,outW,outH);
+        }
+        ctx.clip();
+        ctx.drawImage(sourceImg,cropRect.x,cropRect.y,cropRect.w,cropRect.h,0,0,outW,outH);
+        ctx.restore();
+        const mimeType=format==='jpeg'?'image/jpeg':format==='webp'?'image/webp':'image/png';
+        tc.toBlob(blob=>{resultBlob=blob;document.getElementById('resultArea').classList.remove('hidden');document.getElementById('resultInfo').textContent=`${Math.round(cropRect.w)}×${Math.round(cropRect.h)} → ${outW}×${outH} ${format.toUpperCase()} (${formatSize(blob.size)})`;lucide.createIcons();},mimeType,format==='png'?undefined:0.92);
+    }
+
+    function downloadResult(){
+        if(!resultBlob)return;
+        const format=document.getElementById('outputFormat').value;const ext=format==='jpeg'?'jpg':format;
+        const name=originalFile?originalFile.name.replace(/\.[^/.]+$/,''):'image';
+        const url=URL.createObjectURL(resultBlob);const a=document.createElement('a');
+        a.href=url;a.download=`${name}_${document.getElementById('outW').value}x${document.getElementById('outH').value}.${ext}`;
+        document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),5000);
+    }
+
+    function formatSize(b){if(!b)return '0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return parseFloat((b/Math.pow(k,i)).toFixed(2))+' '+s[i];}
+
+    lucide.createIcons();
+    </script>
+</body>
+</html>
