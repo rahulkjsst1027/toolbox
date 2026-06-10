@@ -267,12 +267,15 @@
             { name: 'Video Trim', description: 'Cut and trim video clips to the exact length you need.', category: 'video', icon: 'scissors', color: 'green', file: 'tools/video-trim.html', tags: ['trim', 'cut', 'clip', 'split'], isNew: false, isPopular: true },
             { name: 'Video Crop', description: 'Crop video to any aspect ratio or custom dimensions. Perfect for social media.', category: 'video', icon: 'crop', color: 'cyan', file: 'tools/video-crop.html', tags: ['crop', 'aspect ratio', 'resize', 'social media', 'reels', 'shorts'], isNew: false, isPopular: true },
             { name: 'Video Merge', description: 'Combine multiple video clips into one seamless video.', category: 'video', icon: 'combine', color: 'orange', file: 'tools/video-merge.html', tags: ['merge', 'join', 'combine', 'concatenate'], isNew: true, isPopular: false },
+            { name: 'Video Converter', description: 'Convert videos between formats instantly. WebM, MP4, MOV, AVI, MKV, GIF and more — right in your browser, no upload needed.', category: 'video', icon: 'file-video', color: 'blue', file: 'tools/video-converter.html', tags: ['convert', 'video', 'mp4', 'webm', 'mov', 'avi', 'mkv', 'gif', 'format'], isNew: true, isPopular: true },
 
             // ===== IMAGE TOOLS =====
             { name: 'Image Compress', description: 'Optimize images for the web. Compress PNG, JPG, WebP up to 80%.', category: 'image', icon: 'image', color: 'cyan', file: 'tools/image-compress.html', tags: ['compress', 'optimize', 'png', 'jpg'], isNew: false, isPopular: true },
             { name: 'Background Remover', description: 'Remove backgrounds from images instantly with AI edge detection.', category: 'image', icon: 'eraser', color: 'violet', file: 'tools/background-remover.html', tags: ['background', 'remove', 'cutout', 'transparent'], isNew: false, isPopular: true },
             { name: 'Smart Image Crop & Resize', description: 'Advanced image cropping with custom dimensions, preset aspect ratios (16:9, 9:16, 1:1, 4:3, 3:4, 9:19), social media frames, shapes, and smart resize.', category: 'image', icon: 'crop', color: 'pink', file: 'tools/image-resize.html', tags: ['crop', 'resize', 'aspect ratio', 'social media', 'facebook', 'instagram', 'youtube', 'tiktok', 'snapchat', 'linkedin', 'logo', 'banner', 'custom crop', 'shapes', '16:9', '9:16', '1:1', '4:3', '3:4', '9:19', 'frame', 'template'], isNew: true, isPopular: true },
             { name: 'Image Upscale & Resize', description: 'Upscale images to higher resolution with quality enhancement. Resize to any dimension.', category: 'image', icon: 'maximize', color: 'pink', file: 'tools/image-upscale.html', tags: ['upscale', 'resize', 'scale', 'dimension', 'crop', 'enhance', 'enlarge'], isNew: true, isPopular: false },
+            { name: "Image Converter", description: "Convert images between 14+ formats instantly. JPG, PNG, WebP, GIF, BMP, AVIF, ICO, SVG, TIFF, PDF, TGA, PPM, PGM, XBM — pick any input, export any output, all in your browser.", category: "image", icon: "image", color: "amber", file: "tools/image-converter.html", tags: ["convert", "format", "jpg", "png", "webp", "gif", "bmp", "avif", "ico", "svg", "tiff", "pdf", "tga", "ppm"], isNew: true, isPopular: true },
+            { name: 'Greeting Card Maker', description: 'Create beautiful daily greeting cards with custom text and your photo. Auto-greets based on time — Good Morning, Good Afternoon, and more.', category: 'image', icon: 'sparkles', color: 'pink', file: 'tools/greeting-maker.html', tags: ['greeting', 'card', 'morning', 'quote', 'template', 'image', 'design', 'social media'], isNew: true, isPopular: true },
 
             // ===== AUDIO TOOLS =====
             { name: 'Audio Converter', description: 'Convert audio between MP3, WAV, OGG, AAC and more formats.', category: 'audio', icon: 'music', color: 'amber', file: 'tools/audio-converter.html', tags: ['convert', 'audio', 'mp3', 'wav'], isNew: false, isPopular: false },
@@ -283,10 +286,15 @@
             { name: 'PDF Compress', description: 'Reduce PDF file size by compressing images and optimizing content.', category: 'document', icon: 'file-zip', color: 'orange', file: 'tools/pdf-compress.html', tags: ['pdf', 'compress', 'reduce', 'shrink', 'optimize', 'size', 'document'], isNew: false, isPopular: false },
             { name: 'PDF to Image', description: 'Convert PDF pages to high-quality images. Support JPG, PNG, and WebP formats.', category: 'document', icon: 'image', color: 'purple', file: 'tools/pdf-to-image.html', tags: ['pdf', 'image', 'convert', 'jpg', 'png', 'webp', 'extract', 'pages'], isNew: false, isPopular: false },
             { name: 'Image to PDF', description: 'Convert multiple images to a single PDF file. Support JPG, PNG, GIF, and WebP.', category: 'document', icon: 'file-pdf', color: 'red', file: 'tools/image-to-pdf.html', tags: ['image', 'pdf', 'convert', 'jpg', 'png', 'gif', 'webp', 'merge'], isNew: false, isPopular: false },
+            { name: 'Resume / CV Builder', description: 'Create professional resumes and CVs online. Choose templates, add your details, and download as PDF.', category: 'document', icon: 'file-text', color: 'blue', file: 'tools/cv-builder.html', tags: ['resume', 'cv', 'builder', 'career', 'job', 'pdf', 'template', 'download'], isNew: true, isPopular: true },
 
             // ===== UTILITY TOOLS =====
             { name: 'QR Code Generator', description: 'Generate QR codes for URLs, text, WiFi. Download as SVG or PNG.', category: 'utility', icon: 'qr-code', color: 'emerald', file: 'tools/qr-generator.html', tags: ['qr', 'code', 'generate', 'scan'], isNew: false, isPopular: true },
             { name: 'Color Picker', description: 'Pick colors from images or palette. Get HEX, RGB, HSL values.', category: 'utility', icon: 'palette', color: 'rose', file: 'tools/color-picker.html', tags: ['color', 'picker', 'hex', 'rgb'], isNew: false, isPopular: false },
+
+             // ===== Downloader TOOLS =====
+            { name: 'Pinterest Downloader', description: 'Download Pinterest images and videos using Pinterest post URL.', category: 'downloader', icon: 'download', color: 'red', file: 'tools/pinterest-downloader.html', tags: ['pinterest', 'download', 'image', 'video', 'pin'], isNew: true, isPopular: true },            
+            { name: 'Instagram Downloader', description: 'Download Instagram images and videos using Pinterest post URL.', category: 'downloader', icon: 'download', color: 'red', file: 'tools/instagram-downloader.html', tags: ['pinterest', 'download', 'image', 'video', 'pin'], isNew: true, isPopular: true },            
 
             // ===== DEVELOPER TOOLS =====
             { name: 'JSON Formatter', description: 'Format, validate and beautify JSON data with live syntax highlighting.', category: 'developer', icon: 'braces', color: 'yellow', file: 'tools/json-formatter.html', tags: ['json', 'format', 'validate', 'beautify'], isNew: false, isPopular: false },
@@ -300,6 +308,7 @@
             { id: 'audio', label: 'Audio', icon: 'music' },
             { id: 'document', label: 'Document', icon: 'file-text' },
             { id: 'utility', label: 'Utility', icon: 'lightbulb' },
+            { id: 'downloader', label: 'Downloader', icon: 'download' },
             { id: 'developer', label: 'Developer', icon: 'code' }
         ];
 

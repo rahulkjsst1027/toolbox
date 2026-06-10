@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pinterest Downloader - ToolBox</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+
+        /* =========================================
+           THEME VARIABLES (Synced from Home Page)
+        ========================================= */
+        :root, [data-theme="dark"] {
+            --bg-body: #050505; --bg-card: #171717; --bg-card-hover: rgba(23, 23, 23, 0.6);
+            --bg-nav: rgba(5, 5, 5, 0.8); --bg-footer: #030303; --bg-input: #171717;
+            --bg-badge: rgba(59, 130, 246, 0.1); --bg-category: rgba(23, 23, 23, 0.5);
+            --text-primary: #ffffff; --text-secondary: #a3a3a3; --text-tertiary: #737373;
+            --text-muted: #525252; --text-dim: #404040;
+            --border-primary: rgba(255, 255, 255, 0.05); --border-secondary: rgba(255, 255, 255, 0.1);
+            --border-active: rgba(59, 130, 246, 0.4);
+            --accent: #3b82f6; --accent-text: #60a5fa; --accent-bg: rgba(59, 130, 246, 0.15);
+            --shadow-card: none; --pinterest-red: #E60023; --pinterest-red-hover: #ad001c;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f5f5f5; --bg-card: #ffffff; --bg-card-hover: rgba(255, 255, 255, 0.9);
+            --bg-nav: rgba(245, 245, 245, 0.85); --bg-footer: #e5e5e5; --bg-input: #ffffff;
+            --bg-badge: rgba(59, 130, 246, 0.08); --bg-category: rgba(0, 0, 0, 0.03);
+            --text-primary: #111111; --text-secondary: #555555; --text-tertiary: #777777;
+            --text-muted: #999999; --text-dim: #bbbbbb;
+            --border-primary: rgba(0, 0, 0, 0.08); --border-secondary: rgba(0, 0, 0, 0.12);
+            --border-active: rgba(59, 130, 246, 0.4);
+            --accent: #2563eb; --accent-text: #2563eb; --accent-bg: rgba(59, 130, 246, 0.08);
+            --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --pinterest-red: #E60023; --pinterest-red-hover: #c3001e;
+        }
+
+        body { background: var(--bg-body); color: var(--text-primary); transition: background 0.35s ease, color 0.35s ease; }
+
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-up { opacity: 0; animation: fadeUp 0.6s ease-out forwards; }
+        .delay-1 { animation-delay: 0.08s; } .delay-2 { animation-delay: 0.16s; }
+
+        /* Navbar */
+        .navbar { background: var(--bg-nav); border-bottom: 1px solid var(--border-primary); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); transition: background 0.35s, border-color 0.35s; }
+
+        /* Custom Tool Styles */
+        .search-input { background: var(--bg-input); border: 1px solid var(--border-primary); color: var(--text-primary); transition: all 0.3s; }
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus { border-color: var(--border-active); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); outline: none; }
+
+        .btn-primary-custom { background: var(--pinterest-red); color: white; transition: all 0.2s; }
+        .btn-primary-custom:hover { background: var(--pinterest-red-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(230, 0, 35, 0.3); }
+        .btn-primary-custom:disabled { background: #555; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        .btn-outline-custom { background: transparent; border: 1px solid var(--border-secondary); color: var(--text-secondary); transition: all 0.2s; }
+        .btn-outline-custom:hover { color: var(--text-primary); border-color: var(--text-secondary); }
+
+        .result-card, .fallback-card { background: var(--bg-card); border: 1px solid var(--border-primary); box-shadow: var(--shadow-card); transition: all 0.3s ease; }
+
+        .download-btn { background: transparent; border: 2px solid var(--pinterest-red); color: var(--pinterest-red); transition: all 0.3s ease; }
+        .download-btn:hover { background: var(--pinterest-red); color: white; box-shadow: 0 5px 15px rgba(230,0,35,0.3); }
+        .download-btn:disabled { border-color: #555; color: #555; background: transparent; cursor: not-allowed; }
+
+        .pill-badge { background: var(--accent-bg); border: 1px solid var(--border-active); color: var(--accent-text); }
+
+        .loader { border: 4px solid var(--border-secondary); border-top: 4px solid var(--pinterest-red); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col">
+
+    <!-- NAVBAR (No Toggle) -->
+    <nav class="navbar fixed top-0 left-0 right-0 z-50 h-16">
+        <div class="max-w-7xl mx-auto h-full px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="text-lg font-semibold tracking-tight" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
+            </a>
+
+            <!-- Only Back Button -->
+            <a href="../index.html" class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-all" style="color: var(--text-tertiary);" onmouseover="this.style.color='var(--text-primary)'; this.style.background='var(--accent-bg)'" onmouseout="this.style.color='var(--text-tertiary)'; this.style.background='transparent'">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Tools
+            </a>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="pt-24 pb-12 flex-grow flex items-center justify-center px-4">
+        <div class="w-full max-w-2xl">
+            
+            <!-- Header -->
+            <div class="text-center mb-8 animate-fade-up">
+                <div class="pill-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-6">
+                    <i data-lucide="download" class="w-3 h-3"></i> Downloader Tool
+                </div>
+                <h1 class="text-3xl md:text-5xl font-medium tracking-tight leading-[1.1] mb-4" style="color: var(--text-primary)">
+                    Pinterest <span class="bg-gradient-to-r from-red-500 to-red-700 bg-clip-text text-transparent">Downloader</span>
+                </h1>
+                <p class="text-base md:text-lg font-light max-w-xl mx-auto leading-relaxed" style="color: var(--text-tertiary)">
+                    Download high-quality Pinterest images and videos instantly. Just paste the link!
+                </p>
+            </div>
+
+            <!-- Input Section -->
+            <div class="animate-fade-up delay-1 flex flex-col sm:flex-row gap-3 mb-6">
+                <div class="relative flex-grow">
+                    <i data-lucide="link" class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2" style="color: var(--text-muted)"></i>
+                    <input id="pinUrl" type="text" placeholder="Paste Pinterest URL here..." class="search-input rounded-xl pl-11 pr-4 py-4 text-sm w-full">
+                </div>
+                <div class="flex gap-2">
+                    <button id="fetchBtn" onclick="fetchPinterestData()" class="btn-primary-custom px-6 py-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
+                        <i data-lucide="search" class="w-4 h-4"></i> Get
+                    </button>
+                    <button onclick="resetApp()" class="btn-outline-custom px-4 py-4 rounded-xl text-sm font-medium" title="Reset">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+            </div>
+
+             <button onclick="openFallbackSite()" class="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all hover:opacity-80" style="background: transparent; border: 1px solid var(--border-secondary); color: var(--text-secondary);">
+                    <i data-lucide="external-link" class="w-4 h-4"></i> Try Alternative Downloader
+             </button>
+
+            <!-- Loader -->
+            <div id="loader" class="hidden flex justify-center my-10">
+                <div class="loader"></div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMsg" class="hidden text-center my-6 text-sm font-medium" style="color: #ef4444;"></div>
+
+            <!-- Result Card -->
+            <div class="result-card rounded-2xl p-6 hidden animate-fade-up delay-2" id="resultCard">
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md" style="background: rgba(230,0,35,0.1); color: #f87171; border: 1px solid rgba(230,0,35,0.2);" id="mediaTypeBadge">Video</span>
+                        <h2 class="text-lg font-medium mt-2 tracking-tight" style="color: var(--text-primary)" id="mediaTitle">Media Title</h2>
+                        <p class="text-xs mt-1" style="color: var(--text-tertiary)" id="mediaInfo">1920x1080 • 15s</p>
+                    </div>
+                </div>
+                
+                <div class="w-full rounded-xl overflow-hidden mb-5 bg-black">
+                    <img id="imagePreview" class="w-full max-h-[450px] object-contain hidden" src="" alt="Preview">
+                    <video id="videoPreview" class="w-full max-h-[450px] object-contain hidden" controls></video>
+                </div>
+
+                <!-- Primary Download Button -->
+                <button id="downloadBtn" onclick="forceDownload()" class="download-btn w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2">
+                    <i data-lucide="download" class="w-4 h-4"></i> Download Media
+                </button>
+
+                <!-- Catch block ka message yahan aayega -->
+                <div id="downloadInfoMsg"></div>
+
+                <!-- OR Divider -->
+                <div class="relative my-5">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t" style="border-color: var(--border-secondary)"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs">
+                        <span class="px-3" style="background: var(--bg-card); color: var(--text-muted)">OR</span>
+                    </div>
+                </div>
+
+                <!-- Alternative Downloader Button -->
+                <button onclick="openFallbackSite()" class="w-full py-3 rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-all hover:opacity-80" style="background: transparent; border: 1px solid var(--border-secondary); color: var(--text-secondary);">
+                    <i data-lucide="external-link" class="w-4 h-4"></i> Try Alternative Downloader
+                </button>
+            </div>
+
+            <!-- Fallback Card (Jab API hi data na de) -->
+            <div class="fallback-card rounded-2xl p-6 hidden animate-fade-up delay-2 text-center" id="fallbackCard" style="border-color: rgba(245, 158, 11, 0.3);">
+                <div class="flex justify-center mb-4">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(245, 158, 11, 0.1);">
+                        <i data-lucide="zap" class="w-6 h-6" style="color: #f59e0b"></i>
+                    </div>
+                </div>
+                <h2 class="text-xl font-semibold mb-2" style="color: #f59e0b">Oops! Let's Try Another Way</h2>
+                <p class="text-sm mb-6 font-light" style="color: var(--text-tertiary)">
+                    Our direct downloader is facing a small issue. Don't worry, click below to download your media via our partner site instantly!
+                </p>
+                <button onclick="openFallbackSite()" class="w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all hover:opacity-90" style="background: #f59e0b; color: #000;">
+                    <i data-lucide="external-link" class="w-4 h-4"></i> Let's Try It!
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="background: var(--bg-footer); border-top: 1px solid var(--border-primary);">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center">
+                        <i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i>
+                    </div>
+                    <span class="text-sm font-semibold" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
+                </div>
+                <p class="text-xs" style="color: var(--text-muted)">All tools run locally in your browser. No data is uploaded.</p>
+                <p class="text-xs" style="color: var(--text-muted)">© 2025 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // =============================================
+        //  🎨 THEME SYSTEM (Auto Sync - No UI Toggle)
+        // =============================================
+        function getSystemTheme() { return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'; }
+        function initTheme() { const saved = localStorage.getItem('toolbox-theme'); const theme = saved || getSystemTheme(); document.documentElement.setAttribute('data-theme', theme); }
+        window.addEventListener('storage', (e) => { if (e.key === 'toolbox-theme') initTheme(); });
+        window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => { if (!localStorage.getItem('toolbox-theme')) { document.documentElement.setAttribute('data-theme', e.matches ? 'light' : 'dark'); } });
+        initTheme();
+
+        // =============================================
+        //  🔧 PINTEREST DOWNLOADER LOGIC
+        // =============================================
+        const RAPID_API_KEY = '813b5c627fmsh97f034870e80af1p1e746cjsn90403c63fbe0'; 
+        const API_HOST = 'pinterest-video-and-image-downloader.p.rapidapi.com';
+        const API_BASE_URL = 'https://pinterest-video-and-image-downloader.p.rapidapi.com/pinterest';
+
+        const fetchBtn = document.getElementById('fetchBtn');
+        const loader = document.getElementById('loader');
+        const errorMsg = document.getElementById('errorMsg');
+        const resultCard = document.getElementById('resultCard');
+        const fallbackCard = document.getElementById('fallbackCard');
+        const pinUrlInput = document.getElementById('pinUrl');
+        
+        const mediaTypeBadge = document.getElementById('mediaTypeBadge');
+        const mediaTitle = document.getElementById('mediaTitle');
+        const mediaInfo = document.getElementById('mediaInfo');
+        
+        const imagePreview = document.getElementById('imagePreview');
+        const videoPreview = document.getElementById('videoPreview');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        let currentMediaUrl = '';
+        let currentMediaType = 'video'; 
+        let userPinUrl = ''; 
+
+        function resetApp() {
+            pinUrlInput.value = '';
+            resultCard.classList.add('hidden');
+            fallbackCard.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+            loader.classList.add('hidden');
+            videoPreview.src = ""; videoPreview.classList.add('hidden');
+            imagePreview.src = ""; imagePreview.classList.add('hidden');
+            document.getElementById('downloadInfoMsg').innerHTML = ''; // Clear info message
+            fetchBtn.disabled = false;
+            lucide.createIcons();
+        }
+
+        async function fetchPinterestData() {
+            const url = pinUrlInput.value.trim();
+            userPinUrl = url; 
+            
+            if (!url.includes('pinterest.com') && !url.includes('pin.it')) {
+                showError('Please enter a valid Pinterest URL!');
+                return;
+            }
+
+            fetchBtn.disabled = true;
+            loader.classList.remove('hidden');
+            resultCard.classList.add('hidden');
+            fallbackCard.classList.add('hidden');
+            errorMsg.classList.add('hidden');
+            document.getElementById('downloadInfoMsg').innerHTML = ''; // Clear info message
+
+            const options = {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-key': RAPID_API_KEY,
+                    'x-rapidapi-host': API_HOST
+                }
+            };
+
+            try {
+                const fetchUrl = `${API_BASE_URL}?url=${encodeURIComponent(url)}`;
+                const response = await fetch(fetchUrl, options);
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    const mediaData = data.data;
+                    const isVideo = data.type === 'video';
+                    
+                    currentMediaUrl = mediaData.url;
+                    currentMediaType = isVideo ? 'video' : 'image';
+
+                    mediaTypeBadge.innerText = isVideo ? "🎬 VIDEO" : "🖼️ IMAGE";
+                    mediaTitle.innerText = mediaData.title || "Pinterest Media";
+                    
+                    let infoText = "";
+                    if(mediaData.width && mediaData.height) infoText += `${mediaData.width}x${mediaData.height}`;
+                    if(isVideo && mediaData.duration) {
+                        const secs = Math.round(mediaData.duration / 1000);
+                        infoText += ` • ${secs}s`;
+                    }
+                    mediaInfo.innerText = infoText;
+
+                    if (isVideo) {
+                        videoPreview.src = mediaData.url;
+                        videoPreview.poster = mediaData.thumbnail;
+                        videoPreview.classList.remove('hidden');
+                        imagePreview.classList.add('hidden');
+                    } else {
+                        imagePreview.src = mediaData.url;
+                        imagePreview.classList.remove('hidden');
+                        videoPreview.classList.add('hidden');
+                    }
+
+                    resultCard.classList.remove('hidden');
+                    lucide.createIcons();
+
+                } else {
+                    showFallback();
+                }
+            } catch (error) {
+                console.error("Catch Error:", error);
+                showFallback();
+            } finally {
+                fetchBtn.disabled = false;
+                loader.classList.add('hidden');
+            }
+        }
+
+        function showFallback() {
+            resultCard.classList.add('hidden');
+            fallbackCard.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function openFallbackSite() {
+            const klickpinUrl = `https://klickpin.com/?url=${encodeURIComponent(userPinUrl)}`;
+            window.open(klickpinUrl, '_blank');
+        }
+
+        async function forceDownload() {
+            if (!currentMediaUrl) return;
+
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = `<span class="animate-pulse">⏳ Processing...</span>`;
+
+            try {
+                // Attempt 1: Direct Blob Download (Works for other websites)
+                const response = await fetch(currentMediaUrl);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                
+                const extension = currentMediaType === 'video' ? 'mp4' : 'jpg';
+                a.download = `PinGrab_${Date.now()}.${extension}`; 
+                
+                document.body.appendChild(a);
+                a.click();
+                
+                window.URL.revokeObjectURL(blobUrl);
+                document.body.removeChild(a);
+
+            } catch (error) {
+                // Attempt 2: Fallback (Pinterest block karega toh yahan aayega)
+                console.log("CORS blocked direct download. Opening in new tab.");
+                window.open(currentMediaUrl, '_blank');
+                
+                // Clean UI message dikhao instead of alert
+                const infoDiv = document.getElementById('downloadInfoMsg');
+                if(infoDiv) {
+                    infoDiv.innerHTML = `
+                        <div class="mt-4 p-3 rounded-lg text-xs font-medium flex items-start gap-2" style="background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.2);">
+                            <i data-lucide="info" class="w-4 h-4 mt-0.5 flex-shrink-0"></i> 
+                            <span>Media opened in a new tab. <b>Right-click</b> on the video/image and select <b>"Save as..."</b> to download it.</span>
+                        </div>`;
+                    lucide.createIcons();
+                }
+            } finally {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = `<i data-lucide="download" class="w-4 h-4"></i> Download Media`;
+                lucide.createIcons();
+            }
+        }
+
+        function showError(message) {
+            errorMsg.textContent = message;
+            errorMsg.classList.remove('hidden');
+            loader.classList.add('hidden');
+            fetchBtn.disabled = false;
+        }
+
+        pinUrlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                fetchPinterestData();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>
