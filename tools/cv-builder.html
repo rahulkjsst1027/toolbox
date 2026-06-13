@@ -820,7 +820,7 @@
         </div>
     </footer>
 
-    <script>
+    <script type="text/javascript">
         // ============ THEME SYSTEM ============
         function getSystemTheme() {
             return window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
@@ -886,8 +886,18 @@
             return div.innerHTML;
         }
 
+        function safeCreateIcons() {
+            if (window.lucide && typeof lucide.createIcons === 'function') {
+                safeCreateIcons();
+            }
+        }
+
         function showToast(message, type = 'success') {
             const box = document.getElementById('toastBox');
+            if (!box) {
+                console.log(message);
+                return;
+            }
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             const iconMap = {
@@ -897,7 +907,7 @@
             };
             toast.innerHTML = `<i data-lucide="${iconMap[type] || 'info'}" style="width:16px;height:16px;flex-shrink:0"></i> ${message}`;
             box.appendChild(toast);
-            lucide.createIcons();
+            safeCreateIcons();
 
             setTimeout(() => {
                 toast.style.opacity = '0';
@@ -944,7 +954,7 @@
             }
 
             // Refresh icons
-            setTimeout(() => lucide.createIcons(), 50);
+            setTimeout(() => safeCreateIcons(), 50);
         }
 
         // ============ EXPERIENCE MANAGEMENT ============
@@ -982,7 +992,7 @@
 
             if (!experienceList.length) {
                 box.innerHTML = '<p style="color:var(--text-muted);font-size:12px;font-style:italic;padding:10px">No experience added yet.</p>';
-                lucide.createIcons();
+                safeCreateIcons();
                 return;
             }
 
@@ -1007,7 +1017,7 @@
             });
 
             box.innerHTML = html;
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // ============ EDUCATION MANAGEMENT ============
@@ -1044,7 +1054,7 @@
 
             if (!educationList.length) {
                 box.innerHTML = '<p style="color:var(--text-muted);font-size:12px;font-style:italic;padding:10px">No education added yet.</p>';
-                lucide.createIcons();
+                safeCreateIcons();
                 return;
             }
 
@@ -1068,7 +1078,7 @@
             });
 
             box.innerHTML = html;
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // ============ SKILLS MANAGEMENT ============
@@ -1110,7 +1120,7 @@
             });
 
             box.innerHTML = html;
-            lucide.createIcons();
+            safeCreateIcons();
         }
 
         // ============ RESUME PREVIEW ============
@@ -1309,8 +1319,7 @@
                 </style>
             </head>
             <body>${content}</body>
-            </html>
-        `);
+            </html>`);
 
             printWindow.document.close();
             setTimeout(() => printWindow.print(), 500);
@@ -1620,7 +1629,7 @@
             html += '</div></div>';
 
             document.getElementById('ats-out').innerHTML = html;
-            lucide.createIcons();
+            safeCreateIcons();
 
             // Animate score
             setTimeout(() => {
@@ -1872,10 +1881,32 @@
             showToast('Cover letter ready for printing!', 'success');
         }
 
+        // Make functions available for inline onclick handlers
+        Object.assign(window, {
+            toggleTheme,
+            switchTab,
+            toggleCollapse,
+            addExperience,
+            removeExperience,
+            updateExperience,
+            addEducation,
+            removeEducation,
+            updateEducation,
+            addSkill,
+            removeSkill,
+            downloadResume,
+            clearAll,
+            runATSCheck,
+            selectTemplate,
+            generateCoverLetter,
+            copyCoverLetter,
+            printCoverLetter
+        });
+
         // ============ INITIALIZATION ============
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize Lucide icons
-            lucide.createIcons();
+            safeCreateIcons();
 
             // Add initial experience and education entries
             addExperience();
@@ -1885,7 +1916,7 @@
             updatePreview();
 
             // Re-initialize icons after a short delay to catch any dynamic content
-            setTimeout(() => lucide.createIcons(), 100);
+            setTimeout(() => safeCreateIcons(), 100);
         });
     </script>
 

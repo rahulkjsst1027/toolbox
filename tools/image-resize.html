@@ -60,6 +60,11 @@
         #cropCanvas { cursor: crosshair; touch-action: none; }
         input[type="range"] { accent-color: var(--accent-solid); }
         .lock-icon svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+        .canvas-viewport { overflow: auto; border-radius: 0.5rem; background: rgba(0,0,0,0.3); max-height: 70vh; max-width: 100%; display: flex; align-items: center; justify-content: center; }
+        .mode-btn { padding: 6px 12px; border-radius: 6px; font-size: 11px; font-weight: 500; cursor: pointer; border: 1px solid var(--border-secondary); background: transparent; color: var(--text-tertiary); transition: all 0.15s; }
+        .mode-btn.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent-border); }
+        .zoom-btn { background: var(--bg-input); border: 1px solid var(--border-secondary); color: var(--text-secondary); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 4px; cursor: pointer; font-size: 12px; line-height: 1; transition: all 0.15s; }
+        .zoom-btn:hover { border-color: var(--accent-border); color: var(--text-primary); }
     </style>
 </head>
 <body class="min-h-screen">
@@ -87,7 +92,7 @@
                 </div>
                 <div>
                     <h1 class="text-3xl md:text-4xl font-medium tracking-tight mb-2 text-theme-primary">Image Resize & Crop</h1>
-                    <p class="font-light leading-relaxed text-theme-tertiary">Crop with social media presets, shapes (circle, oval, star, rounded), and resize to exact dimensions.</p>
+                    <p class="font-light leading-relaxed text-theme-tertiary">Fill (crop) ya Fit (contain) ke saath resize — shapes, zoom +/- buttons, scroll zoom, fit-to-crop.</p>
                 </div>
             </div>
 
@@ -109,6 +114,13 @@
                                 <button onclick="resetCrop()" class="text-[10px] text-theme-accent hover:underline flex items-center gap-1"><i data-lucide="rotate-ccw" class="w-3 h-3"></i> Reset</button>
                                 <button onclick="loadNewImage()" class="text-[10px] text-theme-tertiary hover:text-theme-primary flex items-center gap-1 transition-colors"><i data-lucide="image-plus" class="w-3 h-3"></i> New Image</button>
                             </div>
+                        </div>
+
+                        <!-- Resize Mode -->
+                        <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="settings" class="w-3.5 h-3.5"></i> Resize Mode</h3>
+                        <div class="flex gap-2 mb-5" id="resizeModeGroup">
+                            <button onclick="setResizeMode('fill')" class="mode-btn active" id="modeFill">Fill (Crop)</button>
+                            <button onclick="setResizeMode('fit')" class="mode-btn" id="modeFit">Fit (Contain)</button>
                         </div>
 
                         <!-- Aspect Ratio -->
@@ -144,6 +156,19 @@
                             <input type="range" id="starPoints" min="3" max="12" value="5" class="w-full h-1" oninput="document.getElementById('starPointsValue').textContent=this.value;drawPreview();">
                         </div>
 
+                        <!-- Zoom -->
+                        <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="zoom-in" class="w-3.5 h-3.5"></i> Zoom (on image)</h3>
+                        <div class="flex items-center gap-1 mb-1">
+                            <button class="zoom-btn" onclick="adjustZoom(-5)" title="Zoom out">−</button>
+                            <input type="range" id="zoomSlider" min="10" max="300" value="100" class="w-full h-1" oninput="updateZoom()">
+                            <button class="zoom-btn" onclick="adjustZoom(5)" title="Zoom in">+</button>
+                            <span id="zoomValue" class="text-[11px] font-mono text-theme-accent w-10 text-right">100%</span>
+                        </div>
+                        <div class="flex gap-2 mb-4">
+                            <button onclick="fitToCrop()" class="btn-secondary w-full h-7 rounded-md text-[10px] font-medium flex items-center justify-center gap-1"><i data-lucide="maximize" class="w-3 h-3"></i> Fit to Crop</button>
+                            <button onclick="resetZoom()" class="btn-secondary w-full h-7 rounded-md text-[10px] font-medium flex items-center justify-center gap-1"><i data-lucide="rotate-ccw" class="w-3 h-3"></i> Fit to View</button>
+                        </div>
+
                         <!-- Social Media -->
                         <h3 class="text-xs font-semibold mb-2 text-theme-secondary flex items-center gap-1.5"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Social Media</h3>
                         <div class="space-y-2 mb-5 max-h-48 overflow-y-auto pr-1" id="socialPresets" style="scrollbar-width:thin;"></div>
@@ -170,8 +195,10 @@
 
                     <!-- Center: Canvas -->
                     <div class="lg:col-span-2 p-5 flex flex-col items-center justify-center min-h-[400px] relative" style="background:rgba(0,0,0,0.2);">
-                        <p class="text-[10px] text-white/40 mb-2 absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 px-3 py-1 rounded-full z-10">↔ Drag corners to resize frame. Drag inside to move.</p>
-                        <canvas id="cropCanvas" class="max-w-full max-h-[72vh] rounded-lg shadow-2xl"></canvas>
+                        <p class="text-[10px] text-white/40 mb-2 absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 px-3 py-1 rounded-full z-10">↔ Drag corners / frame. Scroll wheel to zoom. +/- for step zoom.</p>
+                        <div id="canvasViewport" class="canvas-viewport w-full">
+                            <canvas id="cropCanvas" class="rounded-lg shadow-2xl"></canvas>
+                        </div>
                         <div class="flex items-center gap-4 mt-3 text-[11px] text-theme-muted">
                             <span>Crop: <span id="cropDimLabel" class="text-theme-secondary font-mono">—</span></span>
                             <span>Output: <span id="outDimLabel" class="text-theme-accent font-mono">—</span></span>
@@ -193,8 +220,9 @@
             <div class="mt-8 flex flex-wrap gap-2">
                 <span class="tag text-xs px-3 py-1.5 rounded-lg">#resize</span>
                 <span class="tag text-xs px-3 py-1.5 rounded-lg">#crop</span>
-                <span class="tag text-xs px-3 py-1.5 rounded-lg">#social-media</span>
-                <span class="tag text-xs px-3 py-1.5 rounded-lg">#shapes</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#fit</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#zoom</span>
+                <span class="tag text-xs px-3 py-1.5 rounded-lg">#scroll-zoom</span>
             </div>
         </div>
     </main>
@@ -213,10 +241,9 @@
     (function(){function g(){return window.matchMedia('(prefers-color-scheme:light)').matches?'light':'dark'}function a(){document.documentElement.setAttribute('data-theme',localStorage.getItem('toolbox-theme')||g())}window.matchMedia('(prefers-color-scheme:light)').addEventListener('change',()=>{if(!localStorage.getItem('toolbox-theme'))a()});window.addEventListener('storage',e=>{if(e.key==='toolbox-theme')a()});a()})();
 
     let sourceImg=null,originalFile=null,resultBlob=null;
-    let targetRatio=null,cropShape='rect',isLocked=true;
-    let canvasScale=1;
+    let targetRatio=null,cropShape='rect',isLocked=true,resizeMode='fill';
+    let canvasScale=1, baseFitScale=1, zoomPercent=100, prevZoomPercent=100;
     
-    // New State Variables for Drag & Resize
     let cropRect = { x: 0, y: 0, w: 0, h: 0 };
     let isDragging = false, isResizing = false;
     let resizeHandle = null;
@@ -254,7 +281,6 @@
                 document.getElementById('resultArea').classList.add('hidden');
                 document.getElementById('srcInfoDims').textContent=`${img.naturalWidth} × ${img.naturalHeight} px`;
                 
-                // Initialize Crop Rect to 85% centered
                 cropRect.w = img.naturalWidth * 0.85;
                 cropRect.h = img.naturalHeight * 0.85;
                 cropRect.x = (img.naturalWidth - cropRect.w) / 2;
@@ -263,7 +289,9 @@
                 document.getElementById('outW').value = Math.round(cropRect.w);
                 document.getElementById('outH').value = Math.round(cropRect.h);
                 
+                prevZoomPercent = 100;
                 resetControls();
+                computeBaseScale();
                 drawPreview();
             };
             img.src=e.target.result;
@@ -285,6 +313,164 @@
     dz.addEventListener('drop',e=>{e.preventDefault();dz.style.borderColor='var(--border-primary)';const f=e.dataTransfer.files[0];if(f&&f.type.startsWith('image/')){const i=document.getElementById('fileInput');const dt=new DataTransfer();dt.items.add(f);i.files=dt.files;handleFile(i);}});
 
     // =============================================
+    //  RESIZE MODE
+    // =============================================
+    function setResizeMode(mode) {
+        resizeMode = mode;
+        document.getElementById('modeFill').classList.toggle('active', mode === 'fill');
+        document.getElementById('modeFit').classList.toggle('active', mode === 'fit');
+        drawPreview();
+    }
+
+    // =============================================
+    //  ZOOM (image zoom, +/-, scroll, fit-to-crop)
+    // =============================================
+    function computeBaseScale() {
+        if (!sourceImg) return;
+        const viewport = document.getElementById('canvasViewport');
+        const containerW = viewport.clientWidth - 10;
+        const maxH = window.innerHeight * 0.65;
+        baseFitScale = Math.min(containerW / sourceImg.naturalWidth, maxH / sourceImg.naturalHeight, 1);
+    }
+
+    function updateZoom(){
+        const newZoom = parseInt(document.getElementById('zoomSlider').value);
+        if(resizeMode === 'fill' && sourceImg) {
+            const ratio = newZoom / prevZoomPercent;
+            if(ratio !== 1) {
+                const cx = cropRect.x + cropRect.w / 2;
+                const cy = cropRect.y + cropRect.h / 2;
+                cropRect.w = Math.max(1, cropRect.w / ratio);
+                cropRect.h = Math.max(1, cropRect.h / ratio);
+                cropRect.x = cx - cropRect.w / 2;
+                cropRect.y = cy - cropRect.h / 2;
+                cropRect.x = Math.max(0, Math.min(cropRect.x, sourceImg.naturalWidth - cropRect.w));
+                cropRect.y = Math.max(0, Math.min(cropRect.y, sourceImg.naturalHeight - cropRect.h));
+            }
+            prevZoomPercent = newZoom;
+        }
+        zoomPercent = newZoom;
+        document.getElementById('zoomValue').textContent = zoomPercent + '%';
+        if(sourceImg) drawPreview();
+    }
+
+    function adjustZoom(delta) {
+        let current = parseInt(document.getElementById('zoomSlider').value);
+        let newVal = current + delta;
+        newVal = Math.min(300, Math.max(10, newVal));
+        document.getElementById('zoomSlider').value = newVal;
+        updateZoom();
+    }
+
+    function resetZoom(){
+        document.getElementById('zoomSlider').value = 100;
+        prevZoomPercent = 100;
+        zoomPercent = 100;
+        document.getElementById('zoomValue').textContent = '100%';
+        if(sourceImg && resizeMode === 'fill'){
+            cropRect.w = sourceImg.naturalWidth * 0.85;
+            cropRect.h = sourceImg.naturalHeight * 0.85;
+            cropRect.x = (sourceImg.naturalWidth - cropRect.w) / 2;
+            cropRect.y = (sourceImg.naturalHeight - cropRect.h) / 2;
+            document.getElementById('outW').value = Math.round(cropRect.w);
+            document.getElementById('outH').value = Math.round(cropRect.h);
+        }
+        if(sourceImg) drawPreview();
+    }
+
+    function fitToCrop() {
+        if(!sourceImg) return;
+        // Set crop rectangle to full image
+        cropRect.x = 0; cropRect.y = 0;
+        cropRect.w = sourceImg.naturalWidth;
+        cropRect.h = sourceImg.naturalHeight;
+        document.getElementById('outW').value = Math.round(cropRect.w);
+        document.getElementById('outH').value = Math.round(cropRect.h);
+        
+        // Compute zoom to fit the full image in the viewport
+        const viewport = document.getElementById('canvasViewport');
+        const vw = viewport.clientWidth - 10;
+        const vh = window.innerHeight * 0.65;
+        const scaleToFit = Math.min(vw / sourceImg.naturalWidth, vh / sourceImg.naturalHeight, 1);
+        zoomPercent = Math.round(scaleToFit / baseFitScale * 100);
+        zoomPercent = Math.min(300, Math.max(10, zoomPercent));
+        document.getElementById('zoomSlider').value = zoomPercent;
+        prevZoomPercent = zoomPercent;
+        document.getElementById('zoomValue').textContent = zoomPercent + '%';
+        drawPreview();
+    }
+
+    // Mouse wheel zoom on canvas
+    const cropCanvas = document.getElementById('cropCanvas');
+    cropCanvas.addEventListener('wheel', (e) => {
+        if(!sourceImg) return;
+        e.preventDefault();
+        const viewport = document.getElementById('canvasViewport');
+        const rect = cropCanvas.getBoundingClientRect();
+        const cursorCanvasX = e.clientX - rect.left + viewport.scrollLeft;
+        const cursorCanvasY = e.clientY - rect.top + viewport.scrollTop;
+        
+        // image coords under cursor
+        const imgX = cursorCanvasX / canvasScale;
+        const imgY = cursorCanvasY / canvasScale;
+        
+        // adjust zoom
+        const delta = e.deltaY > 0 ? -5 : 5;
+        let current = parseInt(document.getElementById('zoomSlider').value);
+        let newVal = current + delta;
+        newVal = Math.min(300, Math.max(10, newVal));
+        if(newVal === current) return;
+        
+        document.getElementById('zoomSlider').value = newVal;
+        // temporarily set zoomPercent to newVal and compute new scale
+        const oldZoom = zoomPercent;
+        const newZoom = newVal;
+        const newCanvasScale = baseFitScale * (newZoom / 100);
+        const oldCanvasScale = canvasScale;
+        
+        // Update crop rect if in fill mode to keep same image point under cursor
+        if(resizeMode === 'fill') {
+            // compute shift in image space needed to keep imgX,imgY at same screen position
+            // old screen pos of imgX,imgY is (imgX * oldCanvasScale - viewport.scrollLeft) == cursorCanvasX - viewport.scrollLeft? Actually we want the same screen position relative to viewport.
+            const screenX = cursorCanvasX - viewport.scrollLeft;
+            const screenY = cursorCanvasY - viewport.scrollTop;
+            // new canvas coordinates of same image point
+            const newCanvasX = imgX * newCanvasScale;
+            const newCanvasY = imgY * newCanvasScale;
+            // desired scrollLeft so that screenX = newCanvasX - newScrollLeft
+            const newScrollLeft = newCanvasX - screenX;
+            const newScrollTop = newCanvasY - screenY;
+            // We'll apply the zoom change normally (which modifies cropRect) then adjust scroll
+            // But we also need to keep the image point under cursor consistent in terms of image content.
+            // The standard zoom update shifts cropRect based on ratio. We'll instead directly set cropRect based on the new scale and desired image point at center of view? Let's reimplement:
+            // We want the image point (imgX,imgY) to remain at the same screen position.
+            // After zoom, the canvas size will be imageWidth * newCanvasScale. The cropRect in image coords defines the portion of image that is visible inside the viewport? Actually the entire image is drawn, but we scroll to see it. So to keep the same visual content under cursor, we need to adjust scroll position, not cropRect. The cropRect only affects the clipping mask, not the view. The zoom currently modifies cropRect because we scale the whole canvas and cropRect moves proportionally. That was our earlier design. To keep the same image point under cursor, we should adjust the viewport scroll after zoom, leaving cropRect unchanged (or adjusting it similarly). But our previous updateZoom() altered cropRect. So we'll implement a different approach: just change zoomPercent, redraw, and then adjust scroll to keep the same image point under cursor.
+            // Let's just set zoomPercent, draw preview, then adjust scroll.
+            zoomPercent = newVal;
+            document.getElementById('zoomValue').textContent = zoomPercent + '%';
+            drawPreview(); // this sets canvasScale and redraws
+            // after redraw, compute new scroll positions
+            const finalCanvasScale = canvasScale; // updated in drawPreview
+            const finalNewCanvasX = imgX * finalCanvasScale;
+            const finalNewCanvasY = imgY * finalCanvasScale;
+            viewport.scrollLeft = Math.max(0, finalNewCanvasX - screenX);
+            viewport.scrollTop = Math.max(0, finalNewCanvasY - screenY);
+        } else {
+            // fit mode: just change zoom
+            zoomPercent = newVal;
+            document.getElementById('zoomValue').textContent = zoomPercent + '%';
+            drawPreview();
+            // adjust scroll to keep same image point under cursor
+            const finalCanvasScale = canvasScale;
+            const finalNewCanvasX = imgX * finalCanvasScale;
+            const finalNewCanvasY = imgY * finalCanvasScale;
+            viewport.scrollLeft = Math.max(0, finalNewCanvasX - (cursorCanvasX - viewport.scrollLeft));
+            viewport.scrollTop = Math.max(0, finalNewCanvasY - (cursorCanvasY - viewport.scrollTop));
+        }
+        prevZoomPercent = zoomPercent;
+    }, {passive: false});
+
+    // =============================================
     //  CONTROLS
     // =============================================
     function setRatio(btn, ratio){
@@ -293,7 +479,7 @@
         btn.classList.add('active');
         document.querySelectorAll('#socialPresets .social-btn').forEach(b=>b.classList.remove('active'));
         
-        if(sourceImg){
+        if(sourceImg && resizeMode === 'fill'){
             const srcW = sourceImg.naturalWidth, srcH = sourceImg.naturalHeight;
             const srcRatio = srcW / srcH;
             
@@ -331,7 +517,7 @@
         isLocked = true; 
         updateLockIcon();
         
-        if(sourceImg){
+        if(sourceImg && resizeMode === 'fill'){
             const srcW = sourceImg.naturalWidth, srcH = sourceImg.naturalHeight;
             const srcRatio = srcW / srcH;
             let cW, cH;
@@ -363,22 +549,23 @@
         let w = parseInt(document.getElementById('outW').value)||1;
         let h = parseInt(document.getElementById('outH').value)||1;
 
-        if(isLocked){
+        if(resizeMode === 'fill' && isLocked){
             const currentAspect = cropRect.w / cropRect.h || 1;
             if(dim==='w') h = Math.round(w / currentAspect);
             else w = Math.round(h * currentAspect);
         }
 
-        const cx = cropRect.x + cropRect.w / 2;
-        const cy = cropRect.y + cropRect.h / 2;
-        
-        cropRect.w = w; cropRect.h = h;
-        cropRect.x = cx - w/2;
-        cropRect.y = cy - h/2;
+        if(resizeMode === 'fill') {
+            const cx = cropRect.x + cropRect.w / 2;
+            const cy = cropRect.y + cropRect.h / 2;
+            
+            cropRect.w = w; cropRect.h = h;
+            cropRect.x = cx - w/2;
+            cropRect.y = cy - h/2;
 
-        // Clamp
-        cropRect.x = Math.max(0, Math.min(cropRect.x, sourceImg.naturalWidth - cropRect.w));
-        cropRect.y = Math.max(0, Math.min(cropRect.y, sourceImg.naturalHeight - cropRect.h));
+            cropRect.x = Math.max(0, Math.min(cropRect.x, sourceImg.naturalWidth - cropRect.w));
+            cropRect.y = Math.max(0, Math.min(cropRect.y, sourceImg.naturalHeight - cropRect.h));
+        }
 
         document.getElementById('outW').value = w;
         document.getElementById('outH').value = h;
@@ -417,44 +604,42 @@
     function drawPreview(){
         if(!sourceImg)return;
         const canvas=document.getElementById('cropCanvas'),ctx=canvas.getContext('2d');
-        const containerW=canvas.parentElement.clientWidth-40,maxH=window.innerHeight*0.7;
-        canvasScale=Math.min(containerW/sourceImg.naturalWidth,maxH/sourceImg.naturalHeight,1);
+        computeBaseScale();
+        canvasScale = baseFitScale * (zoomPercent / 100);
         canvas.width=sourceImg.naturalWidth*canvasScale;canvas.height=sourceImg.naturalHeight*canvasScale;
         const s=canvasScale;
         
         ctx.drawImage(sourceImg,0,0,canvas.width,canvas.height);
-        ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,canvas.width,canvas.height);
         
-        const cx=cropRect.x*s, cy=cropRect.y*s, cw=cropRect.w*s, ch=cropRect.h*s;
-        
-        ctx.save();ctx.beginPath();drawShapePath(ctx,cx,cy,cw,ch);ctx.clip();
-        ctx.drawImage(sourceImg,0,0,canvas.width,canvas.height);ctx.restore();
-        
-        ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=2;ctx.beginPath();drawShapePath(ctx,cx,cy,cw,ch);ctx.stroke();
-        
-        // Draw Grid
-        ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
-        for(let i=1;i<3;i++){ctx.beginPath();ctx.moveTo(cx+cw*i/3,cy);ctx.lineTo(cx+cw*i/3,cy+ch);ctx.stroke();ctx.beginPath();ctx.moveTo(cx,cy+ch*i/3);ctx.lineTo(cx+cw,cy+ch*i/3);ctx.stroke();}
-        
-        // Draw Resize Handles
-        drawHandles(ctx, cx, cy, cw, ch);
-        
-        document.getElementById('cropDimLabel').textContent=`${Math.round(cropRect.w)}×${Math.round(cropRect.h)}`;
+        if (resizeMode === 'fill') {
+            ctx.fillStyle='rgba(0,0,0,0.6)';ctx.fillRect(0,0,canvas.width,canvas.height);
+            
+            const cx=cropRect.x*s, cy=cropRect.y*s, cw=cropRect.w*s, ch=cropRect.h*s;
+            
+            ctx.save();ctx.beginPath();drawShapePath(ctx,cx,cy,cw,ch);ctx.clip();
+            ctx.drawImage(sourceImg,0,0,canvas.width,canvas.height);ctx.restore();
+            
+            ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=2;ctx.beginPath();drawShapePath(ctx,cx,cy,cw,ch);ctx.stroke();
+            
+            ctx.strokeStyle='rgba(255,255,255,0.15)';ctx.lineWidth=1;
+            for(let i=1;i<3;i++){ctx.beginPath();ctx.moveTo(cx+cw*i/3,cy);ctx.lineTo(cx+cw*i/3,cy+ch);ctx.stroke();ctx.beginPath();ctx.moveTo(cx,cy+ch*i/3);ctx.lineTo(cx+cw,cy+ch*i/3);ctx.stroke();}
+            
+            drawHandles(ctx, cx, cy, cw, ch);
+            document.getElementById('cropDimLabel').textContent=`${Math.round(cropRect.w)}×${Math.round(cropRect.h)}`;
+        } else {
+            ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(0,0,canvas.width,canvas.height);
+            document.getElementById('cropDimLabel').textContent = `${sourceImg.naturalWidth}×${sourceImg.naturalHeight} (fit)`;
+        }
         updateLabels();
     }
 
     function drawHandles(ctx, cx, cy, cw, ch) {
-        const hs = 6; // handle size in screen pixels
+        const hs = 6;
         ctx.fillStyle = '#ffffff';
         ctx.strokeStyle = 'var(--accent-solid)';
         ctx.lineWidth = 2;
-        const pts = [
-            [cx, cy], [cx + cw, cy], [cx, cy + ch], [cx + cw, cy + ch] // nw, ne, sw, se
-        ];
-        pts.forEach(([px, py]) => {
-            ctx.fillRect(px - hs/2, py - hs/2, hs, hs);
-            ctx.strokeRect(px - hs/2, py - hs/2, hs, hs);
-        });
+        const pts = [[cx,cy],[cx+cw,cy],[cx,cy+ch],[cx+cw,cy+ch]];
+        pts.forEach(([px,py])=>{ctx.fillRect(px-hs/2,py-hs/2,hs,hs);ctx.strokeRect(px-hs/2,py-hs/2,hs,hs);});
     }
 
     function drawShapePath(ctx,x,y,w,h){
@@ -482,21 +667,18 @@
     }
 
     // =============================================
-    //  DRAG & RESIZE LOGIC
+    //  DRAG & RESIZE LOGIC (only in fill mode)
     // =============================================
-    const cropCanvas=document.getElementById('cropCanvas');
     const handles = ['nw', 'ne', 'sw', 'se'];
-    const HANDLE_HIT_SIZE = 12; // screen px for touch/click target
+    const HANDLE_HIT_SIZE = 12;
 
     function getPos(e){const r=cropCanvas.getBoundingClientRect();const cX=e.touches?e.touches[0].clientX:e.clientX;const cY=e.touches?e.touches[0].clientY:e.clientY;return{x:cX-r.left,y:cY-r.top};}
     
-    function isInsideRect(px, py, rect) {
-        return px >= rect.x && px <= rect.x + rect.w && py >= rect.y && py <= rect.y + rect.h;
-    }
+    function isInsideRect(px, py, rect) { return px >= rect.x && px <= rect.x + rect.w && py >= rect.y && py <= rect.y + rect.h; }
 
     function getHandlePositions() {
         const s = canvasScale;
-        const hs = HANDLE_HIT_SIZE / s; // convert hit size to image space
+        const hs = HANDLE_HIT_SIZE / s;
         return {
             nw: { x: cropRect.x - hs/2, y: cropRect.y - hs/2, w: hs, h: hs },
             ne: { x: cropRect.x + cropRect.w - hs/2, y: cropRect.y - hs/2, w: hs, h: hs },
@@ -507,42 +689,30 @@
 
     function checkHandles(posImg) {
         const hdlPos = getHandlePositions();
-        for (let h of handles) {
-            if (isInsideRect(posImg.x, posImg.y, hdlPos[h])) return h;
-        }
+        for (let h of handles) if(isInsideRect(posImg.x, posImg.y, hdlPos[h])) return h;
         return null;
     }
 
-    // Mouse/Touch Down
     function onPointerDown(e) {
-        if(!sourceImg) return;
+        if(!sourceImg || resizeMode !== 'fill') return;
         e.preventDefault();
         const posCanvas = getPos(e);
         const posImg = { x: posCanvas.x / canvasScale, y: posCanvas.y / canvasScale };
-        
         const h = checkHandles(posImg);
-        
         if (h) {
-            isResizing = true;
-            resizeHandle = h;
+            isResizing = true; resizeHandle = h;
             initialCropRect = { ...cropRect };
             resizeStartAspect = initialCropRect.w / initialCropRect.h;
         } else if (isInsideRect(posImg.x, posImg.y, cropRect)) {
-            isDragging = true;
-            initialCropRect = { ...cropRect };
+            isDragging = true; initialCropRect = { ...cropRect };
         }
-
-        dragStartX = posCanvas.x;
-        dragStartY = posCanvas.y;
+        dragStartX = posCanvas.x; dragStartY = posCanvas.y;
     }
 
-    // Mouse/Touch Move
     function onPointerMove(e) {
         if(!sourceImg) return;
         const posCanvas = getPos(e);
-        
-        // Handle Cursor style
-        if (!isDragging && !isResizing) {
+        if (!isDragging && !isResizing && resizeMode === 'fill') {
             const posImg = { x: posCanvas.x / canvasScale, y: posCanvas.y / canvasScale };
             const h = checkHandles(posImg);
             if (h === 'nw' || h === 'se') cropCanvas.style.cursor = 'nwse-resize';
@@ -550,78 +720,45 @@
             else if (isInsideRect(posImg.x, posImg.y, cropRect)) cropCanvas.style.cursor = 'grab';
             else cropCanvas.style.cursor = 'crosshair';
         }
-
         if (!isDragging && !isResizing) return;
         e.preventDefault();
-        
         if (isDragging) cropCanvas.style.cursor = 'grabbing';
-
         const dx = (posCanvas.x - dragStartX) / canvasScale;
         const dy = (posCanvas.y - dragStartY) / canvasScale;
-
-        if (isDragging) {
-            cropRect.x = initialCropRect.x + dx;
-            cropRect.y = initialCropRect.y + dy;
-        } 
+        if (isDragging) { cropRect.x = initialCropRect.x + dx; cropRect.y = initialCropRect.y + dy; }
         else if (isResizing) {
-            let newX = initialCropRect.x;
-            let newY = initialCropRect.y;
-            let newW = initialCropRect.w;
-            let newH = initialCropRect.h;
-
-            // Calculate base new dimensions
-            if (resizeHandle.includes('e')) newW = initialCropRect.w + dx;
-            if (resizeHandle.includes('w')) { newX = initialCropRect.x + dx; newW = initialCropRect.w - dx; }
-            if (resizeHandle.includes('s')) newH = initialCropRect.h + dy;
-            if (resizeHandle.includes('n')) { newY = initialCropRect.y + dy; newH = initialCropRect.h - dy; }
-
-            // Enforce Aspect Ratio if Locked
-            if (isLocked) {
-                if (resizeHandle === 'nw' || resizeHandle === 'ne' || resizeHandle === 'sw' || resizeHandle === 'se') {
-                    newH = newW / resizeStartAspect;
-                    if (resizeHandle.includes('n')) { newY = initialCropRect.y + initialCropRect.h - newH; }
-                }
+            let newX = initialCropRect.x, newY = initialCropRect.y, newW = initialCropRect.w, newH = initialCropRect.h;
+            if(resizeHandle.includes('e')) newW = initialCropRect.w + dx;
+            if(resizeHandle.includes('w')){newX = initialCropRect.x + dx; newW = initialCropRect.w - dx;}
+            if(resizeHandle.includes('s')) newH = initialCropRect.h + dy;
+            if(resizeHandle.includes('n')){newY = initialCropRect.y + dy; newH = initialCropRect.h - dy;}
+            if(isLocked && (resizeHandle==='nw'||resizeHandle==='ne'||resizeHandle==='sw'||resizeHandle==='se')){
+                newH = newW / resizeStartAspect;
+                if(resizeHandle.includes('n')) newY = initialCropRect.y + initialCropRect.h - newH;
             }
-
-            // Minimum size constraints
-            if (newW < 20) { newW = 20; if(resizeHandle.includes('w')) newX = initialCropRect.x + initialCropRect.w - 20; }
-            if (newH < 20) { newH = 20; if(resizeHandle.includes('n')) newY = initialCropRect.y + initialCropRect.h - 20; }
-
-            // Clamp to image bounds
-            if (newX < 0) { newX = 0; newW = initialCropRect.x + initialCropRect.w; if(isLocked) newH = newW / resizeStartAspect; }
-            if (newY < 0) { newY = 0; newH = initialCropRect.y + initialCropRect.h; if(isLocked) newW = newH * resizeStartAspect; }
-            if (newX + newW > sourceImg.naturalWidth) { newW = sourceImg.naturalWidth - newX; if(isLocked) newH = newW / resizeStartAspect; }
-            if (newY + newH > sourceImg.naturalHeight) { newH = sourceImg.naturalHeight - newY; if(isLocked) newW = newH * resizeStartAspect; }
-
-            cropRect = { x: newX, y: newY, w: newW, h: newH };
-            
-            // Update Input Fields
+            if(newW<20){newW=20; if(resizeHandle.includes('w')) newX = initialCropRect.x+initialCropRect.w-20;}
+            if(newH<20){newH=20; if(resizeHandle.includes('n')) newY = initialCropRect.y+initialCropRect.h-20;}
+            if(newX<0){newX=0; newW=initialCropRect.x+initialCropRect.w; if(isLocked) newH=newW/resizeStartAspect;}
+            if(newY<0){newY=0; newH=initialCropRect.y+initialCropRect.h; if(isLocked) newW=newH*resizeStartAspect;}
+            if(newX+newW>sourceImg.naturalWidth){newW=sourceImg.naturalWidth-newX; if(isLocked) newH=newW/resizeStartAspect;}
+            if(newY+newH>sourceImg.naturalHeight){newH=sourceImg.naturalHeight-newY; if(isLocked) newW=newH*resizeStartAspect;}
+            cropRect = {x:newX,y:newY,w:newW,h:newH};
             document.getElementById('outW').value = Math.round(cropRect.w);
             document.getElementById('outH').value = Math.round(cropRect.h);
         }
-
-        // Clamp Dragging Bounds
-        if (isDragging) {
-            cropRect.x = Math.max(0, Math.min(cropRect.x, sourceImg.naturalWidth - cropRect.w));
-            cropRect.y = Math.max(0, Math.min(cropRect.y, sourceImg.naturalHeight - cropRect.h));
-        }
-
+        if(isDragging){ cropRect.x = Math.max(0, Math.min(cropRect.x, sourceImg.naturalWidth-cropRect.w)); cropRect.y = Math.max(0, Math.min(cropRect.y, sourceImg.naturalHeight-cropRect.h)); }
         drawPreview();
     }
 
-    // Mouse/Touch Up
-    function onPointerUp() { isDragging = false; isResizing = false; }
+    function onPointerUp(){ isDragging = false; isResizing = false; }
 
     cropCanvas.addEventListener('mousedown', onPointerDown);
-    cropCanvas.addEventListener('touchstart', (e) => onPointerDown(e), {passive: false});
-    
+    cropCanvas.addEventListener('touchstart', (e)=>onPointerDown(e), {passive:false});
     window.addEventListener('mousemove', onPointerMove);
-    window.addEventListener('touchmove', (e) => onPointerMove(e), {passive: false});
-    
+    window.addEventListener('touchmove', (e)=>onPointerMove(e), {passive:false});
     window.addEventListener('mouseup', onPointerUp);
     window.addEventListener('touchend', onPointerUp);
-    
-    window.addEventListener('resize',()=>{if(sourceImg)drawPreview();});
+    window.addEventListener('resize', ()=>{if(sourceImg)drawPreview();});
 
     // =============================================
     //  PROCESS
@@ -634,21 +771,34 @@
         const tc=document.createElement('canvas');tc.width=outW;tc.height=outH;const ctx=tc.getContext('2d');
         if(format==='jpeg'){ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,outW,outH);}
         ctx.save();ctx.beginPath();
-        const rPct=parseInt(document.getElementById('customRadius')?.value||20)/100;
-        const pts=parseInt(document.getElementById('starPoints')?.value||5);
-        switch(cropShape){
-            case 'circle':ctx.ellipse(outW/2,outH/2,outW/2,outH/2,0,0,Math.PI*2);break;
-            case 'oval':ctx.ellipse(outW/2,outH/2,outW/2,outH/2,0,0,Math.PI*2);break;
-            case 'rounded':{const r=Math.min(outW,outH)*rPct;ctx.roundRect(0,0,outW,outH,r);break;}
-            case 'star':drawStarPath(ctx,outW/2,outH/2,pts,outW/2,outH/2);break;
-            case 'hexagon':drawPolyPath(ctx,outW/2,outH/2,6,outW/2,outH/2);break;
-            default:ctx.rect(0,0,outW,outH);
+        if(resizeMode==='fill'){
+            const rPct=parseInt(document.getElementById('customRadius')?.value||20)/100;
+            const pts=parseInt(document.getElementById('starPoints')?.value||5);
+            switch(cropShape){
+                case 'circle':ctx.ellipse(outW/2,outH/2,outW/2,outH/2,0,0,Math.PI*2);break;
+                case 'oval':ctx.ellipse(outW/2,outH/2,outW/2,outH/2,0,0,Math.PI*2);break;
+                case 'rounded':{const r=Math.min(outW,outH)*rPct;ctx.roundRect(0,0,outW,outH,r);break;}
+                case 'star':drawStarPath(ctx,outW/2,outH/2,pts,outW/2,outH/2);break;
+                case 'hexagon':drawPolyPath(ctx,outW/2,outH/2,6,outW/2,outH/2);break;
+                default:ctx.rect(0,0,outW,outH);
+            }
+            ctx.clip();
+            ctx.drawImage(sourceImg,cropRect.x,cropRect.y,cropRect.w,cropRect.h,0,0,outW,outH);
+        } else {
+            const scale = Math.min(outW/sourceImg.naturalWidth, outH/sourceImg.naturalHeight);
+            const dw = sourceImg.naturalWidth*scale, dh = sourceImg.naturalHeight*scale;
+            const dx = (outW-dw)/2, dy = (outH-dh)/2;
+            ctx.drawImage(sourceImg, dx, dy, dw, dh);
         }
-        ctx.clip();
-        ctx.drawImage(sourceImg,cropRect.x,cropRect.y,cropRect.w,cropRect.h,0,0,outW,outH);
         ctx.restore();
         const mimeType=format==='jpeg'?'image/jpeg':format==='webp'?'image/webp':'image/png';
-        tc.toBlob(blob=>{resultBlob=blob;document.getElementById('resultArea').classList.remove('hidden');document.getElementById('resultInfo').textContent=`${Math.round(cropRect.w)}×${Math.round(cropRect.h)} → ${outW}×${outH} ${format.toUpperCase()} (${formatSize(blob.size)})`;lucide.createIcons();},mimeType,format==='png'?undefined:0.92);
+        tc.toBlob(blob=>{
+            resultBlob=blob;
+            document.getElementById('resultArea').classList.remove('hidden');
+            const cropInfo = resizeMode==='fill'?`${Math.round(cropRect.w)}×${Math.round(cropRect.h)} → `:`${sourceImg.naturalWidth}×${sourceImg.naturalHeight} → `;
+            document.getElementById('resultInfo').textContent=`${cropInfo}${outW}×${outH} ${format.toUpperCase()} (${formatSize(blob.size)})`;
+            lucide.createIcons();
+        },mimeType,format==='png'?undefined:0.92);
     }
 
     function downloadResult(){
@@ -660,7 +810,7 @@
         document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),5000);
     }
 
-    function formatSize(b){if(!b)return '0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return parseFloat((b/Math.pow(k,i)).toFixed(2))+' '+s[i];}
+    function formatSize(b){if(!b)return'0 B';const k=1024,s=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(k));return parseFloat((b/Math.pow(k,i)).toFixed(2))+' '+s[i];}
 
     lucide.createIcons();
     </script>

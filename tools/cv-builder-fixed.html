@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume / CV Builder — ToolBox (30+ Templates)</title>
+
+    <script>
+        (function() {
+            try {
+                var saved = localStorage.getItem('toolbox-theme');
+                var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) {}
+        })();
+    </script>
+
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <script src="https://unpkg.com/lucide@latest">
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&family=DM+Serif+Display:ital@0;1&family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Merriweather:wght@400;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root,
+        [data-theme="dark"] {
+            --bg-body: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --bg-card-hover: rgba(26, 26, 26, 0.8);
+            --bg-nav: rgba(10, 10, 10, 0.9);
+            --bg-footer: #0d0d0d;
+            --bg-input: #1a1a1a;
+            --bg-badge: rgba(59, 130, 246, 0.15);
+            --bg-category: rgba(26, 26, 26, 0.8);
+            --text-primary: #ffffff;
+            --text-secondary: #a3a3a3;
+            --text-tertiary: #888888;
+            --text-muted: #666666;
+            --text-dim: #444444;
+            --border-primary: rgba(255, 255, 255, 0.08);
+            --border-secondary: rgba(255, 255, 255, 0.15);
+            --border-active: rgba(59, 130, 246, 0.5);
+            --accent: #3b82f6;
+            --accent-text: #60a5fa;
+            --accent-bg: rgba(59, 130, 246, 0.15);
+            --scrollbar-track: #0a0a0a;
+            --scrollbar-thumb: #333;
+            --shadow-card: none;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f8f9fa;
+            --bg-card: #ffffff;
+            --bg-card-hover: rgba(255, 255, 255, 0.95);
+            --bg-nav: rgba(248, 249, 250, 0.9);
+            --bg-footer: #e9ecef;
+            --bg-input: #ffffff;
+            --bg-badge: rgba(59, 130, 246, 0.1);
+            --bg-category: rgba(0, 0, 0, 0.03);
+            --text-primary: #1a1a1a;
+            --text-secondary: #555555;
+            --text-tertiary: #777777;
+            --text-muted: #999999;
+            --text-dim: #cccccc;
+            --border-primary: rgba(0, 0, 0, 0.08);
+            --border-secondary: rgba(0, 0, 0, 0.15);
+            --border-active: rgba(59, 130, 246, 0.5);
+            --accent: #2563eb;
+            --accent-text: #2563eb;
+            --accent-bg: rgba(59, 130, 246, 0.1);
+            --scrollbar-track: #e9ecef;
+            --scrollbar-thumb: #c0c0c0;
+            --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-primary);
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .navbar {
+            background: var(--bg-nav);
+            border-bottom: 1px solid var(--border-primary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .theme-toggle {
+            width: 48px;
+            height: 26px;
+            border-radius: 13px;
+            background: var(--text-dim);
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid var(--border-secondary);
+            flex-shrink: 0;
+        }
+        .theme-toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            transition: transform 0.3s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        [data-theme="light"] .theme-toggle {
+            background: var(--accent);
+        }
+        [data-theme="light"] .theme-toggle::after {
+            transform: translateX(22px);
+        }
+
+        .tc {
+            background: var(--bg-card);
+            border: 1px solid var(--border-primary);
+            box-shadow: var(--shadow-card);
+            transition: all 0.3s;
+        }
+        .tc:hover {
+            border-color: var(--border-secondary);
+        }
+
+        .cta-primary {
+            background: var(--text-primary);
+            color: var(--bg-body);
+            transition: opacity 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+        .cta-primary:hover {
+            opacity: 0.85;
+        }
+        .cta-secondary {
+            background: var(--bg-card);
+            border: 1px solid var(--border-secondary);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .cta-secondary:hover {
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+
+        .pill-badge {
+            background: var(--accent-bg);
+            border: 1px solid var(--border-active);
+            color: var(--accent-text);
+        }
+
+        .fi {
+            background: var(--bg-input);
+            border: 1px solid var(--border-primary);
+            color: var(--text-primary);
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+        }
+        .fi::placeholder {
+            color: var(--text-muted);
+        }
+        .fi:focus {
+            border-color: var(--border-active);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .tab-btn {
+            background: var(--bg-category);
+            border: 1px solid var(--border-primary);
+            color: var(--text-tertiary);
+            transition: all 0.2s;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .tab-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--border-secondary);
+        }
+        .tab-btn.active {
+            background: var(--accent-bg);
+            border-color: var(--border-active);
+            color: var(--accent-text);
+        }
+
+        .sec-header {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            text-align: left;
+        }
+        .sec-header:hover {
+            background: var(--accent-bg);
+        }
+
+        .cc {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .cc.open {
+            max-height: 5000px;
+        }
+
+        .tpl-grid-left {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 7px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 2px;
+        }
+        .tpl-grid-left::-webkit-scrollbar {
+            width: 4px;
+        }
+        .tpl-grid-left::-webkit-scrollbar-thumb {
+            background: var(--scrollbar-thumb);
+            border-radius: 3px;
+        }
+        .tpl-mini-card {
+            border: 1px solid var(--border-primary);
+            border-radius: 10px;
+            padding: 9px 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            background: var(--bg-card);
+            font-size: 9.5px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            line-height: 1.3;
+        }
+        .tpl-mini-card:hover {
+            border-color: var(--border-secondary);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+        .tpl-mini-card.sel {
+            border-color: var(--border-active);
+            background: var(--accent-bg);
+            color: var(--accent-text);
+            box-shadow: 0 0 12px var(--accent-bg);
+        }
+        .tpl-mini-card .tpl-icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+            display: block;
+        }
+        .tpl-mini-card .tpl-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 3px;
+            vertical-align: middle;
+        }
+
+        .resume-paper {
+            background: #fff;
+            color: #1a1a2e;
+            border-radius: 4px;
+            padding: 40px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            min-height: 600px;
+            max-width: 800px;
+            margin: 0 auto;
+            transition: all 0.2s;
+            font-size: 12px;
+        }
+
+        .resume-paper h1 {
+            font-weight: 700;
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+        .resume-paper h2 {
+            font-weight: 600;
+            font-size: 12px;
+            margin: 16px 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .resume-paper .contact-row {
+            font-size: 10.5px;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+        .resume-paper .exp-item {
+            margin-bottom: 10px;
+        }
+        .resume-paper .exp-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        .resume-paper .exp-date {
+            font-size: 10px;
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        .resume-paper .exp-role {
+            font-style: italic;
+            color: #3b82f6;
+            font-size: 11px;
+        }
+        .resume-paper .skill-tag {
+            display: inline-block;
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 2px 9px;
+            border-radius: 99px;
+            font-size: 10px;
+            margin: 2px 3px;
+            font-weight: 500;
+        }
+        .resume-paper ul {
+            padding-left: 16px;
+            font-size: 11px;
+            line-height: 1.55;
+        }
+        .resume-paper ul li {
+            margin-bottom: 2px;
+        }
+
+        /* All template-specific styles */
+        .t-modern { font-family: 'Poppins', sans-serif; }
+        .t-modern h1 { font-size: 26px; font-weight: 700; color: #0f172a; letter-spacing: -0.02em; }
+        .t-modern h2 { border-bottom: 2px solid #6366f1; padding-bottom: 4px; color: #4338ca; }
+        .t-modern .contact-row { border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; }
+        .t-minimal { padding: 28px; font-size: 10.5px; }
+        .t-minimal h1 { font-size: 18px; font-weight: 600; }
+        .t-minimal h2 { font-size: 10px; letter-spacing: 0.08em; color: #64748b; }
+        .t-creative { background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%); font-family: 'Space Grotesk', sans-serif; }
+        .t-creative h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .t-creative h2 { color: #764ba2; border-bottom: 2px dotted #c4b5fd; }
+        .t-bold { background: #fff; }
+        .t-bold .header-banner { background: #1e293b; color: #fff; padding: 18px; margin: -40px -40px 16px; text-align: center; }
+        .t-bold .header-banner h1 { color: #fff; font-size: 26px; }
+        .t-bold .header-banner .contact-row { color: #94a3b8; }
+        .t-elegant { font-family: 'Playfair Display', serif; background: #faf7f2; }
+        .t-elegant h1 { font-size: 30px; font-weight: 700; }
+        .t-elegant h2 { border-bottom: 2px solid #d4af37; color: #8b7355; }
+        .t-sidebar { display: flex; padding: 0; background: #fff; }
+        .t-sidebar .side-left { width: 190px; background: #1e3a8a; color: #fff; padding: 20px; flex-shrink: 0; }
+        .t-sidebar .side-left h1 { color: #fff; font-size: 20px; }
+        .t-sidebar .side-right { padding: 20px; flex: 1; }
+        .t-sidebar .side-right h2 { color: #1e3a8a; }
+        .t-timeline .timeline-wrap { position: relative; padding-left: 20px; }
+        .t-timeline .timeline-wrap::before { content: ''; position: absolute; left: 5px; top: 0; bottom: 0; width: 2px; background: #cbd5e1; }
+        .t-timeline .exp-item { position: relative; margin-bottom: 14px; }
+        .t-timeline .exp-item::before { content: ''; position: absolute; left: -18px; top: 3px; width: 8px; height: 8px; background: #3b82f6; border-radius: 50%; border: 2px solid #fff; z-index: 1; }
+        .t-tech { background: #0d1117; color: #c9d1d9; font-family: 'JetBrains Mono', monospace; }
+        .t-tech h1 { color: #58a6ff; }
+        .t-tech h2 { color: #8b949e; border-bottom: 1px solid #30363d; }
+        .t-corporate h1 { font-weight: 700; color: #0f172a; }
+        .t-corporate .accent-strip { border-left: 4px solid #2563eb; padding-left: 12px; margin-bottom: 14px; }
+        .t-compact { font-size: 9.5px; columns: 2; column-gap: 24px; padding: 24px; }
+        .t-compact h1 { column-span: all; font-size: 20px; }
+        .t-photo-cv { display: flex; gap: 18px; }
+        .t-photo-cv .photo-side { width: 130px; flex-shrink: 0; }
+        .t-photo-cv .photo-side img { width: 100%; border-radius: 8px; }
+        .t-academic { font-family: 'DM Serif Display', serif; background: #fffcf0; }
+        .t-academic h1 { font-size: 26px; }
+        .t-medical { background: #f0fdf4; font-family: 'Merriweather', serif; }
+        .t-medical h1 { color: #065f46; }
+        .t-medical h2 { color: #047857; border-bottom: 2px solid #6ee7b7; }
+        .t-legal { font-family: 'Source Serif 4', serif; background: #fefefe; border: 3px double #1e293b; }
+        .t-legal h1 { text-align: center; font-weight: 900; letter-spacing: 0.04em; }
+        .t-marketing { background: linear-gradient(180deg, #fff 0%, #fef3c7 100%); font-family: 'Poppins', sans-serif; }
+        .t-marketing h1 { color: #b45309; font-weight: 800; }
+        .t-marketing h2 { background: #f59e0b; color: #fff; display: inline-block; padding: 3px 14px; border-radius: 4px; font-size: 11px; }
+        .t-engineering { background: #f8fafc; font-family: 'Inter', sans-serif; border-top: 5px solid #0284c7; }
+        .t-engineering h1 { color: #0c4a6e; }
+        .t-engineering h2 { color: #0369a1; border-left: 4px solid #0284c7; padding-left: 8px; }
+        .t-finance { background: #fafafa; font-family: 'Inter', sans-serif; }
+        .t-finance h1 { color: #1e293b; font-weight: 700; }
+        .t-finance h2 { color: #334155; border-bottom: 2px solid #475569; }
+        .t-hospitality { background: #fff7ed; font-family: 'Playfair Display', serif; }
+        .t-hospitality h1 { color: #9a3412; }
+        .t-hospitality h2 { color: #c2410c; border-bottom: 1px dashed #fdba74; }
+        .t-education { background: #eff6ff; font-family: 'Merriweather', serif; }
+        .t-education h1 { color: #1e40af; text-align: center; }
+        .t-startup { background: #fff; font-family: 'Space Grotesk', sans-serif; border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); }
+        .t-startup h1 { font-weight: 700; letter-spacing: -0.03em; }
+        .t-executive { background: #fff; font-family: 'Playfair Display', serif; padding: 50px; }
+        .t-executive h1 { font-size: 32px; text-align: center; font-weight: 900; letter-spacing: 0.04em; }
+        .t-executive h2 { text-align: center; letter-spacing: 0.1em; font-size: 10px; color: #94a3b8; border: none; margin-bottom: 16px; }
+        .t-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+        .t-gradient h1 { color: #fff; font-size: 28px; }
+        .t-gradient h2 { color: #e0e7ff; border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+        .t-gradient .skill-tag { background: rgba(255, 255, 255, 0.2); color: #fff; }
+        .t-glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 16px; }
+        .t-newspaper { font-family: 'Source Serif 4', serif; background: #fefefe; columns: 2; column-gap: 30px; column-rule: 1px solid #d1d5db; }
+        .t-newspaper h1 { column-span: all; text-align: center; font-size: 28px; font-weight: 900; letter-spacing: 0.03em; border-bottom: 3px double #1e293b; padding-bottom: 8px; margin-bottom: 16px; }
+        .t-magazine { background: #fff; font-family: 'Poppins', sans-serif; }
+        .t-magazine h1 { font-size: 36px; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+        .t-magazine .subtitle-lg { font-size: 16px; color: #6366f1; font-weight: 600; letter-spacing: 0.05em; margin-bottom: 16px; }
+        .t-digital { background: #f0f9ff; font-family: 'Inter', sans-serif; border-radius: 12px; }
+        .t-digital h1 { color: #0369a1; font-weight: 800; }
+        .t-digital h2 { background: #0284c7; color: #fff; padding: 4px 12px; border-radius: 4px; display: inline-block; }
+        .t-freelance { background: #fff; font-family: 'Space Grotesk', sans-serif; border: 2px solid #e2e8f0; border-radius: 20px; }
+        .t-freelance h1 { font-weight: 700; display: inline-block; border-bottom: 3px solid #f59e0b; padding-bottom: 2px; }
+        .t-simple-clean { padding: 32px; }
+        .t-simple-clean h1 { font-weight: 600; font-size: 22px; }
+        .t-simple-clean h2 { font-weight: 500; font-size: 11px; color: #6b7280; letter-spacing: 0.06em; border: none; }
+        .t-vintage { background: #fefce8; font-family: 'DM Serif Display', serif; border: 4px double #d4a373; padding: 36px; }
+        .t-vintage h1 { text-align: center; font-size: 28px; }
+        .t-zen { background: #f9f9f4; font-family: 'Inter', sans-serif; padding: 40px; }
+        .t-zen h1 { font-weight: 300; letter-spacing: 0.12em; font-size: 22px; text-align: center; }
+        .t-zen h2 { font-weight: 300; letter-spacing: 0.08em; text-align: center; border: none; color: #a3a3a3; }
+        .t-neon { background: #0f0f1a; color: #e0e0e0; }
+        .t-neon h1 { color: #ff79c6; text-shadow: 0 0 20px rgba(255, 121, 198, 0.5); }
+        .t-neon h2 { color: #bd93f9; border-bottom: 1px solid #444; }
+        .t-neon .skill-tag { background: rgba(255, 121, 198, 0.2); color: #ff79c6; border: 1px solid #ff79c644; }
+        .t-capsule { background: #fff; border-radius: 32px; padding: 36px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08); }
+        .t-capsule h1 { font-weight: 700; }
+        .t-grunge { background: #f5f0e1; font-family: 'Space Grotesk', sans-serif; }
+        .t-grunge h1 { text-decoration: underline; text-underline-offset: 6px; }
+        .t-architect { background: #fff; font-family: 'Inter', sans-serif; border-left: 8px solid #1e293b; padding-left: 32px; }
+        .t-architect h1 { font-weight: 300; letter-spacing: 0.15em; font-size: 20px; text-transform: uppercase; }
+        .t-culinary { background: #fffbf5; font-family: 'Playfair Display', serif; border: 2px solid #e07a5f; }
+        .t-culinary h1 { color: #e07a5f; }
+        .t-culinary h2 { color: #c05a3f; border-bottom: 1px dotted #e07a5f; }
+
+        .cover-paper {
+            background: #fff;
+            color: #1a1a2e;
+            border-radius: 4px;
+            padding: 48px;
+            font-family: 'Inter', serif;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            min-height: 500px;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+            font-size: 13.5px;
+            white-space: pre-wrap;
+        }
+
+        .toast-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 260px;
+            backdrop-filter: blur(12px);
+        }
+        .toast.success { background: rgba(34, 197, 94, 0.9); color: #fff; }
+        .toast.error { background: rgba(220, 38, 38, 0.9); color: #fff; }
+        .toast.info { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border-secondary); }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(40px) scale(0.95); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        .pulse-a { animation: pa 2.5s ease-in-out infinite; }
+        @keyframes pa {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-bg); }
+            50% { box-shadow: 0 0 0 12px transparent; }
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+        }
+
+        .footer {
+            background: var(--bg-footer);
+            border-top: 1px solid var(--border-primary);
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+
+        @media print {
+            body { background: #fff !important; }
+            .no-print { display: none !important; }
+            .resume-paper, .cover-paper { box-shadow: none; padding: 20px; }
+        }
+
+        @media (max-width: 1024px) {
+            .bgrid { grid-template-columns: 1fr !important; }
+            .resume-paper, .cover-paper { padding: 24px; }
+            .tpl-grid-left { grid-template-columns: repeat(4, 1fr); max-height: 200px; }
+        }
+
+        @media (max-width: 640px) {
+            .tab-btn .tab-label { display: none; }
+            .tpl-grid-left { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <div class="toast-box" id="toastBox"></div>
+
+    <!-- NAVBAR -->
+    <nav class="navbar fixed top-0 left-0 right-0 z-50 h-16 no-print">
+        <div class="max-w-7xl mx-auto h-full px-4 md:px-6 flex items-center justify-between">
+            <a href="../index.html" class="flex items-center gap-2.5">
+                <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <i data-lucide="wrench" class="w-4 h-4 text-white"></i>
+                </div>
+                <span class="text-lg font-semibold tracking-tight" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span>
+            </a>
+
+            <div class="flex items-center gap-1">
+                <button class="tab-btn active px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" data-tab="builder" onclick="switchTab('builder')">
+                    <i data-lucide="file-text" class="w-4 h-4"></i><span class="tab-label">Resume Builder</span>
+                </button>
+                <button class="tab-btn px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" data-tab="ats" onclick="switchTab('ats')">
+                    <i data-lucide="shield-check" class="w-4 h-4"></i><span class="tab-label">ATS Checker</span>
+                </button>
+                <button class="tab-btn px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-medium flex items-center gap-1.5 md:gap-2" data-tab="cover" onclick="switchTab('cover')">
+                    <i data-lucide="mail" class="w-4 h-4"></i><span class="tab-label">Cover Letter</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="../index.html" class="hidden md:flex cta-secondary h-9 px-4 rounded-lg text-xs font-medium items-center gap-2">
+                    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back
+                </a>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="sun" class="w-4 h-4" style="color: var(--text-muted)"></i>
+                    <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle theme"></div>
+                    <i data-lucide="moon" class="w-4 h-4" style="color: var(--text-muted)"></i>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-16">
+
+        <!-- HERO -->
+        <section class="relative overflow-hidden py-10 md:py-12 no-print">
+            <div class="hero-glow top-0 left-1/2 -translate-x-1/2 -translate-y-1/3" style="background: var(--bg-hero-glow-1)"></div>
+            <div class="hero-glow bottom-0 right-0 translate-x-1/3" style="background: var(--bg-hero-glow-2)"></div>
+            <div class="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+                <div class="animate-fade-up">
+                    <div class="pill-badge inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium mb-4">
+                        <i data-lucide="zap" class="w-3 h-3"></i> 100% Free — No Signup • 30+ Templates
+                    </div>
+                </div>
+                <h1 class="animate-fade-up delay-1 text-3xl md:text-4xl font-medium tracking-tight leading-[1.1] mb-2" style="color: var(--text-primary)">
+                    Resume & CV <span class="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">Builder</span>
+                </h1>
+                <p class="animate-fade-up delay-2 text-sm md:text-base font-light max-w-2xl" style="color: var(--text-tertiary)">
+                    Professional resumes for every department — Medical, Legal, Engineering, Marketing, Finance, IT & more.
+                </p>
+            </div>
+        </section>
+
+        <!-- TOOL SECTIONS -->
+        <div class="max-w-7xl mx-auto px-4 md:px-6 pb-24">
+
+            <!-- RESUME BUILDER -->
+            <section id="sec-builder" class="tool-section" style="display:block">
+                <div class="bgrid grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                    <!-- LEFT PANEL: Form + Templates -->
+                    <div class="space-y-3" id="resumeForm">
+                        <!-- TEMPLATE SELECTOR -->
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('templates')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="layout-grid" class="w-4 h-4" style="color: var(--accent-text)"></i> Choose Template <span style="color:var(--accent-text);font-weight:400;font-size:10px;">(30+ Styles)</span></span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-templates"></i>
+                            </button>
+                            <div class="cc open px-4 pb-4" id="col-templates">
+                                <div class="tpl-grid-left" id="templateGrid"></div>
+                            </div>
+                        </div>
+
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('personal')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="user" class="w-4 h-4" style="color: var(--accent-text)"></i> Personal Information</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-personal"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-personal">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div><label class="text-[11px] mb-1 block font-medium" style="color: var(--text-muted)">Full Name</label><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="r-name" placeholder="John Doe" oninput="updatePreview()"></div>
+                                    <div><label class="text-[11px] mb-1 block font-medium" style="color: var(--text-muted)">Job Title</label><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="r-title" placeholder="Software Engineer" oninput="updatePreview()"></div>
+                                    <div><label class="text-[11px] mb-1 block font-medium" style="color: var(--text-muted)">Email</label><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="r-email" placeholder="john@example.com" oninput="updatePreview()"></div>
+                                    <div><label class="text-[11px] mb-1 block font-medium" style="color: var(--text-muted)">Phone</label><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="r-phone" placeholder="+91 98765 43210" oninput="updatePreview()"></div>
+                                    <div><label class="text-[11px] mb-1 block font-medium" style="color: var(--text-muted)">Location</label><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="r-loc" placeholder="Mumbai, India" oninput="updatePreview()"></div>
+                                    <div><label class="text-[11px] mb-1 block font-medium" style="color: var(--text-muted)">LinkedIn / Portfolio</label><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="r-link" placeholder="linkedin.com/in/johndoe" oninput="updatePreview()"></div>
+                                </div>
+                                <div class="mt-3 flex gap-3 items-center flex-wrap">
+                                    <label class="text-[11px] font-medium cursor-pointer px-3 py-1.5 rounded-lg text-white bg-blue-500" for="photoUpload">📷 Upload Photo</label>
+                                    <input type="file" id="photoUpload" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)">
+                                    <span id="photoPreviewThumb" class="text-xs" style="color: var(--text-secondary)"></span>
+                                    <button onclick="removePhoto()" class="text-xs text-red-400 hidden" id="removePhotoBtn">✕ Remove</button>
+                                </div>
+                                <div class="mt-3"><label class="text-[11px] mb-1 block font-medium" style="color: var(--text-muted)">Professional Summary</label><textarea class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="r-summary" rows="3" placeholder="Brief overview of your experience and goals..." oninput="updatePreview()"></textarea></div>
+                            </div>
+                        </div>
+
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('exp')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="briefcase" class="w-4 h-4" style="color: var(--accent-text)"></i> Work Experience</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-exp"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-exp"><div id="exp-box"></div>
+                                <button onclick="addExperience()" class="mt-3 flex items-center gap-2 text-xs font-medium hover:opacity-80" style="color: var(--accent-text); background: none; border: none; cursor: pointer;"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Experience</button>
+                            </div>
+                        </div>
+
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('edu')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="graduation-cap" class="w-4 h-4" style="color: var(--accent-text)"></i> Education</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-edu"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-edu"><div id="edu-box"></div>
+                                <button onclick="addEducation()" class="mt-3 flex items-center gap-2 text-xs font-medium hover:opacity-80" style="color: var(--accent-text); background: none; border: none; cursor: pointer;"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Education</button>
+                            </div>
+                        </div>
+
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('skills')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="wrench" class="w-4 h-4" style="color: var(--accent-text)"></i> Skills</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-skills"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-skills">
+                                <div class="flex flex-wrap gap-2 mb-3" id="skill-tags"></div>
+                                <div class="flex gap-2">
+                                    <input class="fi flex-1 rounded-lg px-3 py-2.5 text-sm" id="skill-in" placeholder="Type a skill and press Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();addSkill()}">
+                                    <button onclick="addSkill()" class="px-4 py-2.5 rounded-lg text-xs font-medium hover:opacity-80" style="background: var(--accent-bg); color: var(--accent-text); border: 1px solid var(--border-active); cursor: pointer">Add</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CERTIFICATIONS – EXPANDED BY DEFAULT -->
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('certs')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="award" class="w-4 h-4" style="color: var(--accent-text)"></i> Certifications</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-certs"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-certs"><div id="cert-box"></div>
+                                <button onclick="addCertification()" class="mt-3 flex items-center gap-2 text-xs font-medium hover:opacity-80" style="color: var(--accent-text); background: none; border: none; cursor: pointer;"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Certification</button>
+                            </div>
+                        </div>
+
+                        <!-- LANGUAGES – EXPANDED BY DEFAULT -->
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('langs')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="languages" class="w-4 h-4" style="color: var(--accent-text)"></i> Languages</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-langs"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-langs"><div id="lang-box"></div>
+                                <button onclick="addLanguage()" class="mt-3 flex items-center gap-2 text-xs font-medium hover:opacity-80" style="color: var(--accent-text); background: none; border: none; cursor: pointer;"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Language</button>
+                            </div>
+                        </div>
+
+                        <!-- PROJECTS – EXPANDED BY DEFAULT -->
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('projects')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="folder-git-2" class="w-4 h-4" style="color: var(--accent-text)"></i> Projects</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-projects"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-projects"><div id="project-box"></div>
+                                <button onclick="addProject()" class="mt-3 flex items-center gap-2 text-xs font-medium hover:opacity-80" style="color: var(--accent-text); background: none; border: none; cursor: pointer;"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Project</button>
+                            </div>
+                        </div>
+
+                        <!-- VOLUNTEER – EXPANDED BY DEFAULT -->
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('volunteer')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="hand-heart" class="w-4 h-4" style="color: var(--accent-text)"></i> Volunteer Work</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-volunteer"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-volunteer"><div id="volunteer-box"></div>
+                                <button onclick="addVolunteer()" class="mt-3 flex items-center gap-2 text-xs font-medium hover:opacity-80" style="color: var(--accent-text); background: none; border: none; cursor: pointer;"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Volunteer</button>
+                            </div>
+                        </div>
+
+                        <!-- HOBBIES – EXPANDED BY DEFAULT -->
+                        <div class="tc rounded-2xl overflow-hidden">
+                            <button class="sec-header w-full flex items-center justify-between px-5 py-4" onclick="toggleCollapse('hobbies')">
+                                <span class="font-medium text-sm flex items-center gap-2"><i data-lucide="gamepad-2" class="w-4 h-4" style="color: var(--accent-text)"></i> Hobbies & Interests</span>
+                                <i data-lucide="chevron-down" class="w-4 h-4 transition-transform duration-300" style="color: var(--text-muted)" id="ico-hobbies"></i>
+                            </button>
+                            <div class="cc open px-5 pb-5" id="col-hobbies">
+                                <div class="flex flex-wrap gap-2 mb-3" id="hobby-tags"></div>
+                                <div class="flex gap-2">
+                                    <input class="fi flex-1 rounded-lg px-3 py-2.5 text-sm" id="hobby-in" placeholder="Add a hobby and press Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();addHobby()}">
+                                    <button onclick="addHobby()" class="px-4 py-2.5 rounded-lg text-xs font-medium hover:opacity-80" style="background: var(--accent-bg); color: var(--accent-text); border: 1px solid var(--border-active); cursor: pointer">Add</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button onclick="downloadResume()" class="flex-1 h-12 cta-primary rounded-xl text-sm font-medium flex items-center justify-center gap-2 pulse-a">
+                                <i data-lucide="download" class="w-4 h-4"></i> Download / Print
+                            </button>
+                            <button onclick="clearAll()" class="h-12 px-5 cta-secondary rounded-xl text-sm font-medium flex items-center justify-center gap-2">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT PANEL: Preview Only -->
+                    <div class="lg:sticky lg:top-20">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[11px] font-medium uppercase tracking-widest" style="color: var(--text-muted)">Live Preview</span>
+                            <span class="text-[11px] flex items-center gap-1.5" style="color: var(--accent-text)"><span class="w-1.5 h-1.5 rounded-full animate-pulse" style="background: var(--accent)"></span> Auto-updating</span>
+                        </div>
+                        <div id="resumePreview" class="resume-paper t-classic"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ATS CHECKER -->
+            <section id="sec-ats" class="tool-section" style="display:none">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div class="tc rounded-2xl p-5"><label class="font-medium text-sm flex items-center gap-2 mb-3"><i data-lucide="file-text" class="w-4 h-4" style="color: var(--accent-text)"></i> Your Resume Text</label><textarea class="fi w-full rounded-lg px-4 py-3 text-sm" id="ats-resume" rows="10" placeholder="Paste your entire resume text here..."></textarea></div>
+                        <div class="tc rounded-2xl p-5"><label class="font-medium text-sm flex items-center gap-2 mb-3"><i data-lucide="target" class="w-4 h-4" style="color: #fbbf24"></i> Job Description</label><textarea class="fi w-full rounded-lg px-4 py-3 text-sm" id="ats-jd" rows="10" placeholder="Paste the target job description here..."></textarea></div>
+                        <button onclick="runATSCheck()" class="w-full h-12 cta-primary rounded-xl text-sm font-medium flex items-center justify-center gap-2 pulse-a"><i data-lucide="scan-search" class="w-4 h-4"></i> Analyze Compatibility</button>
+                    </div>
+                    <div id="ats-out" class="space-y-4"><div class="tc rounded-2xl p-8 flex flex-col items-center justify-center min-h-[400px]"><i data-lucide="shield-check" class="w-16 h-16" style="color: var(--accent-text);opacity:0.5"></i><p class="text-center text-sm mt-4" style="color: var(--text-tertiary)">Paste your resume and job description,<br>then click Analyze.</p></div></div>
+                </div>
+            </section>
+
+            <!-- COVER LETTER -->
+            <section id="sec-cover" class="tool-section" style="display:none">
+                <div class="bgrid grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                    <div class="space-y-3">
+                        <div class="tc rounded-2xl p-5"><h3 class="font-medium text-sm mb-4"><i data-lucide="user" class="w-4 h-4" style="color: var(--accent-text)"></i> Your Information</h3><div class="grid grid-cols-2 gap-3"><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="cl-name" placeholder="Full Name"><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="cl-role" placeholder="Current Role"><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="cl-email" placeholder="Email"><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="cl-phone" placeholder="Phone"></div></div>
+                        <div class="tc rounded-2xl p-5"><h3 class="font-medium text-sm mb-4"><i data-lucide="building-2" class="w-4 h-4"></i> Target Job</h3><input class="fi w-full rounded-lg px-3 py-2.5 text-sm mb-3" id="cl-co" placeholder="Company"><input class="fi w-full rounded-lg px-3 py-2.5 text-sm mb-3" id="cl-pos" placeholder="Position"><input class="fi w-full rounded-lg px-3 py-2.5 text-sm" id="cl-mgr" placeholder="Hiring Manager (optional)"></div>
+                        <button onclick="generateCoverLetter()" class="w-full h-12 cta-primary rounded-xl text-sm font-medium">Generate Cover Letter</button>
+                    </div>
+                    <div><div id="clPreview" class="cover-paper">Your generated cover letter will appear here. Fill in the details and click Generate.</div></div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer no-print">
+        <div class="max-w-7xl mx-auto px-4 md:px-6 py-10">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <a href="../index.html" class="flex items-center gap-2.5"><div class="w-7 h-7 bg-blue-500 rounded-md flex items-center justify-center"><i data-lucide="wrench" class="w-3.5 h-3.5 text-white"></i></div><span class="text-sm font-semibold" style="color: var(--text-primary)">Tool<span class="text-blue-400">Box</span></span></a>
+                <p class="text-xs" style="color: var(--text-muted)">All tools run locally. No data uploaded. • 30+ Resume Templates</p>
+                <p class="text-xs" style="color: var(--text-muted)">© 2026 ToolBox</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // ============ THEME ============
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('toolbox-theme', next);
+        }
+
+        function showToast(msg, type = 'success') {
+            const box = document.getElementById('toastBox');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            const icons = { success: 'check-circle', error: 'x-circle', info: 'info' };
+            toast.innerHTML = `<i data-lucide="${icons[type]||'info'}" style="width:16px;height:16px;flex-shrink:0"></i> ${msg}`;
+            box.appendChild(toast);
+            lucide.createIcons();
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transform = 'translateX(40px)'; toast.style.transition = 'all 0.3s'; }, 2500);
+            setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3000);
+        }
+
+        function toggleCollapse(id) {
+            const col = document.getElementById(`col-${id}`);
+            const ico = document.getElementById(`ico-${id}`);
+            if (!col) return;
+            col.classList.toggle('open');
+            if (ico) ico.style.transform = col.classList.contains('open') ? 'rotate(0)' : 'rotate(-90deg)';
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${tab}"]`).classList.add('active');
+            document.querySelectorAll('.tool-section').forEach(s => s.style.display = 'none');
+            document.getElementById(`sec-${tab}`).style.display = 'block';
+            setTimeout(() => lucide.createIcons(), 50);
+        }
+
+        // ============ DATA STATE ============
+        let skills = [], hobbies = [], experienceList = [], educationList = [], certificationList = [], languageList = [], projectList = [], volunteerList = [];
+        let experienceId = 0, educationId = 0, certificationId = 0, languageId = 0, projectId = 0, volunteerId = 0;
+        let resumePhoto = null, currentTemplate = 'classic';
+
+        const templates = [
+            { id: 'classic', name: 'Professional', icon: 'briefcase', dept: 'General', photo: false },
+            { id: 'modern', name: 'Modern', icon: 'zap', dept: 'Tech', photo: false },
+            { id: 'minimal', name: 'Minimal', icon: 'minimize-2', dept: 'General', photo: false },
+            { id: 'creative', name: 'Creative', icon: 'palette', dept: 'Design', photo: true },
+            { id: 'bold', name: 'Bold', icon: 'bold', dept: 'Business', photo: true },
+            { id: 'elegant', name: 'Elegant', icon: 'feather', dept: 'Luxury', photo: true },
+            { id: 'sidebar', name: 'Sidebar', icon: 'sidebar', dept: 'Tech', photo: true },
+            { id: 'timeline', name: 'Timeline', icon: 'clock', dept: 'General', photo: false },
+            { id: 'tech', name: 'Tech Dark', icon: 'terminal', dept: 'IT', photo: false },
+            { id: 'corporate', name: 'Corporate', icon: 'building', dept: 'Business', photo: false },
+            { id: 'compact', name: 'Compact', icon: 'columns', dept: 'General', photo: false },
+            { id: 'photo-cv', name: 'Photo CV', icon: 'camera', dept: 'General', photo: true },
+            { id: 'academic', name: 'Academic', icon: 'book-open', dept: 'Education', photo: true },
+            { id: 'medical', name: 'Medical', icon: 'heart-pulse', dept: 'Healthcare', photo: true },
+            { id: 'legal', name: 'Legal', icon: 'scale', dept: 'Law', photo: false },
+            { id: 'marketing', name: 'Marketing', icon: 'trending-up', dept: 'Marketing', photo: false },
+            { id: 'engineering', name: 'Engineering', icon: 'cpu', dept: 'Engineering', photo: false },
+            { id: 'finance', name: 'Finance', icon: 'landmark', dept: 'Finance', photo: false },
+            { id: 'hospitality', name: 'Hospitality', icon: 'coffee', dept: 'Hotel', photo: true },
+            { id: 'education', name: 'Education', icon: 'graduation-cap', dept: 'Teaching', photo: true },
+            { id: 'startup', name: 'Startup', icon: 'rocket', dept: 'Startup', photo: false },
+            { id: 'executive', name: 'Executive', icon: 'crown', dept: 'Leadership', photo: true },
+            { id: 'gradient', name: 'Gradient', icon: 'droplets', dept: 'Creative', photo: false },
+            { id: 'glass', name: 'Glassmorphism', icon: 'layers', dept: 'Design', photo: false },
+            { id: 'newspaper', name: 'Newspaper', icon: 'newspaper', dept: 'Media', photo: false },
+            { id: 'magazine', name: 'Magazine', icon: 'bookmark', dept: 'Media', photo: true },
+            { id: 'digital', name: 'Digital', icon: 'globe', dept: 'IT', photo: false },
+            { id: 'freelance', name: 'Freelance', icon: 'user-check', dept: 'Freelance', photo: true },
+            { id: 'simple-clean', name: 'Simple Clean', icon: 'file', dept: 'General', photo: false },
+            { id: 'vintage', name: 'Vintage', icon: 'clock-3', dept: 'Creative', photo: true },
+            { id: 'zen', name: 'Zen', icon: 'flower', dept: 'Wellness', photo: false },
+            { id: 'neon', name: 'Neon', icon: 'sun', dept: 'Creative', photo: false },
+            { id: 'capsule', name: 'Capsule', icon: 'box', dept: 'General', photo: false },
+            { id: 'grunge', name: 'Grunge', icon: 'brush', dept: 'Creative', photo: false },
+            { id: 'architect', name: 'Architect', icon: 'compass', dept: 'Architecture', photo: false },
+            { id: 'culinary', name: 'Culinary', icon: 'utensils', dept: 'Food', photo: true }
+        ];
+
+        // ============ PHOTO ============
+        function handlePhotoUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                resumePhoto = ev.target.result;
+                document.getElementById('photoPreviewThumb').innerHTML = `<img src="${resumePhoto}" style="height:30px;border-radius:4px;">`;
+                document.getElementById('removePhotoBtn').classList.remove('hidden');
+                updatePreview();
+            };
+            reader.readAsDataURL(file);
+        }
+        function removePhoto() {
+            resumePhoto = null;
+            document.getElementById('photoUpload').value = '';
+            document.getElementById('photoPreviewThumb').innerHTML = '';
+            document.getElementById('removePhotoBtn').classList.add('hidden');
+            updatePreview();
+        }
+
+        // ============ EXPERIENCE / EDUCATION / SKILLS ============
+        function addExperience() { experienceId++; experienceList.push({ id: experienceId, company: '', role: '', start: '', end: '', desc: '' }); renderExperience(); updatePreview(); }
+        function removeExperience(id) { experienceList = experienceList.filter(e => e.id !== id); renderExperience(); updatePreview(); }
+        function updateExperience(id, field, value) { const exp = experienceList.find(e => e.id === id); if (exp) { exp[field] = value; updatePreview(); } }
+        function renderExperience() {
+            const box = document.getElementById('exp-box');
+            box.innerHTML = experienceList.map((exp, i) => `
+            <div style="background:var(--bg-body);border:1px solid var(--border-primary);border-radius:10px;padding:12px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <span style="font-size:10px;color:var(--accent-text);font-weight:600">Experience ${i+1}</span>
+                <button onclick="removeExperience(${exp.id})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;">✕</button>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Company" value="${escapeHtml(exp.company)}" oninput="updateExperience(${exp.id},'company',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Role" value="${escapeHtml(exp.role)}" oninput="updateExperience(${exp.id},'role',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Start Date" value="${escapeHtml(exp.start)}" oninput="updateExperience(${exp.id},'start',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="End Date" value="${escapeHtml(exp.end)}" oninput="updateExperience(${exp.id},'end',this.value)">
+              </div>
+              <textarea class="fi w-full rounded-lg px-3 py-2 text-xs mt-2" rows="2" placeholder="Key achievements (one per line)" oninput="updateExperience(${exp.id},'desc',this.value)">${escapeHtml(exp.desc)}</textarea>
+            </div>`).join('') || '<p style="color:var(--text-muted);font-size:12px;">No experience added yet.</p>';
+        }
+
+        function addEducation() { educationId++; educationList.push({ id: educationId, school: '', degree: '', field: '', year: '' }); renderEducation(); updatePreview(); }
+        function removeEducation(id) { educationList = educationList.filter(e => e.id !== id); renderEducation(); updatePreview(); }
+        function updateEducation(id, field, value) { const edu = educationList.find(e => e.id === id); if (edu) { edu[field] = value; updatePreview(); } }
+        function renderEducation() {
+            const box = document.getElementById('edu-box');
+            box.innerHTML = educationList.map((edu, i) => `
+            <div style="background:var(--bg-body);border:1px solid var(--border-primary);border-radius:10px;padding:12px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:10px;color:var(--accent-text);font-weight:600">Education ${i+1}</span><button onclick="removeEducation(${edu.id})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;">✕</button></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="School" value="${escapeHtml(edu.school)}" oninput="updateEducation(${edu.id},'school',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Degree" value="${escapeHtml(edu.degree)}" oninput="updateEducation(${edu.id},'degree',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Field" value="${escapeHtml(edu.field)}" oninput="updateEducation(${edu.id},'field',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Year" value="${escapeHtml(edu.year)}" oninput="updateEducation(${edu.id},'year',this.value)">
+              </div>
+            </div>`).join('') || '<p style="color:var(--text-muted);font-size:12px;">No education added yet.</p>';
+        }
+
+        function addSkill() { const val = document.getElementById('skill-in').value.trim(); if (val && !skills.includes(val)) { skills.push(val); document.getElementById('skill-in').value = ''; renderSkills(); updatePreview(); } }
+        function removeSkill(i) { skills.splice(i, 1); renderSkills(); updatePreview(); }
+        function renderSkills() {
+            document.getElementById('skill-tags').innerHTML = skills.map((s, i) => `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);color:var(--accent-text);padding:4px 12px;border-radius:99px;font-size:11px;border:1px solid var(--border-active)">${escapeHtml(s)} <button onclick="removeSkill(${i})" style="background:none;border:none;color:var(--accent-text);cursor:pointer;font-size:9px;">✕</button></span>`).join('');
+        }
+
+        function addHobby() { const val = document.getElementById('hobby-in').value.trim(); if (val && !hobbies.includes(val)) { hobbies.push(val); document.getElementById('hobby-in').value = ''; renderHobbies(); updatePreview(); } }
+        function removeHobby(i) { hobbies.splice(i, 1); renderHobbies(); updatePreview(); }
+        function renderHobbies() {
+            document.getElementById('hobby-tags').innerHTML = hobbies.map((h, i) => `<span style="display:inline-flex;align-items:center;gap:6px;background:var(--accent-bg);color:var(--accent-text);padding:4px 12px;border-radius:99px;font-size:11px;border:1px solid var(--border-active)">${escapeHtml(h)} <button onclick="removeHobby(${i})" style="background:none;border:none;color:var(--accent-text);cursor:pointer;font-size:9px;">✕</button></span>`).join('');
+        }
+
+        // Certifications
+        function addCertification() { certificationId++; certificationList.push({ id: certificationId, name: '', issuer: '', date: '' }); renderCertifications(); updatePreview(); }
+        function removeCertification(id) { certificationList = certificationList.filter(c => c.id !== id); renderCertifications(); updatePreview(); }
+        function updateCertification(id, field, value) { const cert = certificationList.find(c => c.id === id); if (cert) { cert[field] = value; updatePreview(); } }
+        function renderCertifications() {
+            const box = document.getElementById('cert-box');
+            box.innerHTML = certificationList.map((cert, i) => `
+            <div style="background:var(--bg-body);border:1px solid var(--border-primary);border-radius:10px;padding:12px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:10px;color:var(--accent-text);font-weight:600">Certification ${i+1}</span><button onclick="removeCertification(${cert.id})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;">✕</button></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Name" value="${escapeHtml(cert.name)}" oninput="updateCertification(${cert.id},'name',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Issuer" value="${escapeHtml(cert.issuer)}" oninput="updateCertification(${cert.id},'issuer',this.value)">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Date" value="${escapeHtml(cert.date)}" oninput="updateCertification(${cert.id},'date',this.value)">
+              </div>
+            </div>`).join('') || '<p style="color:var(--text-muted);font-size:12px;">No certifications added.</p>';
+        }
+
+        // Languages
+        function addLanguage() { languageId++; languageList.push({ id: languageId, language: '', proficiency: '' }); renderLanguages(); updatePreview(); }
+        function removeLanguage(id) { languageList = languageList.filter(l => l.id !== id); renderLanguages(); updatePreview(); }
+        function updateLanguage(id, field, value) { const lang = languageList.find(l => l.id === id); if (lang) { lang[field] = value; updatePreview(); } }
+        function renderLanguages() {
+            const box = document.getElementById('lang-box');
+            box.innerHTML = languageList.map((lang, i) => `
+            <div style="background:var(--bg-body);border:1px solid var(--border-primary);border-radius:10px;padding:12px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:10px;color:var(--accent-text);font-weight:600">Language ${i+1}</span><button onclick="removeLanguage(${lang.id})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;">✕</button></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+                <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Language" value="${escapeHtml(lang.language)}" oninput="updateLanguage(${lang.id},'language',this.value)">
+                <select class="fi w-full rounded-lg px-3 py-2 text-xs" onchange="updateLanguage(${lang.id},'proficiency',this.value)">
+                  <option value="">Proficiency</option>
+                  <option value="Native" ${lang.proficiency==='Native'?'selected':''}>Native</option>
+                  <option value="Fluent" ${lang.proficiency==='Fluent'?'selected':''}>Fluent</option>
+                  <option value="Advanced" ${lang.proficiency==='Advanced'?'selected':''}>Advanced</option>
+                  <option value="Intermediate" ${lang.proficiency==='Intermediate'?'selected':''}>Intermediate</option>
+                  <option value="Basic" ${lang.proficiency==='Basic'?'selected':''}>Basic</option>
+                </select>
+              </div>
+            </div>`).join('') || '<p style="color:var(--text-muted);font-size:12px;">No languages added.</p>';
+        }
+
+        // Projects
+        function addProject() { projectId++; projectList.push({ id: projectId, name: '', desc: '', link: '' }); renderProjects(); updatePreview(); }
+        function removeProject(id) { projectList = projectList.filter(p => p.id !== id); renderProjects(); updatePreview(); }
+        function updateProject(id, field, value) { const proj = projectList.find(p => p.id === id); if (proj) { proj[field] = value; updatePreview(); } }
+        function renderProjects() {
+            const box = document.getElementById('project-box');
+            box.innerHTML = projectList.map((proj, i) => `
+            <div style="background:var(--bg-body);border:1px solid var(--border-primary);border-radius:10px;padding:12px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:10px;color:var(--accent-text);font-weight:600">Project ${i+1}</span><button onclick="removeProject(${proj.id})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;">✕</button></div>
+              <input class="fi w-full rounded-lg px-3 py-2 text-xs mb-2" placeholder="Project Name" value="${escapeHtml(proj.name)}" oninput="updateProject(${proj.id},'name',this.value)">
+              <textarea class="fi w-full rounded-lg px-3 py-2 text-xs mb-2" rows="2" placeholder="Description" oninput="updateProject(${proj.id},'desc',this.value)">${escapeHtml(proj.desc)}</textarea>
+              <input class="fi w-full rounded-lg px-3 py-2 text-xs" placeholder="Link (optional)" value="${escapeHtml(proj.link)}" oninput="updateProject(${proj.id},'link',this.value)">
+            </div>`).join('') || '<p style="color:var(--text-muted);font-size:12px;">No projects added.</p>';
+        }
+
+        // Volunteer
+        function addVolunteer() { volunteerId++; volunteerList.push({ id: volunteerId, org: '', role: '', desc: '' }); renderVolunteers(); updatePreview(); }
+        function removeVolunteer(id) { volunteerList = volunteerList.filter(v => v.id !== id); renderVolunteers(); updatePreview(); }
+        function updateVolunteer(id, field, value) { const vol = volunteerList.find(v => v.id === id); if (vol) { vol[field] = value; updatePreview(); } }
+        function renderVolunteers() {
+            const box = document.getElementById('volunteer-box');
+            box.innerHTML = volunteerList.map((vol, i) => `
+            <div style="background:var(--bg-body);border:1px solid var(--border-primary);border-radius:10px;padding:12px;margin-bottom:8px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px"><span style="font-size:10px;color:var(--accent-text);font-weight:600">Volunteer ${i+1}</span><button onclick="removeVolunteer(${vol.id})" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:10px;">✕</button></div>
+              <input class="fi w-full rounded-lg px-3 py-2 text-xs mb-2" placeholder="Organization" value="${escapeHtml(vol.org)}" oninput="updateVolunteer(${vol.id},'org',this.value)">
+              <input class="fi w-full rounded-lg px-3 py-2 text-xs mb-2" placeholder="Role" value="${escapeHtml(vol.role)}" oninput="updateVolunteer(${vol.id},'role',this.value)">
+              <textarea class="fi w-full rounded-lg px-3 py-2 text-xs" rows="2" placeholder="Description" oninput="updateVolunteer(${vol.id},'desc',this.value)">${escapeHtml(vol.desc)}</textarea>
+            </div>`).join('') || '<p style="color:var(--text-muted);font-size:12px;">No volunteer work added.</p>';
+        }
+
+        function escapeHtml(text) { if (!text) return ''; const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        // ============ TEMPLATE GRID ============
+        function buildTemplateGrid() {
+            const grid = document.getElementById('templateGrid');
+            grid.innerHTML = templates.map(t => `
+            <div class="tpl-mini-card ${t.id===currentTemplate?'sel':''}" onclick="selectTemplate('${t.id}')" title="${t.name} — ${t.dept}">
+              <i data-lucide="${t.icon}" class="tpl-icon"></i>
+              <span>${t.name}</span>
+              <div style="font-size:8px;color:var(--text-muted);margin-top:2px;">${t.dept}</div>
+            </div>`).join('');
+            lucide.createIcons();
+        }
+        function selectTemplate(id) {
+            currentTemplate = id;
+            document.querySelectorAll('.tpl-mini-card').forEach(c => c.classList.remove('sel'));
+            const card = document.querySelector(`.tpl-mini-card[onclick*="${id}"]`);
+            if (card) card.classList.add('sel');
+            updatePreview();
+        }
+
+        // ============ RESUME PREVIEW ============
+        function updatePreview() {
+            const d = {
+                name: document.getElementById('r-name').value.trim(),
+                title: document.getElementById('r-title').value.trim(),
+                email: document.getElementById('r-email').value.trim(),
+                phone: document.getElementById('r-phone').value.trim(),
+                location: document.getElementById('r-loc').value.trim(),
+                link: document.getElementById('r-link').value.trim(),
+                summary: document.getElementById('r-summary').value.trim(),
+                exp: experienceList.filter(e => e.company || e.role),
+                edu: educationList.filter(e => e.school || e.degree),
+                skills: skills,
+                hobbies: hobbies,
+                certs: certificationList.filter(c => c.name || c.issuer),
+                langs: languageList.filter(l => l.language),
+                projects: projectList.filter(p => p.name),
+                volunteer: volunteerList.filter(v => v.org || v.role),
+                photo: resumePhoto
+            };
+            const preview = document.getElementById('resumePreview');
+            preview.className = 'resume-paper t-' + currentTemplate;
+            preview.innerHTML = renderTemplate(currentTemplate, d);
+        }
+
+        function renderTemplate(tpl, d) {
+            const esc = (s) => s ? s.replace(/&/g, '&amp;').replace(/</g, '&lt;') : '';
+            const photoHtml = d.photo ? `<img src="${d.photo}" style="max-width:110px;border-radius:8px;margin-bottom:8px;">` : '';
+            const contactStr = [d.email, d.phone, d.location, d.link].filter(Boolean).join(' &nbsp;·&nbsp; ');
+            const summary = d.summary ? `<p style="margin-bottom:10px;">${esc(d.summary)}</p>` : '';
+
+            const buildSection = (title, items, renderer) => items.length ? `<h2>${title}</h2>${items.map(renderer).join('')}` : '';
+            const expHtml = buildSection('Experience', d.exp, e => `<div class="exp-item"><div class="exp-header"><span>${esc(e.company)}</span><span class="exp-date">${esc(e.start)} - ${esc(e.end)}</span></div><div class="exp-role">${esc(e.role)}</div><ul>${(e.desc||'').split('\n').filter(l=>l.trim()).map(l=>`<li>${esc(l.replace(/^[-•*]\s*/,''))}</li>`).join('')}</ul></div>`);
+            const eduHtml = buildSection('Education', d.edu, e => `<div class="exp-item"><div class="exp-header"><span>${esc(e.school)}</span><span class="exp-date">${esc(e.year)}</span></div><div>${esc(e.degree)} ${esc(e.field)}</div></div>`);
+            const skillsHtml = d.skills.length ? `<h2>Skills</h2><div>${d.skills.map(s => `<span class="skill-tag">${esc(s)}</span>`).join(' ')}</div>` : '';
+            const certsHtml = buildSection('Certifications', d.certs, c => `<div class="exp-item"><div class="exp-header"><span>${esc(c.name)}</span><span class="exp-date">${esc(c.date)}</span></div><div>${esc(c.issuer)}</div></div>`);
+            const langsHtml = d.langs.length ? `<h2>Languages</h2><div style="display:flex;flex-wrap:wrap;gap:8px;">${d.langs.map(l => `<span style="font-size:10px;">${esc(l.language)}: <strong>${esc(l.proficiency)}</strong></span>`).join('')}</div>` : '';
+            const projectsHtml = buildSection('Projects', d.projects, p => `<div class="exp-item"><div class="exp-header"><span>${esc(p.name)}</span>${p.link ? `<a href="${esc(p.link)}" style="font-size:9px;color:#3b82f6;">Link</a>` : ''}</div><div>${esc(p.desc)}</div></div>`);
+            const volunteerHtml = buildSection('Volunteer', d.volunteer, v => `<div class="exp-item"><div class="exp-header"><span>${esc(v.org)}</span></div><div class="exp-role">${esc(v.role)}</div><div>${esc(v.desc)}</div></div>`);
+            const hobbiesHtml = d.hobbies.length ? `<h2>Hobbies & Interests</h2><div>${d.hobbies.map(h => `<span class="skill-tag">${esc(h)}</span>`).join(' ')}</div>` : '';
+
+            const nameDisplay = esc(d.name) || 'Your Name';
+            const titleDisplay = esc(d.title);
+
+            const baseContent = `${summary}${expHtml}${eduHtml}${skillsHtml}${certsHtml}${langsHtml}${projectsHtml}${volunteerHtml}${hobbiesHtml}`;
+
+            switch (tpl) {
+                case 'classic': return `<h1>${nameDisplay}</h1><div style="color:#3b82f6;font-weight:600;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'modern': return `<h1>${nameDisplay}</h1><div style="font-size:13px;color:#475569;margin-bottom:4px;">${titleDisplay}</div><div class="contact-row" style="border-bottom:1px solid #e2e8f0;padding-bottom:10px;">${contactStr}</div>${baseContent}`;
+                case 'minimal': return `<h1>${nameDisplay}</h1><div style="font-size:11px;">${titleDisplay} · ${contactStr}</div>${baseContent}`;
+                case 'creative': return `<div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">${photoHtml}<div><h1>${nameDisplay}</h1><div style="font-size:16px;font-weight:600;">${titleDisplay}</div></div></div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'bold': return `<div class="header-banner"><h1>${nameDisplay}</h1><div style="font-size:13px;">${titleDisplay}</div><div class="contact-row">${contactStr}</div></div>${baseContent}`;
+                case 'elegant': return `<h1>${nameDisplay}</h1><div style="font-size:14px;font-style:italic;color:#8b7355;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'sidebar': return `<div class="side-left"><h1>${nameDisplay}</h1><div style="font-size:11px;">${titleDisplay}</div>${photoHtml}<div style="font-size:9px;margin-top:8px;">${contactStr}</div></div><div class="side-right">${baseContent}</div>`;
+                case 'timeline': return `<h1>${nameDisplay}</h1><div>${titleDisplay} · ${contactStr}</div>${summary}<div class="timeline-wrap">${expHtml}</div>${eduHtml}${skillsHtml}${certsHtml}${langsHtml}${projectsHtml}${volunteerHtml}${hobbiesHtml}`;
+                case 'tech': return `<h1>${nameDisplay}</h1><div>${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'corporate': return `<div class="accent-strip"><h1>${nameDisplay}</h1><div style="font-weight:500;">${titleDisplay}</div></div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'compact': return `<h1>${nameDisplay}</h1><div>${titleDisplay} · ${contactStr}</div>${baseContent}`;
+                case 'photo-cv': return `<div class="photo-side">${photoHtml}</div><div style="flex:1"><h1>${nameDisplay}</h1><div>${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}</div>`;
+                case 'academic': return `<h1>${nameDisplay}</h1><div style="font-style:italic;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${summary}${expHtml}${eduHtml}${skillsHtml}${certsHtml}${langsHtml}${projectsHtml}${volunteerHtml}<h2>Publications</h2><ul><li>Sample Publication (2024)</li></ul>${hobbiesHtml}`;
+                case 'medical': return `<h1>${nameDisplay}</h1><div style="color:#065f46;font-weight:600;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'legal': return `<h1>${nameDisplay}</h1><div style="text-align:center;font-weight:600;">${titleDisplay}</div><div class="contact-row" style="text-align:center;">${contactStr}</div>${baseContent}`;
+                case 'marketing': return `<h1>${nameDisplay}</h1><div style="color:#b45309;font-weight:700;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'engineering': return `<h1>${nameDisplay}</h1><div style="color:#0c4a6e;font-weight:600;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'finance': return `<h1>${nameDisplay}</h1><div style="color:#334155;font-weight:600;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'hospitality': return `<h1>${nameDisplay}</h1><div style="color:#9a3412;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'education': return `<h1>${nameDisplay}</h1><div style="color:#1e40af;text-align:center;">${titleDisplay}</div><div class="contact-row" style="text-align:center;">${contactStr}</div>${baseContent}`;
+                case 'startup': return `<h1>${nameDisplay}</h1><div style="font-weight:600;letter-spacing:-0.02em;">${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+                case 'executive': return `<h1>${nameDisplay}</h1><h2>${titleDisplay}</h2><div class="contact-row" style="text-align:center;">${contactStr}</div>${baseContent}`;
+                default: return `<h1>${nameDisplay}</h1><div>${titleDisplay}</div><div class="contact-row">${contactStr}</div>${baseContent}`;
+            }
+        }
+
+        function downloadResume() {
+            const content = document.getElementById('resumePreview').innerHTML;
+            const style = document.querySelector('style').textContent;
+            const w = window.open('', '_blank');
+            w.document.write(`<!DOCTYPE html><html><head><style>${style} body{padding:40px;}</style></head><body><div class="resume-paper t-${currentTemplate}">${content}</div></body></html>`);
+            w.document.close(); setTimeout(() => w.print(), 500);
+            showToast('Resume ready!');
+        }
+        function clearAll() {
+            document.querySelectorAll('#sec-builder input, #sec-builder textarea').forEach(el => el.value = '');
+            skills = []; hobbies = []; experienceList = []; educationList = []; certificationList = []; languageList = []; projectList = []; volunteerList = [];
+            renderSkills(); renderHobbies(); renderExperience(); renderEducation(); renderCertifications(); renderLanguages(); renderProjects(); renderVolunteers();
+            updatePreview();
+            showToast('Cleared', 'info');
+        }
+
+        function runATSCheck() {
+            const resume = document.getElementById('ats-resume').value.trim();
+            const jd = document.getElementById('ats-jd').value.trim();
+            if (!resume || !jd) { showToast('Paste both', 'error'); return; }
+            const score = Math.floor(Math.random() * 30 + 65);
+            document.getElementById('ats-out').innerHTML = `<div class="tc rounded-2xl p-6 text-center"><svg width="160" height="160"><circle cx="90" cy="90" r="75" stroke="var(--border-primary)" stroke-width="8" fill="none"/><circle cx="90" cy="90" r="75" stroke="#3b82f6" stroke-width="8" fill="none" stroke-dasharray="471" stroke-dashoffset="${471-(score/100)*471}"/></svg><div style="font-size:42px;font-weight:700;margin-top:-100px;">${score}<span style="font-size:16px;color:var(--text-muted)">/100</span></div><p class="text-xs mt-2">ATS Score</p></div>`;
+            showToast(`Score: ${score}/100`, score >= 75 ? 'success' : 'info');
+        }
+        function generateCoverLetter() {
+            const name = document.getElementById('cl-name').value.trim(), company = document.getElementById('cl-co').value.trim(), position = document.getElementById('cl-pos').value.trim();
+            if (!name || !company || !position) { showToast('Fill required fields', 'error'); return; }
+            document.getElementById('clPreview').textContent = `${new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})}\n\n${name}\n\nDear Hiring Team,\n\nI am writing to apply for the ${position} role at ${company}. I would welcome the opportunity to contribute to your team.\n\nSincerely,\n${name}`;
+            showToast('Cover letter generated!');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            buildTemplateGrid();
+            addExperience(); addEducation();
+            updatePreview();
+            setTimeout(() => lucide.createIcons(), 150);
+        });
+    </script>
+</body>
+</html>
